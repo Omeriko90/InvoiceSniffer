@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum ExtractionMethod {
+  HEURISTIC
+  AI
+  MANUAL
+}
+
+enum InvoiceStatus {
+  DETECTED
+  REVIEWED
+  MATCHED
+  UNMATCHED
+}
+
+enum AliasType {
+  POSITIVE
+  NEGATIVE
+  IGNORE
+}
+
+enum AliasSource {
+  USER
+  SYSTEM_LEARNED
+}
+
+enum AnomalyType {
+  AMOUNT_HIGH
+  AMOUNT_LOW
+  SPEND_SPIKE
+  MISSING_RECURRING
+  NEW_VENDOR
+}
+
+enum AnomalySeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ExportStatus {
+  QUEUED
+  BUILDING
+  READY
+  EXPIRED
+  FAILED
+}
+
+// ─── Models ───────────────────────────────────────────────
+
+model Organization {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  gmailConnected Boolean   @default(false)
+  gmailSyncToken String?
+  lastSyncedAt   DateTime?
+  planTier       PlanTier  @default(FREE)
+  createdAt      DateTime  @default(now())
+
+  users           User[]
+  gmailCredential GmailCredential?
+  invoices        Invoice[]
+  vendorAliases   VendorAlias[]
+  vendorStats     VendorStats[]
+  anomalyLogs     AnomalyLog[]
+  exportJobs      ExportJob[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String?
+  image          String?
+  googleId       String?  @unique
+  role           UserRole @default(MEMBER)
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accounts     Account[]
+  sessions     Session[]
+}
+
+// ─── NextAuth tables ──────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Gmail ────────────────────────────────────────────────
+
+model GmailCredential {
+  id             String    @id @default(cuid())
+  organizationId String    @unique
+  email          String
+  accessToken    String    // AES-256-GCM encrypted
+  refreshToken   String    // AES-256-GCM encrypted
+  expiresAt      DateTime
+  scopes         String[]
+  watchExpiry    DateTime? // Pub/Sub watch expiry — renew every 6 days
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Invoices ─────────────────────────────────────────────
+
+model Invoice {
+  id                   String           @id @default(cuid())
+  organizationId       String
+  gmailMessageId       String
+  gmailThreadId        String
+  gmailLink            String
+  senderEmail          String
+  senderName           String?
+  subject              String
+  emailDate            DateTime
+  vendorName           String?
+  vendorNormalized     String?
+  invoiceNumber        String?
+  invoiceDate          DateTime?
+  dueDate              DateTime?
+  totalAmount          Decimal          @db.Decimal(12, 2)
+  currency             String           @default("USD")
+  taxAmount            Decimal?         @db.Decimal(12, 2)
+  lineItems            Json             @default("[]")
+  attachmentMeta       Json             @default("[]")
+  extractionMethod     ExtractionMethod @default(HEURISTIC)
+  extractionConfidence Float            @default(0)
+  status               InvoiceStatus    @default(DETECTED)
+  anomalyFlag          Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  anomalyLogs  AnomalyLog[]
+
+  @@unique([organizationId, gmailMessageId])
+  @@index([organizationId, emailDate])
+  @@index([organizationId, vendorNormalized])
+}
+
+// ─── Learning ─────────────────────────────────────────────
+
+model VendorAlias {
+  id              String      @id @default(cuid())
+  organizationId  String
+  merchantPattern String
+  vendorName      String
+  senderEmail     String?
+  type            AliasType
+  source          AliasSource @default(USER)
+  useCount        Int         @default(0)
+  active          Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, merchantPattern])
+}
+
+// ─── Analytics ────────────────────────────────────────────
+
+model VendorStats {
+  id                String   @id @default(cuid())
+  organizationId    String
+  vendorName        String
+  invoiceCount      Int      @default(0)
+  avgAmount         Decimal  @db.Decimal(12, 2)
+  medianAmount      Decimal  @db.Decimal(12, 2)
+  stdDevAmount      Decimal  @db.Decimal(12, 2) @default(0)
+  minAmount         Decimal  @db.Decimal(12, 2)
+  maxAmount         Decimal  @db.Decimal(12, 2)
+  typicalDayOfMonth Int?
+  isRecurring       Boolean  @default(false)
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, vendorName])
+}
+
+model AnomalyLog {
+  id             String          @id @default(cuid())
+  organizationId String
+  invoiceId      String?
+  vendorName     String
+  type           AnomalyType
+  severity       AnomalySeverity
+  details        Json
+  acknowledged   Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, acknowledged])
+}
+
+// ─── Exports ──────────────────────────────────────────────
+
+model ExportJob {
+  id             String       @id @default(cuid())
+  organizationId String
+  dateRangeStart DateTime
+  dateRangeEnd   DateTime
+  status         ExportStatus @default(QUEUED)
+  r2Key          String?
+  downloadUrl    String?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
