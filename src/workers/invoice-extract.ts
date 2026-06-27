@@ -1,5 +1,4 @@
 import { Worker, Job } from "bullmq"
-import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
 import { anomalyQueue, type ExtractionJobData, type AnomalyJobData } from "@/lib/queues"
@@ -78,8 +77,8 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       totalAmount: extracted.totalAmount ?? 0,
       currency: extracted.currency,
       taxAmount: extracted.taxAmount,
-      lineItems: extracted.lineItems as Prisma.InputJsonValue,
-      attachmentMeta: attachmentMeta as unknown as Prisma.InputJsonValue,
+      lineItems: extracted.lineItems as never,
+      attachmentMeta: attachmentMeta as never,
       extractionMethod: "HEURISTIC",
       extractionConfidence: extracted.confidence,
     },
@@ -92,8 +91,8 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       totalAmount: extracted.totalAmount ?? 0,
       currency: extracted.currency,
       taxAmount: extracted.taxAmount,
-      lineItems: extracted.lineItems as Prisma.InputJsonValue,
-      attachmentMeta: attachmentMeta as unknown as Prisma.InputJsonValue,
+      lineItems: extracted.lineItems as never,
+      attachmentMeta: attachmentMeta as never,
       extractionConfidence: extracted.confidence,
     },
   })
