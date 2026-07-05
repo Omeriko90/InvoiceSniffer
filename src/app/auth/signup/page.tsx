@@ -1,5 +1,5 @@
 import { Mail, Check } from "lucide-react"
-import { SignInForm } from "./SignInForm"
+import { SignUpForm } from "./SignUpForm"
 
 const FEATURES = [
   "Auto-detects invoices & receipts from your inbox",
@@ -7,7 +7,7 @@ const FEATURES = [
   "Never stores your invoice files",
 ]
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
@@ -22,14 +22,14 @@ export default function SignInPage() {
             <span style={{ fontSize: "17px", fontWeight: 800, color: "#1E293B", letterSpacing: "-0.01em" }}>Reconcile</span>
           </div>
 
-          <h1 style={{ fontSize: "27px", fontWeight: 800, letterSpacing: "-0.02em", color: "#1E293B", margin: "0 0 6px" }}>Welcome back</h1>
-          <p style={{ fontSize: "14px", color: "#64748B", margin: "0 0 26px" }}>Sign in to your workspace.</p>
+          <h1 style={{ fontSize: "27px", fontWeight: 800, letterSpacing: "-0.02em", color: "#1E293B", margin: "0 0 6px" }}>Create your account</h1>
+          <p style={{ fontSize: "14px", color: "#64748B", margin: "0 0 26px" }}>Start reconciling invoices in minutes.</p>
 
-          <SignInForm />
+          <SignUpForm />
 
           <p className="text-[13.5px] text-[#64748B] text-center mt-[22px]">
-            New to Reconcile?{" "}
-            <a href="/auth/signup" className="text-primary font-[700] hover:opacity-80">Create an account</a>
+            Already have an account?{" "}
+            <a href="/auth/signin" className="text-primary font-[700] hover:opacity-80">Sign in</a>
           </p>
         </div>
       </div>
