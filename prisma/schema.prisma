@@ -66,6 +66,13 @@ enum ExportStatus {
   FAILED
 }
 
+enum TransactionStatus {
+  UNMATCHED
+  POSSIBLE
+  MATCHED
+  NO_INVOICE
+}
+
 // ─── Models ───────────────────────────────────────────────
 
 model Organization {
@@ -85,6 +92,8 @@ model Organization {
   vendorStats     VendorStats[]
   anomalyLogs     AnomalyLog[]
   exportJobs      ExportJob[]
+  transactions    Transaction[]
+  csvMappings     CsvMapping[]
 }
 
 model User {
@@ -187,8 +196,9 @@ model Invoice {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   anomalyLogs  AnomalyLog[]
+  transactions Transaction[]
 
   @@unique([organizationId, gmailMessageId])
   @@index([organizationId, emailDate])
@@ -267,4 +277,40 @@ model ExportJob {
   createdAt      DateTime     @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Transactions (CSV imports) ───────────────────────────
+
+model Transaction {
+  id               String            @id @default(cuid())
+  organizationId   String
+  date             DateTime
+  merchant         String
+  amount           Decimal           @db.Decimal(12, 2)
+  currency         String            @default("USD")
+  status           TransactionStatus @default(UNMATCHED)
+  matchedInvoiceId String?
+  sourceFile       String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  matchedInvoice Invoice?     @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, date])
+  @@index([organizationId, status])
+}
+
+model CsvMapping {
+  id             String   @id @default(cuid())
+  organizationId String
+  label          String   // e.g. "Amex" — shown as "Saved mapping for Amex"
+  headersKey     String   // normalized CSV header signature used for auto-apply
+  mapping        Json     // { date, merchant, amount, currency? } → CSV column names
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, headersKey])
 }

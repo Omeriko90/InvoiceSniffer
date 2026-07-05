@@ -1,7 +1,5 @@
-export default function Page() {
-  return (
-    <div className="flex items-center justify-center h-64 text-text-secondary text-small">
-      Coming soon
-    </div>
-  )
+import { ImportWizard } from "@/components/import/ImportWizard"
+
+export default function ImportPage() {
+  return <ImportWizard />
 }
