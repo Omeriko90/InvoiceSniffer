@@ -1,6 +1,46 @@
 import type { Config } from "tailwindcss"
 import animate from "tailwindcss-animate"
 
+// ─── Raw palette ───────────────────────────────────────────────────────────
+// Change values here — they propagate everywhere automatically.
+
+const palette = {
+  // Brand
+  blue:   "#7AA7FF",
+  purple: "#A78BFA",
+  teal:   "#22D3EE",
+  cyan:   "#88D0FF",
+
+  // Status
+  success: "#34D399",
+  warning: "#FBBF24",
+  danger:  "#FB7171",
+  info:    "#60A5FA",
+
+  // Status backgrounds
+  successBg: "#ECFDF5",
+  warningBg: "#FFFBEB",
+  dangerBg:  "#FEF2F2",
+  infoBg:    "#EFF6FF",
+  purpleBg:  "#F5F3FF",
+
+  // Surfaces
+  background: "#FAFBFF",
+  surface:    "#FFFFFF",
+  hover:      "#F1F3F8",
+  border:     "#E8EDFA",
+
+  // Text
+  heading:   "#1E293B",
+  bodyDark:  "#334155",
+  bodyMid:   "#64748B",
+  muted:     "#94A3B8",
+  subtle:    "#475569",
+  faint:     "#CBD5E1",
+} as const
+
+// ─── Tailwind config ───────────────────────────────────────────────────────
+
 const config: Config = {
   darkMode: ["class", "[data-theme='dark']"],
   content: [
@@ -16,50 +56,50 @@ const config: Config = {
       },
 
       colors: {
-        background:  "#FAFBFF",
-        surface:     "#FFFFFF",
-        hover:       "#F1F3F8",
-        border:      "#E8EDFA",
+        // ── Surfaces ──────────────────────────────────────────────
+        background: palette.background,
+        surface:    palette.surface,
+        hover:      palette.hover,
+        border:     palette.border,
 
-        primary:  "#7AA7FF",
-        purple:   "#A78BFA",
-        teal:     "#22D3EE",
+        // ── Brand ─────────────────────────────────────────────────
+        primary: palette.blue,
+        purple:  palette.purple,
+        teal:    palette.teal,
 
-        success:  "#34D399",
-        warning:  "#FBBF24",
-        danger:   "#FB7171",
-        info:     "#60A5FA",
+        // ── Status ────────────────────────────────────────────────
+        success: palette.success,
+        warning: palette.warning,
+        danger:  palette.danger,
+        info:    palette.info,
 
-        "success-bg": "#ECFDF5",
-        "warning-bg": "#FFFBEB",
-        "danger-bg":  "#FEF2F2",
-        "info-bg":    "#EFF6FF",
-        "purple-bg":  "#F5F3FF",
+        // ── Status backgrounds ────────────────────────────────────
+        "success-bg": palette.successBg,
+        "warning-bg": palette.warningBg,
+        "danger-bg":  palette.dangerBg,
+        "info-bg":    palette.infoBg,
+        "purple-bg":  palette.purpleBg,
 
-        "text-primary":   "#334155",
-        "text-secondary": "#64748B",
+        // ── Text ──────────────────────────────────────────────────
+        heading:          palette.heading,
+        "text-primary":   palette.bodyDark,
+        "text-secondary": palette.bodyMid,
+        muted:            palette.muted,
+        subtle:           palette.subtle,
+        faint:            palette.faint,
 
-        // Supporting greys from spec
-        heading:  "#1E293B",
-        muted:    "#94A3B8",
-        subtle:   "#475569",
-        faint:    "#CBD5E1",
-
-        // shadcn semantic aliases
-        foreground:          "#334155",
-        "card-foreground":   "#334155",
-        "muted-foreground":  "#64748B",
-        "primary-foreground":"#FFFFFF",
-        destructive:         "#FB7171",
-      },
-
-      fontSize: {
-        h1:      ["32px", { lineHeight: "40px", fontWeight: "700", letterSpacing: "-0.02em" }],
-        h2:      ["24px", { lineHeight: "32px", fontWeight: "600", letterSpacing: "-0.01em" }],
-        h3:      ["20px", { lineHeight: "28px", fontWeight: "600", letterSpacing: "0" }],
-        body:    ["16px", { lineHeight: "24px", fontWeight: "400" }],
-        small:   ["14px", { lineHeight: "20px", fontWeight: "400" }],
-        caption: ["12px", { lineHeight: "16px", fontWeight: "500", letterSpacing: "0.02em" }],
+        // ── shadcn tokens (mapped from palette, do not change keys) ─
+        foreground:             palette.bodyDark,
+        "card-foreground":      palette.bodyDark,
+        "primary-foreground":   palette.surface,
+        secondary:              palette.hover,
+        "secondary-foreground": palette.bodyDark,
+        "muted-foreground":     palette.bodyMid,
+        accent:                 palette.hover,
+        "accent-foreground":    palette.bodyDark,
+        destructive:            palette.danger,
+        input:                  palette.border,
+        ring:                   palette.blue,
       },
 
       borderRadius: {
@@ -69,18 +109,18 @@ const config: Config = {
         full:    "9999px",
       },
 
-      backgroundImage: {
-        "gradient-sky":      "linear-gradient(135deg, #7AA7FF, #88D0FF)",
-        "gradient-lavender": "linear-gradient(135deg, #A78BFA, #DCCAFF)",
-        "gradient-mint":     "linear-gradient(135deg, #34D399, #A7F3D0)",
-        "gradient-auth":     "linear-gradient(150deg, #7AA7FF 0%, #A78BFA 60%, #88D0FF 100%)",
-        "gradient-logo":     "linear-gradient(135deg, #7AA7FF, #A78BFA)",
-      },
-
       boxShadow: {
         primary: "0 6px 16px rgba(122,167,255,.35)",
         card:    "0 12px 40px rgba(80,110,180,.10)",
         logo:    "0 6px 18px rgba(122,167,255,.4)",
+      },
+
+      backgroundImage: {
+        "gradient-sky":      `linear-gradient(135deg, ${palette.blue}, ${palette.cyan})`,
+        "gradient-lavender": `linear-gradient(135deg, ${palette.purple}, #DCCAFF)`,
+        "gradient-mint":     `linear-gradient(135deg, ${palette.success}, #A7F3D0)`,
+        "gradient-auth":     `linear-gradient(150deg, ${palette.blue} 0%, ${palette.purple} 60%, ${palette.cyan} 100%)`,
+        "gradient-logo":     `linear-gradient(135deg, ${palette.blue}, ${palette.purple})`,
       },
     },
   },
