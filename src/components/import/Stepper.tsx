@@ -18,7 +18,7 @@ export function Stepper({ current }: { current: number }) {
                   "w-[26px] h-[26px] rounded-full flex items-center justify-center text-[13px] font-[600] shrink-0",
                   done && "bg-success text-white",
                   active && "bg-primary text-white",
-                  !done && !active && "bg-hover text-muted"
+                  !done && !active && "bg-hover text-dim"
                 )}
               >
                 {done ? <Check size={14} strokeWidth={2.5} /> : stepNo}
@@ -26,7 +26,7 @@ export function Stepper({ current }: { current: number }) {
               <span
                 className={cn(
                   "text-[14px]",
-                  active || done ? "font-[600] text-heading" : "font-[500] text-muted"
+                  active || done ? "font-[600] text-heading" : "font-[500] text-dim"
                 )}
               >
                 {label}

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { QueryProvider } from "@/components/shared/QueryProvider"
+import { Toaster } from "@/components/ui/sonner"
 
 const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={cn("h-full", sans.variable, mono.variable)}>
       <body className="min-h-full bg-background text-foreground antialiased">
         <QueryProvider>{children}</QueryProvider>
+        <Toaster />
       </body>
     </html>
   )
