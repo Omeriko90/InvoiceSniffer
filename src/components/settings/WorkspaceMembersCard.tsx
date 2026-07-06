@@ -1,5 +1,8 @@
 "use client";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Member, MemberRole } from "@/api-types/settings";
 
@@ -41,14 +44,16 @@ export function WorkspaceMembersCard({ members }: WorkspaceMembersCardProps) {
             const role = ROLE_META[member.role];
             return (
               <div key={member.id} className="flex items-center gap-3">
-                <div
-                  className="w-[38px] h-[38px] rounded-full flex items-center justify-center text-[12.5px] font-[700] text-white shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, #A78BFA, #7AA7FF)",
-                  }}
-                >
-                  {initials(member)}
-                </div>
+                <Avatar className="size-[38px]">
+                  <AvatarFallback
+                    className="text-[12.5px] font-[700] text-white"
+                    style={{
+                      background: "linear-gradient(135deg, #A78BFA, #7AA7FF)",
+                    }}
+                  >
+                    {initials(member)}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-[700] text-heading truncate leading-tight">
                     {member.name ?? member.email}
@@ -57,24 +62,25 @@ export function WorkspaceMembersCard({ members }: WorkspaceMembersCardProps) {
                     {member.email}
                   </p>
                 </div>
-                <span
-                  className="shrink-0 text-[12px] font-[700] px-[11px] py-[3px] rounded-full"
+                <Badge
+                  className="shrink-0 h-auto rounded-full text-[12px] font-[700] px-[11px] py-[3px]"
                   style={{ background: role.bg, color: role.color }}
                 >
                   {role.label}
-                </span>
+                </Badge>
               </div>
             );
           })}
         </div>
         <div className="mt-auto pt-[18px] flex w-full">
-          <button
+          <Button
+            variant="outline"
             disabled
             title="Member invites are coming soon"
-            className="w-full text-[13.5px] font-[600] text-text-secondary border border-dashed border-[#CBD5E1] rounded-[11px] py-[11px] hover:bg-hover transition-colors disabled:cursor-not-allowed"
+            className="w-full h-auto text-[13.5px] font-[600] text-text-secondary border-dashed border-[#CBD5E1] rounded-[11px] py-[11px] bg-transparent hover:bg-hover"
           >
             + Invite member
-          </button>
+          </Button>
         </div>
       </CardContent>
     </Card>

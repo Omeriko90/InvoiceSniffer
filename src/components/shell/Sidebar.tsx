@@ -11,6 +11,8 @@ import {
   Download,
   Settings,
 } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 const WORKSPACE_NAV = [
@@ -50,7 +52,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
           </div>
           <div>
             <p className="text-[15px] font-[800] text-heading leading-none">Reconcile</p>
-            <p className="text-[11px] text-muted mt-0.5 leading-none">{orgName}</p>
+            <p className="text-[11px] text-dim mt-0.5 leading-none">{orgName}</p>
           </div>
         </div>
       </div>
@@ -71,15 +73,17 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
         />
 
         <div className="mt-1 flex items-center gap-2.5 px-2.5 py-2 rounded-[11px] bg-hover">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[12px] font-[700] text-white shrink-0"
-            style={{ background: "linear-gradient(135deg, #7AA7FF, #A78BFA)" }}
-          >
-            {userInitials}
-          </div>
+          <Avatar className="size-8 rounded-lg after:rounded-lg">
+            <AvatarFallback
+              className="rounded-lg text-[12px] font-[700] text-white"
+              style={{ background: "linear-gradient(135deg, #7AA7FF, #A78BFA)" }}
+            >
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
           <div className="min-w-0">
             <p className="text-[12px] font-[600] text-heading truncate">{userName ?? "User"}</p>
-            <p className="text-[11px] text-muted truncate">{userEmail ?? ""}</p>
+            <p className="text-[11px] text-dim truncate">{userEmail ?? ""}</p>
           </div>
         </div>
       </div>
@@ -94,7 +98,7 @@ function NavGroup({ label, items, pathname }: {
 }) {
   return (
     <div>
-      <p className="text-[11px] font-[700] text-muted uppercase tracking-[0.05em] mb-1 px-2.5">
+      <p className="text-[11px] font-[700] text-dim uppercase tracking-[0.05em] mb-1 px-2.5">
         {label}
       </p>
       <div className="flex flex-col gap-0.5">
@@ -133,9 +137,9 @@ function NavItem({ label, href, icon: Icon, active, badge }: {
       <Icon size={18} strokeWidth={2} className="shrink-0" />
       <span className="flex-1">{label}</span>
       {badge !== undefined && (
-        <span className="bg-danger text-white text-[10px] font-[700] rounded-full w-4 h-4 flex items-center justify-center">
+        <Badge className="bg-danger text-white text-[10px] font-[700] rounded-full w-4 h-4 p-0 justify-center">
           {badge}
-        </span>
+        </Badge>
       )}
     </Link>
   )

@@ -1,6 +1,7 @@
 "use client"
 
 import { X, Clock, Check, Bell } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/useDashboard"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { ReconciliationCard } from "@/components/dashboard/ReconciliationCard"
@@ -64,15 +65,15 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-[18px] animate-pulse">
+    <div className="flex flex-col gap-[18px]">
       <div className="grid grid-cols-4 gap-[14px]">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-[108px] rounded-[14px] bg-hover" />
+          <Skeleton key={i} className="h-[108px] rounded-[14px] bg-hover" />
         ))}
       </div>
       <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <div className="h-[320px] rounded-[14px] bg-hover" />
-        <div className="h-[320px] rounded-[14px] bg-hover" />
+        <Skeleton className="h-[320px] rounded-[14px] bg-hover" />
+        <Skeleton className="h-[320px] rounded-[14px] bg-hover" />
       </div>
     </div>
   )

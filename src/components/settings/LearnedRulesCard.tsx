@@ -1,6 +1,7 @@
 "use client"
 
 import { X, ArrowRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useDeleteAlias } from "@/hooks/useDeleteAlias"
 import type { LearnedRule, RuleType } from "@/api-types/settings"
@@ -34,7 +35,7 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
               These power smarter matching over time. Remove any that look wrong.
             </p>
           </div>
-          <p className="text-[13px] text-muted shrink-0">
+          <p className="text-[13px] text-dim shrink-0">
             Built from your corrections · {rules.length} {rules.length === 1 ? "rule" : "rules"}
           </p>
         </div>
@@ -48,9 +49,9 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
             {rules.map((rule) => {
               const meta = RULE_META[rule.type]
               return (
-                <span
+                <Badge
                   key={rule.id}
-                  className="inline-flex items-center gap-[9px] rounded-full border px-[14px] py-[7px] text-[13px] font-[700]"
+                  className="h-auto gap-[9px] rounded-full border px-[14px] py-[7px] text-[13px] font-[700]"
                   style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
                 >
                   {rule.merchantPattern}
@@ -64,7 +65,7 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
                   >
                     <X size={13} strokeWidth={2.4} />
                   </button>
-                </span>
+                </Badge>
               )
             })}
           </div>

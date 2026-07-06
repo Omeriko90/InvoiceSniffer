@@ -32,15 +32,15 @@ export function DoneStep({ imported, skipped, onImportAnother }: DoneStepProps) 
         <Button variant="outline" size="lg" className="text-[13.5px] px-4" onClick={onImportAnother}>
           Import another file
         </Button>
-        <Link href="/reconcile">
-          <Button
-            size="lg"
-            className="text-[13.5px] px-4 text-white shadow-primary border-0"
-            style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
-          >
-            Go to Reconcile →
-          </Button>
-        </Link>
+        <Button
+          size="lg"
+          className="text-[13.5px] px-4 text-white shadow-primary border-0"
+          style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
+          nativeButton={false}
+          render={<Link href="/reconcile" />}
+        >
+          Go to Reconcile →
+        </Button>
       </div>
     </div>
   )

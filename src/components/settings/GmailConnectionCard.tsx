@@ -1,6 +1,7 @@
 "use client"
 
 import { formatDistanceToNowStrict } from "date-fns"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useDisconnectGmail } from "@/hooks/useDisconnectGmail"
 import type { GmailConnection } from "@/api-types/settings"
@@ -39,13 +40,14 @@ export function GmailConnectionCard({ gmail }: GmailConnectionCardProps) {
                 Connected · read-only · {syncedLabel(gmail.lastSyncedAt)}
               </p>
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={() => disconnect.mutate()}
               disabled={disconnect.isPending}
-              className="shrink-0 text-[13px] font-[600] text-danger bg-surface border border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg transition-colors disabled:opacity-60"
+              className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
             >
               {disconnect.isPending ? "Disconnecting…" : "Disconnect"}
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-[12px] border border-border bg-hover px-4 py-[14px]">
@@ -56,12 +58,13 @@ export function GmailConnectionCard({ gmail }: GmailConnectionCardProps) {
                 Connect Gmail to detect invoices automatically
               </p>
             </div>
-            <a
-              href="/api/gmail/connect"
-              className="shrink-0 text-[13px] font-[600] text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:opacity-90 transition-opacity"
+            <Button
+              className="shrink-0 h-auto text-[13px] font-[600] text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
+              nativeButton={false}
+              render={<a href="/api/gmail/connect" />}
             >
               Connect
-            </a>
+            </Button>
           </div>
         )}
 

@@ -1,8 +1,22 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { ExternalLink, X, FileText, Lock, Search, ChevronDown } from "lucide-react"
+import { ExternalLink, FileText, Lock, Search } from "lucide-react"
 import { format } from "date-fns"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -76,6 +90,32 @@ function fmtSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+// ── Shared bits ──────────────────────────────────────────────────────
+
+function VendorAvatar({ vendor, className }: { vendor: string; className?: string }) {
+  return (
+    <Avatar className={className ?? "size-7"}>
+      <AvatarFallback
+        className="text-white text-[12px] font-[700]"
+        style={{ background: vendorGradient(vendor) }}
+      >
+        {initials(vendor)}
+      </AvatarFallback>
+    </Avatar>
+  )
+}
+
+function StatusBadge({ status }: { status: { label: string; bg: string; color: string } }) {
+  return (
+    <Badge
+      className="rounded-full h-auto text-[11.5px] font-[700] px-[10px] py-[2px]"
+      style={{ background: status.bg, color: status.color }}
+    >
+      {status.label}
+    </Badge>
+  )
+}
+
 // ── Skeleton ─────────────────────────────────────────────────────────
 
 function SkeletonRow() {
@@ -85,14 +125,14 @@ function SkeletonRow() {
       style={{ gridTemplateColumns: "1.6fr 1fr 0.8fr 0.7fr 1.1fr 0.9fr 40px", gap: "12px" }}
     >
       <div className="flex items-center gap-[10px]">
-        <div className="w-7 h-7 rounded-full bg-[#EEF1F8] animate-pulse shrink-0" />
-        <div className="h-3 rounded bg-[#EEF1F8] animate-pulse" style={{ width: "62%" }} />
+        <Skeleton className="w-7 h-7 rounded-full bg-[#EEF1F8] shrink-0" />
+        <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "62%" }} />
       </div>
-      <div className="h-3 rounded bg-[#EEF1F8] animate-pulse" style={{ width: "70%" }} />
-      <div className="h-3 rounded bg-[#EEF1F8] animate-pulse ml-auto" style={{ width: "60%" }} />
-      <div className="h-3 rounded bg-[#EEF1F8] animate-pulse" style={{ width: "50%" }} />
-      <div className="h-[6px] rounded-full bg-[#EEF1F8] animate-pulse" style={{ width: "90%" }} />
-      <div className="h-5 rounded-full bg-[#EEF1F8] animate-pulse" style={{ width: "64px" }} />
+      <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "70%" }} />
+      <Skeleton className="h-3 bg-[#EEF1F8] ml-auto" style={{ width: "60%" }} />
+      <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "50%" }} />
+      <Skeleton className="h-[6px] rounded-full bg-[#EEF1F8]" style={{ width: "90%" }} />
+      <Skeleton className="h-5 rounded-full bg-[#EEF1F8]" style={{ width: "64px" }} />
       <div />
     </div>
   )
@@ -110,171 +150,139 @@ function EmptyState() {
       <p className="text-[13.5px] text-text-secondary text-center max-w-[340px] leading-[1.6] mb-6">
         Once your Gmail is connected, detected invoices will appear here automatically. Nothing has been scanned yet.
       </p>
-      <button
-        className="px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white"
+      <Button
+        className="h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0"
         style={{
           background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",
           boxShadow: "0 4px 12px rgba(122,167,255,.3)",
         }}
       >
         Run a Gmail sync
-      </button>
+      </Button>
     </div>
   )
 }
 
 // ── Drawer ────────────────────────────────────────────────────────────
 
-function InvoiceDrawer({ invoice, onClose }: { invoice: InvoiceRow; onClose: () => void }) {
+function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
   const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
   const pct = Math.round(invoice.extractionConfidence * 100)
 
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-
-      {/* Drawer panel */}
-      <div
-        className="fixed top-0 right-0 h-screen z-50 flex flex-col bg-white border-l border-[#E8EDFA]"
-        style={{
-          width: "440px",
-          boxShadow: "-12px 0 40px rgba(80,110,180,.12)",
-          animation: "slideInDrawer .22s cubic-bezier(.4,0,.2,1)",
-        }}
-      >
-        {/* Drawer header */}
-        <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[#F1F3F8] shrink-0">
-          <div className="flex items-center gap-[11px] min-w-0">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[12px] font-[700] shrink-0"
-              style={{ background: vendorGradient(vendor) }}
-            >
-              {initials(vendor)}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[15px] font-[700] text-heading truncate">{vendor}</p>
-              {invoice.invoiceNumber && (
-                <p className="text-[12px] text-[#94A3B8] font-mono">{invoice.invoiceNumber}</p>
-              )}
-            </div>
+    <SheetContent
+      side="right"
+      className="w-[440px] sm:max-w-[440px] gap-0 bg-white border-l border-[#E8EDFA]"
+      style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
+    >
+      {/* Drawer header */}
+      <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[#F1F3F8] shrink-0">
+        <div className="flex items-center gap-[11px] min-w-0 pr-8">
+          <VendorAvatar vendor={vendor} />
+          <div className="min-w-0">
+            <SheetTitle className="text-[15px] font-[700] text-heading truncate">{vendor}</SheetTitle>
+            {invoice.invoiceNumber && (
+              <p className="text-[12px] text-[#94A3B8] font-mono">{invoice.invoiceNumber}</p>
+            )}
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F3F8] transition-colors shrink-0"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-[22px]">
-          {/* Amount */}
-          <div className="flex items-center gap-3 mb-5">
-            <span className="text-[30px] font-[800] text-heading tracking-[-0.02em] leading-none">
-              {fmtAmount(invoice.totalAmount, invoice.currency)}
-            </span>
-            <span
-              className="text-[11.5px] font-[700] px-[10px] py-[2px] rounded-full shrink-0"
-              style={{ background: status.bg, color: status.color }}
-            >
-              {status.label}
-            </span>
-          </div>
-          <p className="text-[12.5px] text-[#94A3B8] mb-6">
-            Extraction confidence: {pct}%
-          </p>
-
-          {/* Extracted fields */}
-          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
-            Extracted fields
-          </p>
-          <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
-            {[
-              { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
-              { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
-              { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
-              { label: "Due date",     value: invoice.dueDate ? format(new Date(invoice.dueDate), "MMM d, yyyy") : "—" },
-            ].map((row, i, arr) => (
-              <div
-                key={row.label}
-                className="flex items-center justify-between px-[13px] py-[10px] text-[13px]"
-                style={{ borderBottom: i < arr.length - 1 ? "1px solid #F1F3F8" : undefined }}
-              >
-                <span className="text-[#64748B]">{row.label}</span>
-                <span
-                  className="font-[600] text-[#334155]"
-                  style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
-                >
-                  {row.value}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Source email */}
-          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
-            Source email
-          </p>
-          <div className="border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[14px]">
-            <p className="text-[13px] font-[600] text-[#334155] leading-snug">{invoice.subject}</p>
-            <p className="text-[12.5px] text-[#64748B] mt-1">{invoice.senderEmail}</p>
-            <p className="text-[12px] text-[#94A3B8] mt-0.5">
-              {format(new Date(invoice.emailDate), "MMM d, yyyy")}
-            </p>
-          </div>
-
-          {/* Attachments */}
-          {invoice.attachmentMeta.length > 0 && invoice.attachmentMeta.map((att, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px]"
-            >
-              <div className="w-[34px] h-[34px] rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
-                <FileText size={16} strokeWidth={1.5} className="text-[#FB7171]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-[600] text-[#334155] truncate">{att.filename}</p>
-                <p className="text-[11.5px] text-[#94A3B8]">{fmtSize(att.size)}</p>
-              </div>
-            </div>
-          ))}
-
-          {/* Privacy note */}
-          <div className="flex items-center gap-[7px] text-[11.5px] text-[#94A3B8]">
-            <Lock size={13} strokeWidth={1.5} className="shrink-0" />
-            <span>The file itself is never stored — it&apos;s fetched from Gmail only during an export.</span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
-          <a
-            href={invoice.gmailLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 px-[10px] py-[10px] rounded-[10px] border border-[#E8EDFA] bg-white text-[13.5px] font-[600] text-heading hover:bg-[#F1F3F8] transition-colors"
-          >
-            <ExternalLink size={15} strokeWidth={1.5} />
-            Open in Gmail
-          </a>
-          <button
-            className="flex-1 px-[10px] py-[10px] rounded-[10px] text-white text-[13.5px] font-[700]"
-            style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
-          >
-            Edit fields
-          </button>
         </div>
       </div>
 
-      <style>{`
-        @keyframes slideInDrawer {
-          from { transform: translateX(100%); }
-          to   { transform: translateX(0); }
-        }
-      `}</style>
-    </>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-[22px]">
+        {/* Amount */}
+        <div className="flex items-center gap-3 mb-5">
+          <span className="text-[30px] font-[800] text-heading tracking-[-0.02em] leading-none">
+            {fmtAmount(invoice.totalAmount, invoice.currency)}
+          </span>
+          <StatusBadge status={status} />
+        </div>
+        <p className="text-[12.5px] text-[#94A3B8] mb-6">
+          Extraction confidence: {pct}%
+        </p>
+
+        {/* Extracted fields */}
+        <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+          Extracted fields
+        </p>
+        <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
+          {[
+            { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
+            { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
+            { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
+            { label: "Due date",     value: invoice.dueDate ? format(new Date(invoice.dueDate), "MMM d, yyyy") : "—" },
+          ].map((row, i, arr) => (
+            <div
+              key={row.label}
+              className="flex items-center justify-between px-[13px] py-[10px] text-[13px]"
+              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F1F3F8" : undefined }}
+            >
+              <span className="text-[#64748B]">{row.label}</span>
+              <span
+                className="font-[600] text-[#334155]"
+                style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
+              >
+                {row.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Source email */}
+        <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+          Source email
+        </p>
+        <div className="border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[14px]">
+          <p className="text-[13px] font-[600] text-[#334155] leading-snug">{invoice.subject}</p>
+          <p className="text-[12.5px] text-[#64748B] mt-1">{invoice.senderEmail}</p>
+          <p className="text-[12px] text-[#94A3B8] mt-0.5">
+            {format(new Date(invoice.emailDate), "MMM d, yyyy")}
+          </p>
+        </div>
+
+        {/* Attachments */}
+        {invoice.attachmentMeta.length > 0 && invoice.attachmentMeta.map((att, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px]"
+          >
+            <div className="w-[34px] h-[34px] rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
+              <FileText size={16} strokeWidth={1.5} className="text-[#FB7171]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-[600] text-[#334155] truncate">{att.filename}</p>
+              <p className="text-[11.5px] text-[#94A3B8]">{fmtSize(att.size)}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Privacy note */}
+        <div className="flex items-center gap-[7px] text-[11.5px] text-[#94A3B8]">
+          <Lock size={13} strokeWidth={1.5} className="shrink-0" />
+          <span>The file itself is never stored — it&apos;s fetched from Gmail only during an export.</span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
+        <Button
+          variant="outline"
+          className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
+          nativeButton={false}
+          render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
+        >
+          <ExternalLink size={15} strokeWidth={1.5} />
+          Open in Gmail
+        </Button>
+        <Button
+          className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
+          style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+        >
+          Edit fields
+        </Button>
+      </div>
+    </SheetContent>
   )
 }
 
@@ -317,27 +325,29 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         {/* Search */}
         <div className="relative" style={{ maxWidth: "340px", flex: "1 1 220px" }}>
           <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-          <input
+          <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search vendor, amount, invoice #…"
-            className="w-full pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border border-[#E8EDFA] rounded-[10px] bg-background outline-none focus:border-primary transition-colors"
+            className="h-auto pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border-[#E8EDFA] rounded-[10px] bg-background"
           />
         </div>
 
         {/* Status filter */}
-        <div className="relative">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatus(e.target.value)}
-            className="appearance-none pl-3 pr-7 py-[8px] text-[13px] font-[600] text-text-primary border border-[#E8EDFA] rounded-[10px] bg-white outline-none cursor-pointer"
-          >
+        <Select
+          items={STATUS_OPTIONS}
+          value={statusFilter}
+          onValueChange={(v) => setStatus(v as string)}
+        >
+          <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
             {STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
-          </select>
-          <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
-        </div>
+          </SelectContent>
+        </Select>
 
         {/* UI state tabs (dev helper) */}
         <div className="flex items-center gap-[3px] bg-white border border-[#E8EDFA] rounded-[9px] p-[3px] ml-auto">
@@ -404,12 +414,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
             >
               {/* Vendor */}
               <div className="flex items-center gap-[10px] min-w-0">
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[12px] font-[700] shrink-0"
-                  style={{ background: vendorGradient(vendor) }}
-                >
-                  {initials(vendor)}
-                </div>
+                <VendorAvatar vendor={vendor} />
                 <span className="text-[13.5px] font-[600] text-[#334155] truncate">{vendor}</span>
               </div>
 
@@ -430,15 +435,11 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
               {/* Confidence */}
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-[6px] rounded-full bg-[#F1F3F8] overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${pct}%`,
-                      background: confidenceColor(inv.extractionConfidence),
-                    }}
-                  />
-                </div>
+                <Progress
+                  value={pct}
+                  className="flex-1 gap-0 **:data-[slot=progress-track]:h-[6px] **:data-[slot=progress-track]:bg-[#F1F3F8] **:data-[slot=progress-indicator]:rounded-full **:data-[slot=progress-indicator]:bg-(--conf)"
+                  style={{ "--conf": confidenceColor(inv.extractionConfidence) } as React.CSSProperties}
+                />
                 <span className="text-[12px] font-[600] text-[#64748B] w-[30px] text-right shrink-0">
                   {pct}%
                 </span>
@@ -446,32 +447,36 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
               {/* Status */}
               <div>
-                <span
-                  className="text-[11.5px] font-[700] px-[10px] py-[2px] rounded-full"
-                  style={{ background: status.bg, color: status.color }}
-                >
-                  {status.label}
-                </span>
+                <StatusBadge status={status} />
               </div>
 
               {/* Gmail link */}
-              <a
-                href={inv.gmailLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 title="Open in Gmail"
-                className="w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#EFF6FF] hover:text-[#3B6FE0] transition-colors"
+                className="text-[#94A3B8] hover:bg-[#EFF6FF] hover:text-[#3B6FE0]"
+                nativeButton={false}
+                render={
+                  <a
+                    href={inv.gmailLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                }
               >
                 <ExternalLink size={14} strokeWidth={1.5} />
-              </a>
+              </Button>
             </div>
           )
         })}
       </div>
 
       {/* Drawer */}
-      {selected && <InvoiceDrawer invoice={selected} onClose={() => setSelected(null)} />}
+      <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>
+        {selected && <InvoiceDrawer invoice={selected} />}
+      </Sheet>
     </div>
   )
 }

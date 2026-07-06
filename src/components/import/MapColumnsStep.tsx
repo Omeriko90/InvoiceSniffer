@@ -1,5 +1,21 @@
-import { ArrowRight, ChevronDown, FileText, Info, AlertCircle } from "lucide-react"
+import { ArrowRight, FileText, Info, AlertCircle } from "lucide-react"
+import { Alert, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { ParsedCsv, DraftMapping, normalizeAmount } from "@/lib/csv-import"
 
@@ -44,22 +60,22 @@ export function MapColumnsStep({
           <FileText size={20} strokeWidth={1.8} className="text-text-secondary shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-[14.5px] font-[700] text-heading truncate">{parsed.fileName}</p>
-            <p className="text-[12.5px] text-muted mt-0.5">
+            <p className="text-[12.5px] text-dim mt-0.5">
               {parsed.records.length} rows · {parsed.headers.length} columns detected
             </p>
           </div>
         </div>
 
         {savedMappingLabel && (
-          <div
-            className="flex items-start gap-2.5 px-3 py-[11px] rounded-[10px] border text-[13px] text-[#1E40AF]"
+          <Alert
+            className="px-3 py-[11px] rounded-[10px]"
             style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}
           >
-            <Info size={16} strokeWidth={2} color="#3B82F6" className="shrink-0 mt-0.5" />
-            <span>
+            <Info size={16} strokeWidth={2} color="#3B82F6" />
+            <AlertTitle className="font-normal text-[13px] text-[#1E40AF]">
               Saved mapping for <strong>{savedMappingLabel}</strong> applied automatically.
-            </span>
-          </div>
+            </AlertTitle>
+          </Alert>
         )}
       </div>
 
@@ -84,7 +100,7 @@ export function MapColumnsStep({
             >
               <div>
                 <p className="text-[14px] font-[600] text-heading">{field.label}</p>
-                <p className="text-[12.5px] text-muted mt-0.5">{field.hint}</p>
+                <p className="text-[12.5px] text-dim mt-0.5">{field.hint}</p>
               </div>
               <ArrowRight size={15} strokeWidth={2} className="text-faint" />
               <ColumnSelect
@@ -102,38 +118,38 @@ export function MapColumnsStep({
             Preview (first 3 rows)
           </p>
           <div className="border border-border rounded-[10px] overflow-hidden">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-border bg-background">
-                  <th className="px-4 py-2.5 text-[11px] font-[700] text-muted uppercase tracking-[0.05em]">Date</th>
-                  <th className="px-4 py-2.5 text-[11px] font-[700] text-muted uppercase tracking-[0.05em]">Merchant</th>
-                  <th className="px-4 py-2.5 text-[11px] font-[700] text-muted uppercase tracking-[0.05em] text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="text-left">
+              <TableHeader>
+                <TableRow className="border-border bg-background hover:bg-background">
+                  <TableHead className="h-auto px-4 py-2.5 text-[11px] font-[700] text-dim uppercase tracking-[0.05em]">Date</TableHead>
+                  <TableHead className="h-auto px-4 py-2.5 text-[11px] font-[700] text-dim uppercase tracking-[0.05em]">Merchant</TableHead>
+                  <TableHead className="h-auto px-4 py-2.5 text-[11px] font-[700] text-dim uppercase tracking-[0.05em] text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {previewRows.map((row, i) => (
-                  <tr key={i} className={cn(i > 0 && "border-t border-border")}>
-                    <td className="px-4 py-2.5 text-[13px] font-mono text-text-primary whitespace-nowrap">
+                  <TableRow key={i} className="border-border hover:bg-transparent">
+                    <TableCell className="px-4 py-2.5 text-[13px] font-mono text-text-primary">
                       {mapping.date ? row[mapping.date] : "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-[13px] font-mono text-text-primary uppercase">
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 text-[13px] font-mono text-text-primary uppercase whitespace-normal">
                       {mapping.merchant ? row[mapping.merchant] : "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-[13.5px] font-[700] text-heading text-right whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 text-[13.5px] font-[700] text-heading text-right">
                       {mapping.amount ? formatAmount(row[mapping.amount]) : "—"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
         {importError && (
-          <div className="flex items-center gap-2.5 px-3 py-[11px] rounded-[10px] border text-[13.5px] text-[#7F1D1D]" style={{ background: "#FEF2F2", borderColor: "#FECACA" }}>
-            <AlertCircle size={18} strokeWidth={2} color="#DC2626" className="shrink-0" />
-            {importError}
-          </div>
+          <Alert className="px-3 py-[11px] rounded-[10px]" style={{ background: "#FEF2F2", borderColor: "#FECACA" }}>
+            <AlertCircle size={18} strokeWidth={2} color="#DC2626" />
+            <AlertTitle className="font-normal text-[13.5px] text-[#7F1D1D]">{importError}</AlertTitle>
+          </Alert>
         )}
 
         {/* Actions */}
@@ -161,24 +177,28 @@ function ColumnSelect({ headers, value, onChange }: {
   value: string | null
   onChange: (value: string | null) => void
 }) {
+  const items = [
+    { value: null, label: "— not mapped —" },
+    ...headers.map((h) => ({ value: h, label: h })),
+  ]
   return (
-    <div className="relative">
-      <select
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value || null)}
+    <Select items={items} value={value} onValueChange={(v) => onChange(v as string | null)}>
+      <SelectTrigger
         className={cn(
-          "w-full h-10 pl-3.5 pr-9 rounded-[9px] border text-[13.5px] appearance-none outline-none cursor-pointer transition-colors focus:ring-2 focus:ring-ring/40",
+          "w-full h-10 pl-3.5 pr-3 rounded-[9px] text-[13.5px]",
           value
             ? "text-heading font-[500] border-[#D1FAE5] bg-[#F0FDF4]"
-            : "text-muted border-border bg-surface"
+            : "text-dim border-border bg-surface"
         )}
       >
-        <option value="">— not mapped —</option>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={null}>— not mapped —</SelectItem>
         {headers.map((h) => (
-          <option key={h} value={h}>{h}</option>
+          <SelectItem key={h} value={h}>{h}</SelectItem>
         ))}
-      </select>
-      <ChevronDown size={15} strokeWidth={2} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-    </div>
+      </SelectContent>
+    </Select>
   )
 }

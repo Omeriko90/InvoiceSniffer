@@ -1,5 +1,6 @@
 "use client"
 
+import { Skeleton } from "@/components/ui/skeleton"
 import { useSettings } from "@/hooks/useSettings"
 import { GmailConnectionCard } from "@/components/settings/GmailConnectionCard"
 import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard"
@@ -23,12 +24,12 @@ export default function SettingsPage() {
 
 function SettingsSkeleton() {
   return (
-    <div className="flex flex-col gap-[14px] animate-pulse">
+    <div className="flex flex-col gap-[14px]">
       <div className="grid grid-cols-2 gap-[14px]">
-        <div className="h-[240px] rounded-[14px] bg-hover" />
-        <div className="h-[240px] rounded-[14px] bg-hover" />
+        <Skeleton className="h-[240px] rounded-[14px] bg-hover" />
+        <Skeleton className="h-[240px] rounded-[14px] bg-hover" />
       </div>
-      <div className="h-[180px] rounded-[14px] bg-hover" />
+      <Skeleton className="h-[180px] rounded-[14px] bg-hover" />
     </div>
   )
 }

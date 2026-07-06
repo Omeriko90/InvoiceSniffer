@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Upload, Download } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 type TopbarProps = {
@@ -18,29 +19,33 @@ export function Topbar({ title, gmailSyncedAt, gmailConnected = false }: TopbarP
       <div className="flex items-center gap-3">
         {/* Gmail sync status pill */}
         {gmailConnected && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success-bg border border-[#BBF7D0] text-[12px] font-[500] text-[#059669]">
+          <Badge className="h-auto gap-1.5 px-3 py-1.5 rounded-full bg-success-bg border-[#BBF7D0] text-[12px] font-[500] text-[#059669]">
             <span className="w-1.5 h-1.5 rounded-full bg-success" />
             {gmailSyncedAt ? `Gmail synced · ${gmailSyncedAt}` : "Gmail synced"}
-          </div>
+          </Badge>
         )}
 
-        <Link href="/import">
-          <Button variant="outline" size="sm" className="gap-1.5 text-[13px]">
-            <Upload size={14} />
-            Upload CSV
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-[13px]"
+          nativeButton={false}
+          render={<Link href="/import" />}
+        >
+          <Upload size={14} />
+          Upload CSV
+        </Button>
 
-        <Link href="/exports">
-          <Button
-            size="sm"
-            className="gap-1.5 text-[13px] text-white shadow-primary border-0"
-            style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
-          >
-            <Download size={14} />
-            New export
-          </Button>
-        </Link>
+        <Button
+          size="sm"
+          className="gap-1.5 text-[13px] text-white shadow-primary border-0"
+          style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
+          nativeButton={false}
+          render={<Link href="/exports" />}
+        >
+          <Download size={14} />
+          New export
+        </Button>
       </div>
     </header>
   )
