@@ -2,10 +2,9 @@ import { google } from "googleapis"
 import { prisma } from "@/lib/prisma"
 import { decrypt, encrypt } from "@/lib/encryption"
 
-export const GMAIL_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.readonly",
-  "https://www.googleapis.com/auth/gmail.metadata",
-]
+// gmail.readonly is a superset of gmail.metadata and also allows fetching
+// attachment content during export, which the metadata scope forbids
+export const GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 function createOAuthClient() {
   return new google.auth.OAuth2(
