@@ -8,6 +8,11 @@ import type { gmail_v1 } from "googleapis"
 const connection = { url: process.env.REDIS_URL! }
 const PAGE_SIZE = 50
 
+// Full sync only looks back 3 months; matches are then scored by
+// detectInvoiceCandidate before extraction is queued
+const SYNC_QUERY =
+  "newer_than:3m (has:attachment OR subject:invoice OR subject:receipt OR subject:bill OR subject:חשבונית OR subject:קבלה)"
+
 export function createGmailSyncWorker() {
   return new Worker<GmailSyncJobData>(
     "gmail-sync",
@@ -24,7 +29,7 @@ export function createGmailSyncWorker() {
   )
 }
 
-// ── Full sync: page through all Gmail messages ────────────────────
+// ── Full sync: page through the last 3 months of Gmail messages ────
 
 async function runFullSync(organizationId: string, job: Job) {
   const gmail = await getGmailClient(organizationId)
@@ -39,7 +44,7 @@ async function runFullSync(organizationId: string, job: Job) {
       userId: "me",
       maxResults: PAGE_SIZE,
       pageToken,
-      q: "has:attachment OR subject:invoice OR subject:receipt OR subject:bill",
+      q: SYNC_QUERY,
     })
 
     const messages = res.data.messages ?? []
@@ -146,20 +151,19 @@ async function checkAndQueueMessage(
   organizationId: string,
   messageId: string
 ): Promise<boolean> {
+  // format:"full" (not "metadata") — metadata responses omit payload.parts,
+  // so attachment-based detection signals would never fire
   const msg = await gmail.users.messages.get({
     userId: "me",
     id: messageId,
-    format: "metadata",
-    metadataHeaders: ["From", "Subject", "Date"],
+    format: "full",
   })
 
   const headers = msg.data.payload?.headers ?? []
   const subject = headers.find((h) => h.name === "Subject")?.value ?? ""
   const snippet = msg.data.snippet ?? ""
 
-  const attachments = (msg.data.payload?.parts ?? [])
-    .filter((p) => p.filename && p.body?.attachmentId)
-    .map((p) => ({ filename: p.filename!, mimeType: p.mimeType! }))
+  const attachments = collectAttachments(msg.data.payload)
 
   const { isCandidate } = detectInvoiceCandidate(subject, snippet, attachments)
 
@@ -167,11 +171,23 @@ async function checkAndQueueMessage(
     await extractionQueue.add(
       "invoice:extract",
       { organizationId, gmailMessageId: messageId } satisfies ExtractionJobData,
-      { jobId: `extract:${organizationId}:${messageId}` } // dedup
+      { jobId: `extract-${organizationId}-${messageId}` } // dedup
     )
   }
 
   return isCandidate
+}
+
+// Attachments can be nested inside multipart/* parts, so walk recursively
+function collectAttachments(
+  part: gmail_v1.Schema$MessagePart | undefined
+): { filename: string; mimeType: string }[] {
+  if (!part) return []
+  const own =
+    part.filename && part.body?.attachmentId
+      ? [{ filename: part.filename, mimeType: part.mimeType ?? "" }]
+      : []
+  return own.concat((part.parts ?? []).flatMap(collectAttachments))
 }
 
 function isGoogleError(err: unknown): err is { code: number } {

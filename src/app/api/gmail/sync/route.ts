@@ -24,7 +24,7 @@ export async function POST(_req: NextRequest) {
   const job = await gmailSyncQueue.add(
     "gmail:sync",
     { organizationId, mode } satisfies GmailSyncJobData,
-    { jobId: `sync:${organizationId}:${Date.now()}` }
+    { jobId: `sync-${organizationId}-${Date.now()}` }
   )
 
   return NextResponse.json({ jobId: job.id, mode })

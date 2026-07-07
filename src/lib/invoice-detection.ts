@@ -15,14 +15,17 @@ const CANDIDATE_THRESHOLD = 40
 const SUBJECT_KEYWORDS = [
   "invoice", "receipt", "bill", "payment confirmation",
   "order confirmation", "your order", "statement", "charge",
+  // Hebrew: invoice, receipt, tax invoice, payment confirmation/request, charge
+  "חשבונית", "קבלה", "אישור תשלום", "דרישת תשלום", "חיוב",
 ]
 
-const BODY_AMOUNT_RE = /(?:total|amount due|grand total|subtotal|balance due)[:\s]*[$£€]?\s*([\d,]+\.?\d{0,2})/i
-const INVOICE_NUMBER_RE = /(?:invoice|inv|order|receipt)[#\s:no.]*([A-Z0-9-]{3,20})/i
-const AMOUNT_RE = /[$£€]\s*[\d,]+\.\d{2}/
+const BODY_AMOUNT_RE = /(?:total|amount due|grand total|subtotal|balance due|סה"כ|סכום לתשלום|לתשלום|יתרה לתשלום)[:\s]*[$£€₪]?\s*([\d,]+\.?\d{0,2})/i
+const INVOICE_NUMBER_RE = /(?:invoice|inv|order|receipt|חשבונית|קבלה|הזמנה)(?:\s*(?:מס'?|מספר))?[#\s:no.]*([A-Z0-9-]{3,20})/i
+// Symbol before (e.g. $12.50) or after the amount, as ₪ commonly appears (e.g. 12.50 ₪)
+const AMOUNT_RE = /[$£€₪]\s*[\d,]+\.\d{2}|[\d,]+\.\d{2}\s*₪/
 
 const INVOICE_ATTACHMENT_TYPES = ["application/pdf", "image/png", "image/jpeg"]
-const INVOICE_ATTACHMENT_NAMES = /(?:invoice|receipt|bill|statement)/i
+const INVOICE_ATTACHMENT_NAMES = /(?:invoice|receipt|bill|statement|חשבונית|קבלה)/i
 
 export function detectInvoiceCandidate(
   subject: string,
@@ -30,6 +33,8 @@ export function detectInvoiceCandidate(
   attachments: { filename: string; mimeType: string }[]
 ): DetectionResult {
   const signals: InvoiceSignal[] = []
+  subject = normalizeForExtraction(subject)
+  snippet = normalizeForExtraction(snippet)
   const subjectLower = subject.toLowerCase()
   const snippetLower = snippet.toLowerCase()
 
@@ -58,7 +63,10 @@ export function detectInvoiceCandidate(
   signals.push({ name: "invoice_attachment_name", score: 15, matched: hasInvoiceAttachment })
 
   // Body keywords (+10)
-  const bodyKeywords = ["invoice", "receipt", "bill", "payment", "amount due", "total due"]
+  const bodyKeywords = [
+    "invoice", "receipt", "bill", "payment", "amount due", "total due",
+    "חשבונית", "קבלה", "לתשלום", 'סה"כ', "תשלום",
+  ]
   const bodyMatch = bodyKeywords.some((kw) => snippetLower.includes(kw))
   signals.push({ name: "body_keyword", score: 10, matched: bodyMatch })
 
@@ -88,9 +96,26 @@ export type ExtractedInvoice = {
   confidence: number
 }
 
-const AMOUNT_EXTRACT_RE = /(?:total|amount due|grand total|subtotal)[:\s]*[$£€]?\s*([\d,]+\.?\d{0,2})/i
-const TAX_RE = /(?:tax|vat|gst)[:\s]*[$£€]?\s*([\d,]+\.?\d{0,2})/i
-const INV_NUM_RE = /(?:invoice|inv|order)[#\s:no.]*([A-Z0-9-]{3,20})/i
+// Hebrew text from HTML/PDF uses gershayim (״) and geresh (׳) rather than
+// ASCII quotes, and is often peppered with invisible RTL/LTR control marks —
+// normalize so the label regexes below can match
+export function normalizeForExtraction(text: string): string {
+  return text
+    .replace(/[״“”„]/g, '"')
+    .replace(/[׳‘’]/g, "'")
+    .replace(/[‎‏‪-‮⁦-⁩]/g, "")
+}
+
+const AMOUNT_EXTRACT_RE = /(?:total|amount due|grand total|subtotal|סה"כ|סכום לתשלום|לתשלום)[:\s]*(?:[$£€₪]|ש"ח|ILS|NIS)?\s*([\d,]+\.?\d{0,2})/i
+// RTL PDFs often extract in visual order, putting the amount BEFORE the
+// label: `₪100.00 סה"כ:` — match that shape too
+const AMOUNT_BEFORE_LABEL_RE = /(?:[$£€₪]|ש"ח)?[ \t]*([\d,]+\.\d{1,2})[ \t]*(?:[$£€₪]|ש"ח)?[ \t]*:?[ \t]*(?:סה"כ|לתשלום|סכום)/
+// Any currency-marked amount (symbol before or after) — last-resort fallback.
+// [ \t] (not \s) so a bare number at end-of-line can't pair with a currency
+// symbol on the next line (e.g. the year of a date above `₪100.00`)
+const ANY_AMOUNT_RE = /(?:[$£€₪]|ש"ח|ILS|NIS)[ \t]*([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{1,2})?)[ \t]*(?:[$£€₪]|ש"ח|ILS|NIS)/g
+const TAX_RE = /(?:tax|vat|gst|מע"מ)(?:\s*\(?\d{1,2}%?\)?)?[:\s]*(?:[$£€₪]|ש"ח)?\s*([\d,]+\.?\d{0,2})/i
+const INV_NUM_RE = /(?:invoice|inv|order|חשבונית|קבלה|הזמנה)(?:\s*(?:מס'?|מספר))?[#\s:no.]*([A-Z0-9-]{3,20})/i
 const DATE_RE = /(?:invoice date|date|issued)[:\s]*([\w]+ \d{1,2},?\s*\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
 const DUE_DATE_RE = /(?:due date|payment due|due by)[:\s]*([\w]+ \d{1,2},?\s*\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
 
@@ -100,7 +125,7 @@ export function extractInvoiceMetadata(
   subject: string,
   body: string
 ): ExtractedInvoice {
-  const text = `${subject}\n${body}`
+  const text = normalizeForExtraction(`${subject}\n${body}`)
   let fieldsFound = 0
 
   // Vendor from sender
@@ -112,9 +137,11 @@ export function extractInvoiceMetadata(
   const invoiceNumber = invNumMatch?.[1] ?? null
   if (invoiceNumber) fieldsFound++
 
-  // Total amount
-  const amountMatch = AMOUNT_EXTRACT_RE.exec(text)
-  const totalAmount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, "")) : null
+  // Total amount: labeled total > reversed-RTL labeled total > largest
+  // currency-marked amount in the document
+  const amountMatch = AMOUNT_EXTRACT_RE.exec(text) ?? AMOUNT_BEFORE_LABEL_RE.exec(text)
+  let totalAmount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, "")) : null
+  if (!totalAmount) totalAmount = largestCurrencyAmount(text)
   if (totalAmount) fieldsFound++
 
   // Currency
@@ -168,7 +195,19 @@ export function normalizeVendor(vendor: string): string {
     .trim()
 }
 
+function largestCurrencyAmount(text: string): number | null {
+  let max: number | null = null
+  for (const m of text.matchAll(ANY_AMOUNT_RE)) {
+    const value = parseFloat((m[1] ?? m[2]).replace(/,/g, ""))
+    if (Number.isFinite(value) && value > 0 && (max === null || value > max)) {
+      max = value
+    }
+  }
+  return max
+}
+
 function detectCurrency(text: string): string {
+  if (/₪|ש"ח|\bILS\b|\bNIS\b/.test(text)) return "ILS"
   if (text.includes("£")) return "GBP"
   if (text.includes("€")) return "EUR"
   return "USD"
