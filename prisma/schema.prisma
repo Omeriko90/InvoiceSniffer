@@ -189,6 +189,7 @@ model Invoice {
   taxAmount            Decimal?         @db.Decimal(12, 2)
   lineItems            Json             @default("[]")
   attachmentMeta       Json             @default("[]")
+  receiptUrl           String?
   extractionMethod     ExtractionMethod @default(HEURISTIC)
   extractionConfidence Float            @default(0)
   status               InvoiceStatus    @default(DETECTED)

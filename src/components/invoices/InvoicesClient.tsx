@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { useGmailSync } from "@/hooks/useGmailSync"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ export type InvoiceRow = {
   senderName: string | null
   subject: string
   attachmentMeta: AttachmentMeta[]
+  receiptUrl: string | null
 }
 
 type AttachmentMeta = {
@@ -141,6 +143,7 @@ function SkeletonRow() {
 // ── Empty State ───────────────────────────────────────────────────────
 
 function EmptyState() {
+  const sync = useGmailSync()
   return (
     <div className="flex flex-col items-center justify-center py-16 px-8">
       <div className="w-14 h-14 rounded-xl bg-[#F1F3F8] flex items-center justify-center mb-4">
@@ -151,13 +154,15 @@ function EmptyState() {
         Once your Gmail is connected, detected invoices will appear here automatically. Nothing has been scanned yet.
       </p>
       <Button
+        onClick={() => sync.mutate()}
+        disabled={sync.isPending}
         className="h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0"
         style={{
           background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",
           boxShadow: "0 4px 12px rgba(122,167,255,.3)",
         }}
       >
-        Run a Gmail sync
+        {sync.isPending ? "Starting…" : "Run a Gmail sync"}
       </Button>
     </div>
   )
@@ -256,6 +261,24 @@ function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
             </div>
           </div>
         ))}
+
+        {/* Hosted receipt link */}
+        {invoice.receiptUrl && (
+          <a
+            href={invoice.receiptUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px] hover:bg-[#EFF6FF] transition-colors"
+          >
+            <div className="w-[34px] h-[34px] rounded-lg bg-[#EFF6FF] flex items-center justify-center shrink-0">
+              <ExternalLink size={16} strokeWidth={1.5} className="text-[#3B6FE0]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-[600] text-[#334155]">View hosted receipt</p>
+              <p className="text-[11.5px] text-[#94A3B8] truncate">{new URL(invoice.receiptUrl).hostname}</p>
+            </div>
+          </a>
+        )}
 
         {/* Privacy note */}
         <div className="flex items-center gap-[7px] text-[11.5px] text-[#94A3B8]">

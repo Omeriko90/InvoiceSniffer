@@ -2,19 +2,20 @@ import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
 import { anomalyQueue, type ExtractionJobData, type AnomalyJobData } from "@/lib/queues"
-import { extractInvoiceMetadata } from "@/lib/invoice-detection"
+import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
+import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { convert } from "html-to-text"
 
 const connection = { url: process.env.REDIS_URL! }
 
-type GmailPart = {
+export type GmailPart = {
   mimeType?: string | null
   filename?: string | null
   parts?: GmailPart[]
   body?: { data?: string | null; attachmentId?: string | null; size?: number | null }
 }
 
-type AttachmentMeta = {
+export type AttachmentMeta = {
   attachmentId: string
   filename: string
   mimeType: string
@@ -54,9 +55,30 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
   const gmailLink = `https://mail.google.com/mail/u/0/#inbox/${gmailThreadId}`
 
   const bodyText = extractBodyText(payload)
+  const bodyHtml = extractBodyHtml(payload)
   const attachmentMeta = extractAttachmentMeta(payload)
 
-  const extracted = extractInvoiceMetadata(senderEmail, senderName, subject, bodyText)
+  let extracted = extractInvoiceMetadata(senderEmail, senderName, subject, bodyText)
+
+  // When the email body didn't yield an amount, dig deeper: first any PDF
+  // attachment, then the hosted receipt link. Documents are parsed in memory
+  // and never stored.
+  if (!extracted.totalAmount) {
+    const pdfText = await fetchAttachmentPdfText(gmail, gmailMessageId, attachmentMeta)
+    if (pdfText) {
+      const fromPdf = extractInvoiceMetadata(senderEmail, senderName, subject, pdfText)
+      extracted = mergeExtractions(extracted, fromPdf)
+    }
+  }
+
+  const receiptUrl = bodyHtml ? findReceiptUrl(bodyHtml) : null
+  if (receiptUrl && !extracted.totalAmount) {
+    const remoteText = await fetchReceiptText(receiptUrl)
+    if (remoteText) {
+      const remote = extractInvoiceMetadata(senderEmail, senderName, subject, remoteText)
+      extracted = mergeExtractions(extracted, remote)
+    }
+  }
 
   const invoice = await prisma.invoice.upsert({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
@@ -79,6 +101,7 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       taxAmount: extracted.taxAmount,
       lineItems: extracted.lineItems as never,
       attachmentMeta: attachmentMeta as never,
+      receiptUrl,
       extractionMethod: "HEURISTIC",
       extractionConfidence: extracted.confidence,
     },
@@ -93,6 +116,7 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       taxAmount: extracted.taxAmount,
       lineItems: extracted.lineItems as never,
       attachmentMeta: attachmentMeta as never,
+      receiptUrl,
       extractionConfidence: extracted.confidence,
     },
   })
@@ -101,7 +125,8 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
     await anomalyQueue.add(
       "anomaly:check",
       { organizationId, invoiceId: invoice.id } satisfies AnomalyJobData,
-      { jobId: `anomaly:${invoice.id}` }
+      // BullMQ custom ids must not contain ':' (unless exactly 3 segments)
+      { jobId: `anomaly-${invoice.id}` }
     )
   }
 
@@ -110,7 +135,49 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-function parseFrom(from: string): { senderEmail: string; senderName: string | null } {
+const MAX_PDF_BYTES = 10 * 1024 * 1024
+
+// Download the first reasonably-sized PDF attachment and return its text
+export async function fetchAttachmentPdfText(
+  gmail: Awaited<ReturnType<typeof getGmailClient>>,
+  gmailMessageId: string,
+  attachments: AttachmentMeta[]
+): Promise<string | null> {
+  const pdf = attachments.find(
+    (a) => a.mimeType === "application/pdf" && a.size > 0 && a.size <= MAX_PDF_BYTES
+  )
+  if (!pdf) return null
+
+  try {
+    const res = await gmail.users.messages.attachments.get({
+      userId: "me",
+      messageId: gmailMessageId,
+      id: pdf.attachmentId,
+    })
+    if (!res.data.data) return null
+    return parsePdfText(Buffer.from(res.data.data, "base64url"))
+  } catch {
+    return null
+  }
+}
+
+// Field-wise merge: email-body values win, the fetched document fills the gaps
+function mergeExtractions(email: ExtractedInvoice, remote: ExtractedInvoice): ExtractedInvoice {
+  return {
+    vendorName: email.vendorName ?? remote.vendorName,
+    vendorNormalized: email.vendorNormalized ?? remote.vendorNormalized,
+    invoiceNumber: email.invoiceNumber ?? remote.invoiceNumber,
+    invoiceDate: email.invoiceDate ?? remote.invoiceDate,
+    dueDate: email.dueDate ?? remote.dueDate,
+    totalAmount: email.totalAmount ?? remote.totalAmount,
+    currency: email.totalAmount ? email.currency : remote.currency,
+    taxAmount: email.taxAmount ?? remote.taxAmount,
+    lineItems: email.lineItems.length > 0 ? email.lineItems : remote.lineItems,
+    confidence: Math.max(email.confidence, remote.confidence),
+  }
+}
+
+export function parseFrom(from: string): { senderEmail: string; senderName: string | null } {
   const match = /^(?:"?([^"<]*)"?\s*)?<?([^>]+)>?$/.exec(from.trim())
   return {
     senderName: match?.[1]?.trim() || null,
@@ -129,7 +196,7 @@ function findPart(parts: GmailPart[], mimeType: string): GmailPart | null {
   return null
 }
 
-function extractBodyText(payload: GmailPart): string {
+export function extractBodyText(payload: GmailPart): string {
   const parts = payload.parts ?? []
 
   const plain = findPart(parts, "text/plain")
@@ -150,7 +217,19 @@ function extractBodyText(payload: GmailPart): string {
   return ""
 }
 
-function extractAttachmentMeta(payload: GmailPart): AttachmentMeta[] {
+// Raw HTML body, used for receipt-link discovery (links are gone after html-to-text)
+export function extractBodyHtml(payload: GmailPart): string | null {
+  const html = findPart(payload.parts ?? [], "text/html")
+  if (html?.body?.data) {
+    return Buffer.from(html.body.data, "base64url").toString("utf8")
+  }
+  if (payload.mimeType === "text/html" && payload.body?.data) {
+    return Buffer.from(payload.body.data, "base64url").toString("utf8")
+  }
+  return null
+}
+
+export function extractAttachmentMeta(payload: GmailPart): AttachmentMeta[] {
   const attachments: AttachmentMeta[] = []
 
   function walk(parts: GmailPart[]) {

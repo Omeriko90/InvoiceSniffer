@@ -23,6 +23,7 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
       senderName: true,
       subject: true,
       attachmentMeta: true,
+      receiptUrl: true,
     },
   })
 
@@ -42,6 +43,7 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
     senderName: inv.senderName,
     subject: inv.subject,
     attachmentMeta: inv.attachmentMeta as InvoiceRow["attachmentMeta"],
+    receiptUrl: inv.receiptUrl,
   }))
 }
 
