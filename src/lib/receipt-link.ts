@@ -23,6 +23,7 @@ const FETCH_ALLOWLIST = [
   "sumit.co.il",
   "invoice4u.co.il",
   "tranzila.com",
+  "invoice-one.com",
 ]
 
 // Anchor text that suggests the link leads to a receipt/invoice (EN + HE).
