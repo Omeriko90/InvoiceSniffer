@@ -31,4 +31,6 @@ main()
   .finally(async () => {
     await extractionQueue.close()
     await prisma.$disconnect()
+    // BullMQ can leave a lingering connection handle — exit explicitly
+    process.exit(process.exitCode ?? 0)
   })
