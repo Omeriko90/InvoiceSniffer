@@ -50,15 +50,18 @@ export function detectInvoiceCandidate(
   const invoiceNumMatch = INVOICE_NUMBER_RE.test(subject) || INVOICE_NUMBER_RE.test(snippet)
   signals.push({ name: "invoice_number", score: 10, matched: invoiceNumMatch })
 
-  // PDF attachment (+25)
-  const hasPdf = attachments.some((a) => a.mimeType === "application/pdf")
+  // PDF attachment (+25) — by mime or filename; some senders mislabel
+  // PDFs as application/octet-stream
+  const isPdf = (a: { filename: string; mimeType: string }) =>
+    a.mimeType === "application/pdf" || a.filename.toLowerCase().endsWith(".pdf")
+  const hasPdf = attachments.some(isPdf)
   signals.push({ name: "pdf_attachment", score: 25, matched: hasPdf })
 
   // Attachment named like an invoice (+15)
   const hasInvoiceAttachment = attachments.some(
     (a) =>
       INVOICE_ATTACHMENT_NAMES.test(a.filename) &&
-      INVOICE_ATTACHMENT_TYPES.includes(a.mimeType)
+      (INVOICE_ATTACHMENT_TYPES.includes(a.mimeType) || isPdf(a))
   )
   signals.push({ name: "invoice_attachment_name", score: 15, matched: hasInvoiceAttachment })
 
@@ -110,12 +113,18 @@ const AMOUNT_EXTRACT_RE = /(?:total|amount due|grand total|subtotal|סה"כ|סכ
 // RTL PDFs often extract in visual order, putting the amount BEFORE the
 // label: `₪100.00 סה"כ:` — match that shape too
 const AMOUNT_BEFORE_LABEL_RE = /(?:[$£€₪]|ש"ח)?[ \t]*([\d,]+\.\d{1,2})[ \t]*(?:[$£€₪]|ש"ח)?[ \t]*:?[ \t]*(?:סה"כ|לתשלום|סכום)/
+// Worst-case RTL mangling (Partner PDFs): digit groups flip around the
+// decimal point and ₪ renders as '{' — 137.71 becomes `71 . 137 { סה"כ לתשלום`.
+// Cents first, integer part second; reassemble as ${int}.${cents}
+const FLIPPED_AMOUNT_LABEL_RE = /(\d{1,2})[ \t]*\.[ \t]*(-?\d{1,3}(?:,\d{3})*)[ \t]*\{[ \t]*סה"כ[ \t]*לתשלום/
 // Any currency-marked amount (symbol before or after) — last-resort fallback.
 // [ \t] (not \s) so a bare number at end-of-line can't pair with a currency
 // symbol on the next line (e.g. the year of a date above `₪100.00`)
 const ANY_AMOUNT_RE = /(?:[$£€₪]|ש"ח|ILS|NIS)[ \t]*([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{1,2})?)[ \t]*(?:[$£€₪]|ש"ח|ILS|NIS)/g
 const TAX_RE = /(?:tax|vat|gst|מע"מ)(?:\s*\(?\d{1,2}%?\)?)?[:\s]*(?:[$£€₪]|ש"ח)?\s*([\d,]+\.?\d{0,2})/i
-const INV_NUM_RE = /(?:invoice|inv|order|חשבונית|קבלה|הזמנה)(?:\s*(?:מס'?|מספר))?[#\s:no.]*([A-Z0-9-]{3,20})/i
+// captured number must contain at least one digit — otherwise the prefix
+// words match inside URLs/sentences and capture letter junk
+const INV_NUM_RE = /(?:invoice|inv|order|חשבונית|קבלה|הזמנה)(?:\s*(?:מס'?|מספר))?[#\s:no.]*((?=[A-Z0-9-]*\d)[A-Z0-9-]{3,20})/i
 const DATE_RE = /(?:invoice date|date|issued)[:\s]*([\w]+ \d{1,2},?\s*\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
 const DUE_DATE_RE = /(?:due date|payment due|due by)[:\s]*([\w]+ \d{1,2},?\s*\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
 
@@ -137,15 +146,22 @@ export function extractInvoiceMetadata(
   const invoiceNumber = invNumMatch?.[1] ?? null
   if (invoiceNumber) fieldsFound++
 
-  // Total amount: labeled total > reversed-RTL labeled total > largest
-  // currency-marked amount in the document
-  const amountMatch = AMOUNT_EXTRACT_RE.exec(text) ?? AMOUNT_BEFORE_LABEL_RE.exec(text)
-  let totalAmount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, "")) : null
+  // Total amount: flipped-RTL labeled total (most specific) > labeled total
+  // > reversed-RTL labeled total > largest currency-marked amount
+  let totalAmount: number | null = null
+  const flipped = FLIPPED_AMOUNT_LABEL_RE.exec(text)
+  if (flipped) {
+    totalAmount = parseFloat(`${flipped[2].replace(/,/g, "")}.${flipped[1]}`)
+  } else {
+    const amountMatch = AMOUNT_EXTRACT_RE.exec(text) ?? AMOUNT_BEFORE_LABEL_RE.exec(text)
+    totalAmount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, "")) : null
+  }
   if (!totalAmount) totalAmount = largestCurrencyAmount(text)
   if (totalAmount) fieldsFound++
 
-  // Currency
-  const currency = detectCurrency(text)
+  // Currency — the flipped-RTL pattern only occurs in shekel documents
+  // where ₪ was mangled into '{', so it implies ILS
+  const currency = flipped ? "ILS" : detectCurrency(text)
 
   // Tax
   const taxMatch = TAX_RE.exec(text)

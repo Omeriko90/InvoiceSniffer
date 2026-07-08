@@ -143,8 +143,13 @@ export async function fetchAttachmentPdfText(
   gmailMessageId: string,
   attachments: AttachmentMeta[]
 ): Promise<string | null> {
+  // Match by mime OR filename — some senders (e.g. Partner) attach PDFs
+  // as application/octet-stream
   const pdf = attachments.find(
-    (a) => a.mimeType === "application/pdf" && a.size > 0 && a.size <= MAX_PDF_BYTES
+    (a) =>
+      (a.mimeType === "application/pdf" || a.filename.toLowerCase().endsWith(".pdf")) &&
+      a.size > 0 &&
+      a.size <= MAX_PDF_BYTES
   )
   if (!pdf) return null
 
