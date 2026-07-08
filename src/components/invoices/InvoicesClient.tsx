@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { ExternalLink, FileText, Lock, Search } from "lucide-react"
 import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -18,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useGmailSync } from "@/hooks/useGmailSync"
+import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -170,10 +173,61 @@ function EmptyState() {
 
 // ── Drawer ────────────────────────────────────────────────────────────
 
-function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
+function toDraft(inv: InvoiceRow) {
+  return {
+    vendorName: inv.vendorName ?? "",
+    invoiceNumber: inv.invoiceNumber ?? "",
+    totalAmount: inv.totalAmount,
+    invoiceDate: inv.invoiceDate?.slice(0, 10) ?? "",
+    dueDate: inv.dueDate?.slice(0, 10) ?? "",
+  }
+}
+
+function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (updated: InvoiceRow) => void }) {
+  const router = useRouter()
+  const update = useUpdateInvoice()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(() => toDraft(invoice))
+
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
   const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
   const pct = Math.round(invoice.extractionConfidence * 100)
+
+  const amountValid =
+    draft.totalAmount.trim() !== "" &&
+    Number.isFinite(Number(draft.totalAmount)) &&
+    Number(draft.totalAmount) >= 0
+
+  function setField(field: keyof ReturnType<typeof toDraft>, value: string) {
+    setDraft((d) => ({ ...d, [field]: value }))
+  }
+
+  function handleSave() {
+    const data = {
+      vendorName: draft.vendorName.trim() || null,
+      invoiceNumber: draft.invoiceNumber.trim() || null,
+      totalAmount: draft.totalAmount.trim(),
+      invoiceDate: draft.invoiceDate || null,
+      dueDate: draft.dueDate || null,
+    }
+    update.mutate(
+      { id: invoice.id, data },
+      {
+        onSuccess: () => {
+          setEditing(false)
+          onSaved({
+            ...invoice,
+            vendorName: data.vendorName,
+            invoiceNumber: data.invoiceNumber,
+            totalAmount: data.totalAmount,
+            invoiceDate: data.invoiceDate ? new Date(data.invoiceDate).toISOString() : null,
+            dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+          })
+          router.refresh()
+        },
+      }
+    )
+  }
 
   return (
     <SheetContent
@@ -211,6 +265,35 @@ function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
         <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
           Extracted fields
         </p>
+        {editing ? (
+        <div className="flex flex-col gap-[13px] border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[22px]">
+          {[
+            { field: "vendorName" as const,    label: "Vendor",       type: "text" },
+            { field: "invoiceNumber" as const, label: "Invoice #",    type: "text" },
+            { field: "totalAmount" as const,   label: `Amount (${invoice.currency})`, type: "number" },
+            { field: "invoiceDate" as const,   label: "Invoice date", type: "date" },
+            { field: "dueDate" as const,       label: "Due date",     type: "date" },
+          ].map((f) => (
+            <div key={f.field} className="flex flex-col gap-[5px]">
+              <Label
+                htmlFor={`edit-${f.field}`}
+                className="text-[12px] font-[600] text-[#64748B]"
+              >
+                {f.label}
+              </Label>
+              <Input
+                id={`edit-${f.field}`}
+                type={f.type}
+                step={f.type === "number" ? "0.01" : undefined}
+                min={f.type === "number" ? "0" : undefined}
+                value={draft[f.field]}
+                onChange={(e) => setField(f.field, e.target.value)}
+                className="h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]"
+              />
+            </div>
+          ))}
+        </div>
+        ) : (
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
           {[
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
@@ -233,6 +316,7 @@ function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
             </div>
           ))}
         </div>
+        )}
 
         {/* Source email */}
         <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
@@ -289,21 +373,48 @@ function InvoiceDrawer({ invoice }: { invoice: InvoiceRow }) {
 
       {/* Footer */}
       <div className="flex gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
-        <Button
-          variant="outline"
-          className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
-          nativeButton={false}
-          render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
-        >
-          <ExternalLink size={15} strokeWidth={1.5} />
-          Open in Gmail
-        </Button>
-        <Button
-          className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
-          style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
-        >
-          Edit fields
-        </Button>
+        {editing ? (
+          <>
+            <Button
+              variant="outline"
+              className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
+              disabled={update.isPending}
+              onClick={() => {
+                setDraft(toDraft(invoice))
+                setEditing(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
+              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+              disabled={update.isPending || !amountValid}
+              onClick={handleSave}
+            >
+              {update.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="outline"
+              className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
+              nativeButton={false}
+              render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
+            >
+              <ExternalLink size={15} strokeWidth={1.5} />
+              Open in Gmail
+            </Button>
+            <Button
+              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
+              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+              onClick={() => setEditing(true)}
+            >
+              Edit fields
+            </Button>
+          </>
+        )}
       </div>
     </SheetContent>
   )
@@ -498,7 +609,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
       {/* Drawer */}
       <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-        {selected && <InvoiceDrawer invoice={selected} />}
+        {selected && <InvoiceDrawer key={selected.id} invoice={selected} onSaved={setSelected} />}
       </Sheet>
     </div>
   )
