@@ -18,4 +18,12 @@ async function updateInvoice({ id, data }: { id: string; data: UpdateInvoicePayl
   }
 }
 
-export { updateInvoice }
+async function markNotInvoice(id: string): Promise<void> {
+  const res = await fetch(`/api/invoices/${id}/not-invoice`, { method: "POST" })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to mark as not an invoice")
+  }
+}
+
+export { updateInvoice, markNotInvoice }

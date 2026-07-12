@@ -31,7 +31,7 @@ export async function GET() {
     prisma.anomalyLog.count({ where: { organizationId, acknowledged: false, severity: "HIGH" } }),
     prisma.invoice.groupBy({
       by: ["status"],
-      where: { organizationId, emailDate: { gte: monthStart, lte: monthEnd } },
+      where: { organizationId, status: { not: "IGNORED" }, emailDate: { gte: monthStart, lte: monthEnd } },
       _count: true,
     }),
     prisma.anomalyLog.findMany({

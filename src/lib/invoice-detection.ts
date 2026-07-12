@@ -10,7 +10,7 @@ export type DetectionResult = {
   signals: InvoiceSignal[]
 }
 
-const CANDIDATE_THRESHOLD = 40
+export const CANDIDATE_THRESHOLD = 40
 
 const SUBJECT_KEYWORDS = [
   "invoice", "receipt", "bill", "payment confirmation",

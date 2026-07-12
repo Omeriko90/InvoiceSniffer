@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { ExternalLink, FileText, Lock, Search } from "lucide-react"
+import { Ban, ExternalLink, FileText, Lock, Search } from "lucide-react"
 import { format } from "date-fns"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +21,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
+import { useMarkNotInvoice } from "@/hooks/useMarkNotInvoice"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -183,9 +184,14 @@ function toDraft(inv: InvoiceRow) {
   }
 }
 
-function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (updated: InvoiceRow) => void }) {
+function InvoiceDrawer({ invoice, onSaved, onDismiss }: {
+  invoice: InvoiceRow
+  onSaved: (updated: InvoiceRow) => void
+  onDismiss: () => void
+}) {
   const router = useRouter()
   const update = useUpdateInvoice()
+  const notInvoice = useMarkNotInvoice()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
 
@@ -390,7 +396,8 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
       </div>
 
       {/* Footer */}
-      <div className="flex gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
+      <div className="flex flex-col gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
+        <div className="flex gap-[10px]">
         {editing ? (
           <>
             <Button
@@ -433,6 +440,25 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
             </Button>
           </>
         )}
+        </div>
+        {!editing && invoice.status !== "IGNORED" && (
+          <Button
+            variant="ghost"
+            className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
+            disabled={notInvoice.isPending}
+            onClick={() =>
+              notInvoice.mutate(invoice.id, {
+                onSuccess: () => {
+                  onDismiss()
+                  router.refresh()
+                },
+              })
+            }
+          >
+            <Ban size={14} strokeWidth={1.8} />
+            {notInvoice.isPending ? "Marking…" : "This isn't an invoice"}
+          </Button>
+        )}
       </div>
     </SheetContent>
   )
@@ -468,6 +494,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     { value: "MATCHED",  label: "Confirmed" },
     { value: "UNMATCHED",label: "Review" },
     { value: "REVIEWED", label: "Reviewed" },
+    { value: "IGNORED",  label: "Ignored" },
   ]
 
   return (
@@ -627,7 +654,14 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
       {/* Drawer */}
       <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-        {selected && <InvoiceDrawer key={selected.id} invoice={selected} onSaved={setSelected} />}
+        {selected && (
+          <InvoiceDrawer
+            key={selected.id}
+            invoice={selected}
+            onSaved={setSelected}
+            onDismiss={() => setSelected(null)}
+          />
+        )}
       </Sheet>
     </div>
   )

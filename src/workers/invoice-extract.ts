@@ -34,6 +34,15 @@ export function createInvoiceExtractWorker() {
 }
 
 async function extractInvoice(organizationId: string, gmailMessageId: string) {
+  // Never overwrite an invoice the user explicitly marked "not an invoice"
+  const existing = await prisma.invoice.findUnique({
+    where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
+    select: { id: true, status: true },
+  })
+  if (existing?.status === "IGNORED") {
+    return { invoiceId: existing.id, skipped: "ignored_by_user" }
+  }
+
   const gmail = await getGmailClient(organizationId)
 
   const msg = await gmail.users.messages.get({
