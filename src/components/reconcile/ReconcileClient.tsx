@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useTransactionAction } from "@/hooks/useTransactionAction"
 import { FindInvoiceModal } from "@/components/reconcile/FindInvoiceModal"
+import { MatchDrawer } from "@/components/reconcile/MatchDrawer"
 import { fmtMoney } from "@/lib/money"
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -22,7 +23,18 @@ export type TransactionRow = {
   matchConfidence: number | null
   matchReason: string | null
   matchConfirmed: boolean
-  invoice: { id: string; vendorName: string | null; invoiceNumber: string | null } | null
+  sourceFile: string | null
+  invoice: {
+    id: string
+    vendorName: string | null
+    invoiceNumber: string | null
+    amount: string
+    currency: string
+    date: string
+    dueDate: string | null
+    senderEmail: string
+    gmailLink: string
+  } | null
 }
 
 type TabId = "all" | "matched" | "possible" | "missing" | "none"
@@ -128,7 +140,13 @@ function EmptyState() {
 export function ReconcileClient({ transactions }: { transactions: TransactionRow[] }) {
   const [tab, setTab] = useState<TabId>("all")
   const [findFor, setFindFor] = useState<TransactionRow | null>(null)
+  const [detailFor, setDetailFor] = useState<TransactionRow | null>(null)
   const action = useTransactionAction()
+
+  // Keep the open drawer in sync with fresh transaction data after an action
+  const detailTxn = detailFor
+    ? transactions.find((t) => t.id === detailFor.id) ?? null
+    : null
 
   const tabs = useMemo(() => {
     const count = (t: TabId) =>
@@ -210,7 +228,8 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
           return (
             <div
               key={txn.id}
-              className="grid items-center px-[18px] py-[14px] border-b border-[#F1F3F8] last:border-b-0 hover:bg-[#FAFBFF] transition-colors"
+              onClick={() => setDetailFor(txn)}
+              className="grid items-center px-[18px] py-[14px] border-b border-[#F1F3F8] last:border-b-0 hover:bg-[#FAFBFF] transition-colors cursor-pointer"
               style={GRID}
             >
               {/* Date */}
@@ -263,7 +282,7 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
               </div>
 
               {/* Actions */}
-              <div className="flex gap-[6px] justify-end">
+              <div className="flex gap-[6px] justify-end" onClick={(e) => e.stopPropagation()}>
                 {txn.status === "MATCHED" && !txn.matchConfirmed && (
                   <>
                     <ActionButton variant="outline" disabled={pending} onClick={() => run(txn.id, "reject")}>
@@ -309,6 +328,18 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
           )
         })}
       </div>
+
+      {/* Match confirmation drawer */}
+      <MatchDrawer
+        transaction={detailTxn}
+        onClose={() => setDetailFor(null)}
+        onRun={run}
+        onFind={(txn) => {
+          setDetailFor(null)
+          setFindFor(txn)
+        }}
+        pending={action.isPending}
+      />
 
       {/* Find / change invoice modal */}
       <FindInvoiceModal transaction={findFor} onClose={() => setFindFor(null)} />
