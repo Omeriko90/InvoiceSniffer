@@ -7,7 +7,7 @@ import { headers } from "next/headers"
 
 // Map pathnames to page titles
 function getTitle(pathname: string): string {
-  if (pathname.startsWith("/dashboard")) return "Dashboard"
+  if (pathname === "/") return "Dashboard"
   if (pathname.startsWith("/invoices"))  return "Invoices"
   if (pathname.startsWith("/import"))    return "Import CSV"
   if (pathname.startsWith("/reconcile")) return "Reconcile"

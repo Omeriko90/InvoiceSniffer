@@ -15,7 +15,7 @@ export default auth((req) => {
   }
 
   if (isLoggedIn && isAuthRoute) {
-    return NextResponse.redirect(new URL("/dashboard", req.url))
+    return NextResponse.redirect(new URL("/", req.url))
   }
 
   // Pass pathname to server components via header

@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 const WORKSPACE_NAV = [
-  { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
+  { label: "Dashboard",  href: "/",           icon: LayoutDashboard },
   { label: "Invoices",   href: "/invoices",   icon: FileText },
   { label: "Import CSV", href: "/import",     icon: Upload },
   { label: "Reconcile",  href: "/reconcile",  icon: GitMerge },
@@ -108,7 +108,7 @@ function NavGroup({ label, items, pathname }: {
             label={item.label}
             href={item.href}
             icon={item.icon}
-            active={pathname.startsWith(item.href)}
+            active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
             badge={"badge" in item ? (item as { badge?: number }).badge : undefined}
           />
         ))}

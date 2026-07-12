@@ -46,7 +46,7 @@ export function SignUpForm() {
         variant="outline"
         size="lg"
         className="w-full gap-[10px] rounded-[11px] border-[#E8EDFA] text-[14.5px] font-[600] mb-5"
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+        onClick={() => signIn("google", { callbackUrl: "/" })}
       >
         <GoogleLogo />
         Continue with Google

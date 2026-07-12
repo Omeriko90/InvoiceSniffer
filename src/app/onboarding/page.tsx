@@ -62,7 +62,7 @@ export default async function OnboardingPage() {
           <span>Read-only access · encrypted · revoke anytime</span>
         </div>
 
-        <Link href="/dashboard" className="mt-5 text-[13px] text-[#94A3B8] hover:text-[#64748B] transition-colors">
+        <Link href="/" className="mt-5 text-[13px] text-[#94A3B8] hover:text-[#64748B] transition-colors">
           Skip for now
         </Link>
       </div>
