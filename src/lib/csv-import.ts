@@ -6,6 +6,8 @@ export interface ParsedCsv {
   fileName: string
   headers: string[]
   records: Record<string, string>[]
+  /** Original names of headers that appeared more than once (repeats were renamed "name (2)", "name (3)", …) */
+  duplicateHeaders: string[]
 }
 
 export type DraftMapping = {
@@ -19,9 +21,20 @@ export const EMPTY_MAPPING: DraftMapping = { date: null, merchant: null, amount:
 
 export function parseCsvText(fileName: string, text: string): ParsedCsv {
   let headers: string[] = []
+  const duplicateHeaders: string[] = []
   const records: Record<string, string>[] = parse(text, {
     columns: (row: string[]) => {
-      headers = row.map((h) => h.trim())
+      // Duplicate header names would collide as record keys (later columns
+      // silently overwrite earlier ones), so rename repeats "name (2)", "name (3)", …
+      const seen = new Map<string, number>()
+      headers = row.map((raw) => {
+        const h = raw.trim()
+        const count = seen.get(h) ?? 0
+        seen.set(h, count + 1)
+        if (count === 0) return h
+        if (count === 1) duplicateHeaders.push(h)
+        return `${h} (${count + 1})`
+      })
       return headers
     },
     bom: true,
@@ -29,7 +42,7 @@ export function parseCsvText(fileName: string, text: string): ParsedCsv {
     relax_column_count: true,
     trim: true,
   })
-  return { fileName, headers, records }
+  return { fileName, headers, records, duplicateHeaders }
 }
 
 export function headersKeyOf(headers: string[]): string {

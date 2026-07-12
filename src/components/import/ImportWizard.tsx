@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { useCsvMappings, useImportTransactions } from "@/hooks/useImport"
 import {
   ParsedCsv,
@@ -41,6 +42,13 @@ export function ImportWizard() {
     if (csv.headers.length === 0 || csv.records.length === 0) {
       setParseError("That file looks empty — no data rows found.")
       return
+    }
+
+    if (csv.duplicateHeaders.length > 0) {
+      const names = csv.duplicateHeaders.map((h) => `"${h}"`).join(", ")
+      toast.warning("Duplicate columns in this file", {
+        description: `${names} appears more than once — repeats were renamed to "${csv.duplicateHeaders[0]} (2)" style names so you can pick the right column when mapping.`,
+      })
     }
 
     const saved = savedMappings.find((m) => m.headersKey === headersKeyOf(csv.headers))
