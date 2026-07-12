@@ -33,9 +33,9 @@ export function SignUpForm() {
     resolver: zodResolver(schema),
   })
 
-  async function onSubmit(data: FormValues) {
-    // Credentials signup not implemented yet — Google OAuth is primary
-    console.log(data)
+  async function onSubmit(_data: FormValues) {
+    // Credentials signup not implemented yet — Google OAuth is primary.
+    // Do not log form values here: they include the plaintext password.
   }
 
   return (

@@ -6,6 +6,9 @@ import { decrypt, encrypt } from "@/lib/encryption"
 // attachment content during export, which the metadata scope forbids
 export const GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
+// Cookie holding the single-use OAuth CSRF nonce (set in /connect, checked in /callback)
+export const GMAIL_OAUTH_STATE_COOKIE = "gmail_oauth_state"
+
 function createOAuthClient() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID!,

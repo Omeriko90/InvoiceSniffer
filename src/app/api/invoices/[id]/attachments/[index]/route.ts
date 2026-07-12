@@ -6,6 +6,16 @@ import { NextResponse } from "next/server"
 
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
 
+// Types safe to render inline — PDFs and raster images can't execute script.
+// SVG and HTML are deliberately excluded (active content).
+const INLINE_SAFE_TYPES = new Set([
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+])
+
 // Streams an invoice attachment straight from Gmail — the file is never
 // stored, only proxied to the browser for viewing
 export async function GET(
@@ -68,12 +78,20 @@ export async function GET(
         ? "application/pdf"
         : meta.mimeType
 
+    // Only render trusted, non-active types inline. Anything else (SVG, HTML,
+    // etc.) is forced to download — inlining it would run attacker-supplied
+    // script on our origin, since the file comes from an untrusted email.
+    const disposition = INLINE_SAFE_TYPES.has(mimeType) ? "inline" : "attachment"
+
+    const asciiName = meta.filename.replace(/[^\w .-]/g, "_")
     return new NextResponse(new Uint8Array(Buffer.from(data, "base64url")), {
       headers: {
         "Content-Type": mimeType,
         // ASCII fallback plus RFC 5987 UTF-8 form for Hebrew filenames
-        "Content-Disposition": `inline; filename="${meta.filename.replace(/[^\w .-]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(meta.filename)}`,
+        "Content-Disposition": `${disposition}; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(meta.filename)}`,
         "Cache-Control": "private, no-store",
+        // Block MIME sniffing — a text file must not be reinterpreted as HTML
+        "X-Content-Type-Options": "nosniff",
       },
     })
   } catch (error) {
