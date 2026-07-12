@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useAlerts } from "@/hooks/useAlerts"
 
 const WORKSPACE_NAV = [
   { label: "Dashboard",  href: "/",           icon: LayoutDashboard },
@@ -23,7 +24,7 @@ const WORKSPACE_NAV = [
 ]
 
 const INSIGHTS_NAV = [
-  { label: "Alerts",  href: "/alerts",  icon: Bell,     badge: 4 },
+  { label: "Alerts",  href: "/alerts",  icon: Bell },
   { label: "Exports", href: "/exports", icon: Download },
 ]
 
@@ -36,6 +37,8 @@ type SidebarProps = {
 
 export function Sidebar({ orgName = "My Workspace", userName, userEmail, userInitials = "?" }: SidebarProps) {
   const pathname = usePathname()
+  const { data: alertsData } = useAlerts("all")
+  const alertCount = alertsData?.counts.all ?? 0
 
   return (
     <aside className="w-[248px] shrink-0 h-full bg-surface border-r border-border flex flex-col">
@@ -60,7 +63,12 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
       {/* Nav */}
       <nav className="flex-1 px-[14px] flex flex-col gap-5 overflow-y-auto">
         <NavGroup label="Workspace" items={WORKSPACE_NAV} pathname={pathname} />
-        <NavGroup label="Insights"  items={INSIGHTS_NAV}  pathname={pathname} />
+        <NavGroup
+          label="Insights"
+          items={INSIGHTS_NAV}
+          pathname={pathname}
+          badges={{ "/alerts": alertCount || undefined }}
+        />
       </nav>
 
       {/* Bottom: Settings + User */}
@@ -91,10 +99,11 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
   )
 }
 
-function NavGroup({ label, items, pathname }: {
+function NavGroup({ label, items, pathname, badges }: {
   label: string
   items: typeof WORKSPACE_NAV
   pathname: string
+  badges?: Record<string, number | undefined>
 }) {
   return (
     <div>
@@ -109,7 +118,7 @@ function NavGroup({ label, items, pathname }: {
             href={item.href}
             icon={item.icon}
             active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
-            badge={"badge" in item ? (item as { badge?: number }).badge : undefined}
+            badge={badges?.[item.href]}
           />
         ))}
       </div>
@@ -137,7 +146,7 @@ function NavItem({ label, href, icon: Icon, active, badge }: {
       <Icon size={18} strokeWidth={2} className="shrink-0" />
       <span className="flex-1">{label}</span>
       {badge !== undefined && (
-        <Badge className="bg-danger text-white text-[10px] font-[700] rounded-full w-4 h-4 p-0 justify-center">
+        <Badge className="bg-danger text-white text-[10px] font-[700] rounded-full min-w-4 h-4 px-1 justify-center">
           {badge}
         </Badge>
       )}

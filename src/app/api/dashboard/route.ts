@@ -62,6 +62,7 @@ export async function GET() {
     recentAlerts: recentAlerts.map((a) => ({
       id:        a.id,
       type:      a.type,
+      severity:  a.severity,
       details:   a.details,
       vendorName: a.vendorName,
       invoice:   a.invoice,
