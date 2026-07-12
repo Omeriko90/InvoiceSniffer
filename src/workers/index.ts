@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { createGmailSyncWorker } from "./gmail-sync"
+import { createGmailSyncWorker, registerDailySyncScheduler } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
 
 const workers = [
@@ -8,6 +8,10 @@ const workers = [
 ]
 
 console.log(`✓ ${workers.length} workers started`)
+
+registerDailySyncScheduler()
+  .then(() => console.log("✓ daily Gmail sync scheduled (06:00 Asia/Jerusalem)"))
+  .catch((err) => console.error("Failed to register daily sync scheduler:", err))
 
 for (const worker of workers) {
   worker.on("completed", (job) => {

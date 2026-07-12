@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
-import { extractionQueue, type GmailSyncJobData, type ExtractionJobData } from "@/lib/queues"
+import { gmailSyncQueue, extractionQueue, type GmailSyncJobData, type ExtractionJobData } from "@/lib/queues"
 import { detectInvoiceCandidate } from "@/lib/invoice-detection"
 import type { gmail_v1 } from "googleapis"
 
@@ -13,10 +13,17 @@ const PAGE_SIZE = 50
 const SYNC_QUERY =
   "newer_than:3m (has:attachment OR subject:invoice OR subject:receipt OR subject:bill OR subject:חשבונית OR subject:קבלה)"
 
+// Daily fan-out job name — enqueues a per-org sync for every connected org
+const SYNC_ALL_JOB = "gmail:sync-all"
+
 export function createGmailSyncWorker() {
   return new Worker<GmailSyncJobData>(
     "gmail-sync",
     async (job: Job<GmailSyncJobData>) => {
+      if (job.name === SYNC_ALL_JOB) {
+        return enqueueSyncForAllOrgs()
+      }
+
       const { organizationId, mode } = job.data
 
       if (mode === "full") {
@@ -27,6 +34,32 @@ export function createGmailSyncWorker() {
     },
     { connection, concurrency: 3 }
   )
+}
+
+// Idempotent — upsert keyed by scheduler id, safe to call on every startup
+export async function registerDailySyncScheduler() {
+  await gmailSyncQueue.upsertJobScheduler(
+    "daily-gmail-sync",
+    { pattern: "0 6 * * *", tz: "Asia/Jerusalem" },
+    { name: SYNC_ALL_JOB }
+  )
+}
+
+async function enqueueSyncForAllOrgs() {
+  const orgs = await prisma.organization.findMany({
+    where: { gmailConnected: true },
+    select: { id: true, gmailSyncToken: true },
+  })
+
+  for (const org of orgs) {
+    await gmailSyncQueue.add(
+      "gmail:sync",
+      { organizationId: org.id, mode: org.gmailSyncToken ? "incremental" : "full" } satisfies GmailSyncJobData,
+      { jobId: `sync-${org.id}-${Date.now()}` }
+    )
+  }
+
+  return { enqueued: orgs.length }
 }
 
 // ── Full sync: page through the last 3 months of Gmail messages ────
