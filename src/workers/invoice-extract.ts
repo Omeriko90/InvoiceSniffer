@@ -94,7 +94,9 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       vendorName: extracted.vendorName,
       vendorNormalized: extracted.vendorNormalized,
       invoiceNumber: extracted.invoiceNumber,
-      invoiceDate: extracted.invoiceDate,
+      // Receipts are emailed the moment they're issued, so the email date is
+      // a solid default when the document itself didn't yield one
+      invoiceDate: extracted.invoiceDate ?? emailDate,
       dueDate: extracted.dueDate,
       totalAmount: extracted.totalAmount ?? 0,
       currency: extracted.currency,
@@ -109,7 +111,7 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
       vendorName: extracted.vendorName,
       vendorNormalized: extracted.vendorNormalized,
       invoiceNumber: extracted.invoiceNumber,
-      invoiceDate: extracted.invoiceDate,
+      invoiceDate: extracted.invoiceDate ?? emailDate,
       dueDate: extracted.dueDate,
       totalAmount: extracted.totalAmount ?? 0,
       currency: extracted.currency,
