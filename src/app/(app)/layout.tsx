@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/shell/Sidebar"
 import { Topbar } from "@/components/shell/Topbar"
+import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
 import { headers } from "next/headers"
 
 // Map pathnames to page titles
@@ -30,6 +31,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="h-screen flex overflow-hidden">
+      <PostHogIdentify
+        userId={session.user.id}
+        email={session.user.email}
+        name={session.user.name}
+        organizationId={session.user.organizationId}
+      />
       <Sidebar
         orgName="My Workspace"
         userName={session.user.name ?? undefined}

@@ -1,6 +1,7 @@
 import "dotenv/config"
 import { createGmailSyncWorker, registerDailySyncScheduler } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
+import { captureServerException, shutdownPostHog } from "@/lib/posthog-server"
 
 const workers = [
   createGmailSyncWorker(),
@@ -19,6 +20,13 @@ for (const worker of workers) {
   })
   worker.on("failed", (job, err) => {
     console.error(`[${job?.queueName}] job ${job?.id} failed:`, err.message)
+    captureServerException(err, `worker:${worker.name}`, {
+      queue: job?.queueName,
+      jobId: job?.id,
+      jobName: job?.name,
+      jobData: job?.data,
+      attemptsMade: job?.attemptsMade,
+    })
   })
 }
 
@@ -26,6 +34,7 @@ for (const worker of workers) {
 async function shutdown() {
   console.log("Shutting down workers...")
   await Promise.all(workers.map((w) => w.close()))
+  await shutdownPostHog()
   process.exit(0)
 }
 
