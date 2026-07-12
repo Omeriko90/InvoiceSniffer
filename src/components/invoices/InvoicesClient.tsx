@@ -299,7 +299,11 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
             { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
             { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
-            { label: "Due date",     value: invoice.dueDate ? format(new Date(invoice.dueDate), "MMM d, yyyy") : "—" },
+            // Most receipts are already paid, so a missing due date means
+            // "not applicable" — hide the row rather than show a dash
+            ...(invoice.dueDate
+              ? [{ label: "Due date", value: format(new Date(invoice.dueDate), "MMM d, yyyy") }]
+              : []),
           ].map((row, i, arr) => (
             <div
               key={row.label}
@@ -322,7 +326,7 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
         <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
           Source email
         </p>
-        <div className="border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[14px]">
+        <div className="border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[22px]">
           <p className="text-[13px] font-[600] text-[#334155] leading-snug">{invoice.subject}</p>
           <p className="text-[12.5px] text-[#64748B] mt-1">{invoice.senderEmail}</p>
           <p className="text-[12px] text-[#94A3B8] mt-0.5">
@@ -330,11 +334,19 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
           </p>
         </div>
 
-        {/* Attachments */}
+        {/* Attachments — served on demand from Gmail, never stored */}
+        {invoice.attachmentMeta.length > 0 && (
+          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+            Attached documents
+          </p>
+        )}
         {invoice.attachmentMeta.length > 0 && invoice.attachmentMeta.map((att, i) => (
-          <div
+          <a
             key={i}
-            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px]"
+            href={`/api/invoices/${invoice.id}/attachments/${i}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px] hover:bg-[#EFF6FF] transition-colors"
           >
             <div className="w-[34px] h-[34px] rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
               <FileText size={16} strokeWidth={1.5} className="text-[#FB7171]" />
@@ -343,10 +355,16 @@ function InvoiceDrawer({ invoice, onSaved }: { invoice: InvoiceRow; onSaved: (up
               <p className="text-[13px] font-[600] text-[#334155] truncate">{att.filename}</p>
               <p className="text-[11.5px] text-[#94A3B8]">{fmtSize(att.size)}</p>
             </div>
-          </div>
+            <ExternalLink size={14} strokeWidth={1.5} className="text-[#94A3B8] shrink-0" />
+          </a>
         ))}
 
         {/* Hosted receipt link */}
+        {invoice.receiptUrl && (
+          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+            Receipt link
+          </p>
+        )}
         {invoice.receiptUrl && (
           <a
             href={invoice.receiptUrl}
