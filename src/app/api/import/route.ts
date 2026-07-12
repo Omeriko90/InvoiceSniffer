@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { runMatching } from "@/lib/run-matching"
 import { z } from "zod"
 import type { SavedMapping, ColumnMapping } from "@/api-types/import"
 
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
       update: { label: mappingLabel, mapping },
     }),
   ])
+
+  await runMatching(organizationId)
 
   return Response.json({ imported: created.count })
 }

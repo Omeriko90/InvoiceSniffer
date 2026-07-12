@@ -31,6 +31,7 @@ enum InvoiceStatus {
   REVIEWED
   MATCHED
   UNMATCHED
+  IGNORED
 }
 
 enum AliasType {
@@ -291,6 +292,9 @@ model Transaction {
   currency         String            @default("USD")
   status           TransactionStatus @default(UNMATCHED)
   matchedInvoiceId String?
+  matchConfidence  Float?
+  matchReason      String?
+  matchConfirmed   Boolean           @default(false)
   sourceFile       String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

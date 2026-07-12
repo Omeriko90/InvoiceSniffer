@@ -66,17 +66,24 @@ export function autoDetectMapping(headers: string[]): DraftMapping {
   }
 }
 
-const DATE_FORMATS = ["yyyy-MM-dd", "MM/dd/yyyy", "M/d/yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "dd.MM.yyyy", "MMM d, yyyy"]
+const DATE_FORMATS = [
+  "yyyy-MM-dd", "MM/dd/yyyy", "M/d/yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "dd.MM.yyyy", "MMM d, yyyy",
+  // Two-digit years last — "dd/MM/yyyy" happily parses "11/05/26" as year 0026,
+  // so the plausibleYear guard below rejects it and lets "dd/MM/yy" map 26 → 2026
+  "dd/MM/yy", "MM/dd/yy", "dd.MM.yy",
+]
+
+const plausibleYear = (d: Date) => d.getFullYear() >= 1971
 
 export function normalizeDate(value: string): string | null {
   const v = value.trim()
   if (!v) return null
   for (const fmt of DATE_FORMATS) {
     const d = parseDate(v, fmt, new Date())
-    if (isValid(d)) return d.toISOString()
+    if (isValid(d) && plausibleYear(d)) return d.toISOString()
   }
   const fallback = new Date(v)
-  return Number.isNaN(fallback.getTime()) ? null : fallback.toISOString()
+  return Number.isNaN(fallback.getTime()) || !plausibleYear(fallback) ? null : fallback.toISOString()
 }
 
 export function normalizeAmount(value: string): number | null {
@@ -98,6 +105,16 @@ export function normalizeAmount(value: string): number | null {
   return negative ? -n : n
 }
 
+// Bank CSVs often carry a symbol ("₪") or local alias ("NIS") instead of an ISO code
+const CURRENCY_ALIASES: Record<string, string> = {
+  "₪": "ILS", NIS: "ILS", "$": "USD", US$: "USD", "€": "EUR", "£": "GBP", "¥": "JPY",
+}
+
+export function normalizeCurrencyCode(value: string): string {
+  const v = value.trim().toUpperCase()
+  return CURRENCY_ALIASES[v] ?? v
+}
+
 export function buildImportRows(
   records: Record<string, string>[],
   mapping: ColumnMapping
@@ -112,7 +129,9 @@ export function buildImportRows(
       skipped++
       continue
     }
-    const currency = mapping.currency ? (record[mapping.currency] ?? "").trim().toUpperCase() : ""
+    const currency = mapping.currency
+      ? normalizeCurrencyCode((record[mapping.currency] ?? "").trim())
+      : ""
     rows.push({ date, merchant, amount, ...(currency ? { currency } : {}) })
   }
   return { rows, skipped }

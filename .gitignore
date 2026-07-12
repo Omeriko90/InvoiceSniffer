@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# design reference bundle
+/design_handoff_reconcile_app 2/
