@@ -53,7 +53,7 @@ export function UploadStep({ onFile, error }: UploadStepProps) {
         <input
           ref={inputRef}
           type="file"
-          accept=".csv,text/csv"
+          accept="text/csv,.csv,application/vnd.ms-excel,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
