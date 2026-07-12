@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient, GmailNotConnectedError } from "@/lib/gmail"
 import { extractAttachmentMeta, type AttachmentMeta, type GmailPart } from "@/workers/invoice-extract"
+import { log } from "@/lib/posthog-server"
 import { NextResponse } from "next/server"
 
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
@@ -98,7 +99,7 @@ export async function GET(
     if (error instanceof GmailNotConnectedError) {
       return NextResponse.json({ error: "Gmail is not connected" }, { status: 400 })
     }
-    console.error("Attachment fetch failed", error)
+    log.error("Attachment fetch failed", { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: "Failed to fetch attachment" }, { status: 502 })
   }
 }

@@ -20,6 +20,30 @@ export function captureServerException(error: unknown, distinctId: string, prope
   getPostHog()?.captureException(err, distinctId, properties)
 }
 
+type LogLevel = "info" | "warn" | "error"
+
+// Structured server logger. Always writes to stdout (the worker/console is
+// the primary local view) and, when PostHog is active, mirrors the line as a
+// `$server_log` event so logs are searchable in the PostHog Logs view.
+// posthog-node has no dedicated log API, so we model logs as capture events.
+export function logServer(level: LogLevel, message: string, properties?: Record<string, unknown>) {
+  const consoleFn = level === "error" ? console.error : level === "warn" ? console.warn : console.log
+  if (properties) consoleFn(message, properties)
+  else consoleFn(message)
+
+  getPostHog()?.capture({
+    distinctId: "server",
+    event: "$server_log",
+    properties: { level, message, ...properties },
+  })
+}
+
+export const log = {
+  info: (message: string, properties?: Record<string, unknown>) => logServer("info", message, properties),
+  warn: (message: string, properties?: Record<string, unknown>) => logServer("warn", message, properties),
+  error: (message: string, properties?: Record<string, unknown>) => logServer("error", message, properties),
+}
+
 export async function shutdownPostHog() {
   await client?.shutdown()
   client = null

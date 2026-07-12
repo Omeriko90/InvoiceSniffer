@@ -1,25 +1,29 @@
 import "dotenv/config"
 import { createGmailSyncWorker, registerDailySyncScheduler } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
-import { captureServerException, shutdownPostHog } from "@/lib/posthog-server"
+import { captureServerException, shutdownPostHog, log } from "@/lib/posthog-server"
 
 const workers = [
   createGmailSyncWorker(),
   createInvoiceExtractWorker(),
 ]
 
-console.log(`✓ ${workers.length} workers started`)
+log.info(`✓ ${workers.length} workers started`)
 
 registerDailySyncScheduler()
-  .then(() => console.log("✓ daily Gmail sync scheduled (06:00 Asia/Jerusalem)"))
-  .catch((err) => console.error("Failed to register daily sync scheduler:", err))
+  .then(() => log.info("✓ daily Gmail sync scheduled (06:00 Asia/Jerusalem)"))
+  .catch((err) => log.error("Failed to register daily sync scheduler", { error: err.message }))
 
 for (const worker of workers) {
   worker.on("completed", (job) => {
-    console.log(`[${job.queueName}] job ${job.id} completed`)
+    log.info(`[${job.queueName}] job ${job.id} completed`, { queue: job.queueName, jobId: job.id })
   })
   worker.on("failed", (job, err) => {
-    console.error(`[${job?.queueName}] job ${job?.id} failed:`, err.message)
+    log.error(`[${job?.queueName}] job ${job?.id} failed: ${err.message}`, {
+      queue: job?.queueName,
+      jobId: job?.id,
+      jobName: job?.name,
+    })
     captureServerException(err, `worker:${worker.name}`, {
       queue: job?.queueName,
       jobId: job?.id,
@@ -32,7 +36,7 @@ for (const worker of workers) {
 
 // Graceful shutdown
 async function shutdown() {
-  console.log("Shutting down workers...")
+  log.info("Shutting down workers...")
   await Promise.all(workers.map((w) => w.close()))
   await shutdownPostHog()
   process.exit(0)
