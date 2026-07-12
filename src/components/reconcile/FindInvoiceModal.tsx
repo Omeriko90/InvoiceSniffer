@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { ConfidenceBar } from "@/components/ui/confidence-bar"
+import { ActionButton } from "@/components/reconcile/ActionButton"
 import { queries } from "@/queries"
 import { useTransactionAction } from "@/hooks/useTransactionAction"
 import { normalizeMerchant } from "@/lib/matching"
@@ -46,53 +48,39 @@ function CandidateList({ transaction, search, onLinked }: {
           No invoices match — try a different search.
         </p>
       )}
-      {candidates.data?.map((c) => {
-        const pct = c.confidence !== null ? Math.round(c.confidence * 100) : null
-        return (
-          <div
-            key={c.invoiceId}
-            className="flex items-center gap-[12px] border border-[#E8EDFA] rounded-[11px] px-[13px] py-[11px]"
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-[13.5px] font-[600] text-[#334155] truncate">
-                {c.vendorName ?? "Unknown vendor"}
-                {c.invoiceNumber && (
-                  <span className="text-[#94A3B8] font-mono font-[500]"> — {c.invoiceNumber}</span>
-                )}
-              </p>
-              <p className="text-[11.5px] text-[#94A3B8] truncate">
-                {fmtMoney(c.amount, c.currency)} · {format(new Date(c.date), "MMM d")} · {c.reason}
-              </p>
-            </div>
-            {pct !== null && (
-              <div className="flex items-center gap-[6px] w-[86px] shrink-0">
-                <div className="flex-1 h-[5px] bg-[#F1F3F8] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${pct}%`,
-                      background: pct >= 85 ? "#34D399" : pct >= 55 ? "#FBBF24" : "#FB7171",
-                    }}
-                  />
-                </div>
-                <span className="text-[11px] font-[600] text-[#94A3B8]">{pct}%</span>
-              </div>
-            )}
-            <button
-              disabled={action.isPending}
-              onClick={() =>
-                action.mutate(
-                  { id: transaction.id, action: "link", invoiceId: c.invoiceId },
-                  { onSuccess: onLinked }
-                )
-              }
-              className="text-[12px] font-[600] px-[13px] py-[6px] rounded-[8px] whitespace-nowrap cursor-pointer border border-[#7AA7FF] bg-[#7AA7FF] text-white transition-[filter] hover:brightness-[1.04] disabled:opacity-50"
-            >
-              Link
-            </button>
+      {candidates.data?.map((c) => (
+        <div
+          key={c.invoiceId}
+          className="flex items-center gap-[12px] border border-border rounded-[11px] px-[13px] py-[11px]"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-[600] text-foreground truncate">
+              {c.vendorName ?? "Unknown vendor"}
+              {c.invoiceNumber && (
+                <span className="text-dim font-mono font-[500]"> — {c.invoiceNumber}</span>
+              )}
+            </p>
+            <p className="text-[11.5px] text-dim truncate">
+              {fmtMoney(c.amount, c.currency)} · {format(new Date(c.date), "MMM d")} · {c.reason}
+            </p>
           </div>
-        )
-      })}
+          {c.confidence !== null && (
+            <ConfidenceBar value={c.confidence} className="w-[86px] shrink-0" />
+          )}
+          <ActionButton
+            variant="blue"
+            disabled={action.isPending}
+            onClick={() =>
+              action.mutate(
+                { id: transaction.id, action: "link", invoiceId: c.invoiceId },
+                { onSuccess: onLinked }
+              )
+            }
+          >
+            Link
+          </ActionButton>
+        </div>
+      ))}
     </div>
   )
 }
