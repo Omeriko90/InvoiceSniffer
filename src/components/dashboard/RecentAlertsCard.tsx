@@ -43,7 +43,7 @@ export function RecentAlertsCard({ alerts }: RecentAlertsCardProps) {
                       </Badge>
                     </div>
                     <p className="text-[12.5px] text-text-secondary line-clamp-1 leading-[1.5]">
-                      {alertDescription(alert.type, alert.details as Record<string, unknown>)}
+                      {alertDescription(alert.type, alert.details)}
                     </p>
                   </div>
                 </div>
