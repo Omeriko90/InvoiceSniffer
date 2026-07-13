@@ -1,5 +1,6 @@
 import { format } from "date-fns"
-import type { TransactionRow } from "@/components/reconcile/types"
+import { REJECTED_REASON, USER_NO_INVOICE_REASON } from "@/lib/matching"
+import type { RunAction, TransactionRow } from "@/components/reconcile/types"
 
 export function invoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
   if (txn.invoice) {
@@ -15,4 +16,40 @@ export function invoiceLabel(txn: TransactionRow): { text: string; muted: boolea
 
 export function fmtDate(iso: string): string {
   return format(new Date(iso), "MMM d, yyyy")
+}
+
+// Optimistic mirror of the server-side transitions in the transaction PATCH
+// route. Kept intentionally in lockstep with that handler.
+export function applyOptimisticAction(txn: TransactionRow, action: RunAction): TransactionRow {
+  switch (action) {
+    case "confirm":
+      return { ...txn, status: "MATCHED", matchConfirmed: true }
+    case "reject":
+      return {
+        ...txn,
+        status: "UNMATCHED",
+        matchConfirmed: false,
+        matchConfidence: null,
+        matchReason: REJECTED_REASON,
+        invoice: null,
+      }
+    case "no_invoice":
+      return {
+        ...txn,
+        status: "NO_INVOICE",
+        matchConfirmed: false,
+        matchConfidence: null,
+        matchReason: USER_NO_INVOICE_REASON,
+        invoice: null,
+      }
+    case "undo":
+      return {
+        ...txn,
+        status: "UNMATCHED",
+        matchConfirmed: false,
+        matchConfidence: null,
+        matchReason: null,
+        invoice: null,
+      }
+  }
 }
