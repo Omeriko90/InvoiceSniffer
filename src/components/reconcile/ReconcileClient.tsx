@@ -1,98 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import Link from "next/link"
-import { format } from "date-fns"
-import { GitMerge } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { useTransactionAction } from "@/hooks/useTransactionAction"
 import { FindInvoiceModal } from "@/components/reconcile/FindInvoiceModal"
 import { MatchDrawer } from "@/components/reconcile/MatchDrawer"
-import { ActionButton } from "@/components/reconcile/ActionButton"
-import { StatusBadge, STATUS_META, type TxnStatus } from "@/components/reconcile/status"
-import { fmtMoney } from "@/lib/money"
-
-// ── Types ────────────────────────────────────────────────────────────
-
-export type TransactionRow = {
-  id: string
-  date: string
-  merchant: string
-  amount: string
-  currency: string
-  status: TxnStatus
-  matchConfidence: number | null
-  matchReason: string | null
-  matchConfirmed: boolean
-  sourceFile: string | null
-  invoice: {
-    id: string
-    vendorName: string | null
-    invoiceNumber: string | null
-    amount: string
-    currency: string
-    date: string
-    dueDate: string | null
-    senderEmail: string
-    gmailLink: string
-  } | null
-}
-
-type TabId = "all" | "matched" | "possible" | "missing" | "none"
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-const GRID = { gridTemplateColumns: ".7fr 1.5fr .8fr 1.7fr 1fr 1.6fr", gap: "14px" }
-
-const TAB_FOR_STATUS = {
-  MATCHED: "matched",
-  POSSIBLE: "possible",
-  UNMATCHED: "missing",
-  NO_INVOICE: "none",
-} as const satisfies Record<TxnStatus, TabId>
-
-function invoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
-  if (txn.invoice) {
-    const vendor = txn.invoice.vendorName ?? "Unknown vendor"
-    return {
-      text: txn.invoice.invoiceNumber ? `${vendor} — ${txn.invoice.invoiceNumber}` : vendor,
-      muted: false,
-    }
-  }
-  if (txn.status === "NO_INVOICE") return { text: "No invoice required", muted: true }
-  return { text: "No invoice found", muted: true }
-}
-
-// ── Empty state ──────────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-8">
-      <div className="w-14 h-14 rounded-xl bg-hover flex items-center justify-center mb-4">
-        <GitMerge size={26} strokeWidth={1.5} className="text-dim" />
-      </div>
-      <p className="text-[16px] font-[700] text-heading mb-2">Nothing to reconcile yet</p>
-      <p className="text-[13.5px] text-text-secondary text-center max-w-[340px] leading-[1.6] mb-6">
-        Import a bank or credit-card CSV and we&apos;ll match every charge against your detected
-        invoices automatically.
-      </p>
-      <Button
-        nativeButton={false}
-        render={<Link href="/import" />}
-        className="h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0"
-        style={{
-          background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",
-          boxShadow: "0 4px 12px rgba(122,167,255,.3)",
-        }}
-      >
-        Import a CSV
-      </Button>
-    </div>
-  )
-}
-
-// ── Main component ───────────────────────────────────────────────────
+import { TabBar } from "@/components/reconcile/TabBar"
+import { ReconcileTable } from "@/components/reconcile/ReconcileTable"
+import { TAB_FOR_STATUS } from "@/components/reconcile/constants"
+import type { RunAction, TabId, TransactionRow } from "@/components/reconcile/types"
 
 export function ReconcileClient({ transactions }: { transactions: TransactionRow[] }) {
   const [tab, setTab] = useState<TabId>("all")
@@ -121,171 +36,25 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
     ? transactions
     : transactions.filter((txn) => TAB_FOR_STATUS[txn.status] === tab)
 
-  const run = (id: string, a: "confirm" | "reject" | "no_invoice" | "undo") =>
+  const run = (id: string, a: RunAction) =>
     action.mutate({ id, action: a })
+
+  const pending = (id: string) => action.isPending && action.variables?.id === id
 
   return (
     <div className="flex flex-col">
       {/* Status tabs */}
-      <div className="flex items-center gap-[6px] mb-4 bg-card border border-border rounded-[12px] p-[5px] w-fit">
-        {tabs.map((t) => {
-          const on = tab === t.id
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className="flex items-center gap-[7px] px-[14px] py-[7px] rounded-[9px] cursor-pointer text-[13.5px] font-[600] transition-colors"
-              style={{ background: on ? "#EEF3FF" : "transparent", color: on ? "#3B6FE0" : "#64748B" }}
-            >
-              {t.label}
-              <span
-                className="text-[11px] font-[700] px-[7px] rounded-full"
-                style={{
-                  background: on ? "#7AA7FF" : "#F1F3F8",
-                  color: on ? "#fff" : "#94A3B8",
-                }}
-              >
-                {t.count}
-              </span>
-            </button>
-          )
-        })}
-      </div>
+      <TabBar tabs={tabs} tab={tab} onSelect={setTab} />
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-[14px] overflow-hidden">
-        {/* Header */}
-        <div className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-border" style={GRID}>
-          {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
-            <span
-              key={h}
-              className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary"
-              style={i === 2 || i === 5 ? { textAlign: "right" } : undefined}
-            >
-              {h}
-            </span>
-          ))}
-        </div>
-
-        {transactions.length === 0 && <EmptyState />}
-
-        {transactions.length > 0 && filtered.length === 0 && (
-          <div className="py-12 text-center text-[13.5px] text-dim">
-            No transactions in this view
-          </div>
-        )}
-
-        {filtered.map((txn) => {
-          const meta = STATUS_META[txn.status]
-          const inv = invoiceLabel(txn)
-          const showBar =
-            txn.matchConfidence !== null &&
-            (txn.status === "MATCHED" || txn.status === "POSSIBLE")
-          const pending = action.isPending && action.variables?.id === txn.id
-
-          return (
-            <div
-              key={txn.id}
-              role="button"
-              tabIndex={0}
-              aria-label={`Review ${txn.merchant} — ${fmtMoney(txn.amount, txn.currency)}`}
-              onClick={() => setDetailFor(txn)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  setDetailFor(txn)
-                }
-              }}
-              className="grid items-center px-[18px] py-[14px] border-b border-hover last:border-b-0 hover:bg-background transition-colors cursor-pointer focus:outline-none focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
-              style={GRID}
-            >
-              {/* Date */}
-              <span className="text-[13px] text-text-secondary">
-                {format(new Date(txn.date), "MMM d")}
-              </span>
-
-              {/* Merchant */}
-              <span className="text-[13px] font-[600] text-foreground font-mono truncate">
-                {txn.merchant}
-              </span>
-
-              {/* Amount */}
-              <span className="text-[13.5px] font-[700] text-heading text-right">
-                {fmtMoney(txn.amount, txn.currency)}
-              </span>
-
-              {/* Matched invoice */}
-              <div className="min-w-0">
-                <div
-                  className="text-[13px] font-[600] truncate"
-                  style={{ color: inv.muted ? "#94A3B8" : "#334155" }}
-                >
-                  {inv.text}
-                </div>
-                {txn.matchReason && (
-                  <div className="text-[11.5px] text-dim truncate">{txn.matchReason}</div>
-                )}
-              </div>
-
-              {/* Confidence */}
-              <div>
-                <StatusBadge status={txn.status} confirmed={txn.matchConfirmed} />
-                {showBar && (
-                  <ConfidenceBar
-                    value={txn.matchConfidence!}
-                    barClassName={meta.bar}
-                    className="mt-[5px]"
-                  />
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-[6px] justify-end" onClick={(e) => e.stopPropagation()}>
-                {txn.status === "MATCHED" && !txn.matchConfirmed && (
-                  <>
-                    <ActionButton variant="outline" disabled={pending} onClick={() => run(txn.id, "reject")}>
-                      ✕ Reject
-                    </ActionButton>
-                    <ActionButton variant="green" disabled={pending} onClick={() => run(txn.id, "confirm")}>
-                      ✓ Confirm
-                    </ActionButton>
-                  </>
-                )}
-                {txn.status === "MATCHED" && txn.matchConfirmed && (
-                  <ActionButton variant="outline" disabled={pending} onClick={() => run(txn.id, "undo")}>
-                    Undo
-                  </ActionButton>
-                )}
-                {txn.status === "POSSIBLE" && (
-                  <>
-                    <ActionButton variant="neutral" disabled={pending} onClick={() => setFindFor(txn)}>
-                      Change
-                    </ActionButton>
-                    <ActionButton variant="blue" disabled={pending} onClick={() => run(txn.id, "confirm")}>
-                      Confirm
-                    </ActionButton>
-                  </>
-                )}
-                {txn.status === "UNMATCHED" && (
-                  <>
-                    <ActionButton variant="outline" disabled={pending} onClick={() => run(txn.id, "no_invoice")}>
-                      No invoice
-                    </ActionButton>
-                    <ActionButton variant="find" disabled={pending} onClick={() => setFindFor(txn)}>
-                      Find invoice
-                    </ActionButton>
-                  </>
-                )}
-                {txn.status === "NO_INVOICE" && (
-                  <ActionButton variant="outline" disabled={pending} onClick={() => run(txn.id, "undo")}>
-                    Undo
-                  </ActionButton>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <ReconcileTable
+        transactions={transactions}
+        filtered={filtered}
+        pending={pending}
+        onOpen={setDetailFor}
+        onFind={setFindFor}
+        onRun={run}
+      />
 
       {/* Match confirmation drawer */}
       <MatchDrawer

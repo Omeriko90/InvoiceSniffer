@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { ReconcileClient, type TransactionRow } from "@/components/reconcile/ReconcileClient"
+import { ReconcileClient } from "@/components/reconcile/ReconcileClient"
+import type { TransactionRow } from "@/components/reconcile/types"
 
 async function getTransactions(organizationId: string): Promise<TransactionRow[]> {
   const transactions = await prisma.transaction.findMany({
