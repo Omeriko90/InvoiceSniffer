@@ -4,11 +4,13 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { GitMerge } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { useTransactionAction } from "@/hooks/useTransactionAction"
 import { FindInvoiceModal } from "@/components/reconcile/FindInvoiceModal"
 import { MatchDrawer } from "@/components/reconcile/MatchDrawer"
+import { ActionButton } from "@/components/reconcile/ActionButton"
+import { StatusBadge, STATUS_META, type TxnStatus } from "@/components/reconcile/status"
 import { fmtMoney } from "@/lib/money"
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -19,7 +21,7 @@ export type TransactionRow = {
   merchant: string
   amount: string
   currency: string
-  status: "UNMATCHED" | "POSSIBLE" | "MATCHED" | "NO_INVOICE"
+  status: TxnStatus
   matchConfidence: number | null
   matchReason: string | null
   matchConfirmed: boolean
@@ -43,22 +45,12 @@ type TabId = "all" | "matched" | "possible" | "missing" | "none"
 
 const GRID = { gridTemplateColumns: ".7fr 1.5fr .8fr 1.7fr 1fr 1.6fr", gap: "14px" }
 
-const TAB_FOR_STATUS: Record<TransactionRow["status"], TabId> = {
+const TAB_FOR_STATUS = {
   MATCHED: "matched",
   POSSIBLE: "possible",
   UNMATCHED: "missing",
   NO_INVOICE: "none",
-}
-
-const STATUS_META: Record<
-  TransactionRow["status"],
-  { label: string; bg: string; color: string; barColor: string }
-> = {
-  MATCHED:    { label: "Matched",    bg: "#ECFDF5", color: "#059669", barColor: "#34D399" },
-  POSSIBLE:   { label: "Possible",   bg: "#FFFBEB", color: "#B45309", barColor: "#FBBF24" },
-  UNMATCHED:  { label: "Missing",    bg: "#FEF2F2", color: "#DC2626", barColor: "#FB7171" },
-  NO_INVOICE: { label: "No invoice", bg: "#F1F3F8", color: "#64748B", barColor: "#CBD5E1" },
-}
+} as const satisfies Record<TxnStatus, TabId>
 
 function invoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
   if (txn.invoice) {
@@ -72,48 +64,13 @@ function invoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
   return { text: "No invoice found", muted: true }
 }
 
-// ── Action buttons ───────────────────────────────────────────────────
-
-type ActionVariant = "outline" | "neutral" | "green" | "blue" | "find"
-
-const ACTION_STYLES: Record<ActionVariant, React.CSSProperties> = {
-  outline: { border: "1px solid #E8EDFA", background: "#fff", color: "#94A3B8" },
-  neutral: { border: "1px solid #E8EDFA", background: "#fff", color: "#475569" },
-  green:   { border: "1px solid #34D399", background: "#34D399", color: "#fff" },
-  blue:    { border: "1px solid #7AA7FF", background: "#7AA7FF", color: "#fff" },
-  find:    { border: "1px solid #BFDBFF", background: "#fff", color: "#3B6FE0" },
-}
-
-function ActionButton({
-  variant,
-  onClick,
-  disabled,
-  children,
-}: {
-  variant: ActionVariant
-  onClick: () => void
-  disabled?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="text-[12px] font-[600] px-[11px] py-[6px] rounded-[8px] whitespace-nowrap cursor-pointer transition-[filter] hover:brightness-[1.04] disabled:opacity-50 disabled:cursor-default"
-      style={ACTION_STYLES[variant]}
-    >
-      {children}
-    </button>
-  )
-}
-
 // ── Empty state ──────────────────────────────────────────────────────
 
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-8">
-      <div className="w-14 h-14 rounded-xl bg-[#F1F3F8] flex items-center justify-center mb-4">
-        <GitMerge size={26} strokeWidth={1.5} className="text-[#94A3B8]" />
+      <div className="w-14 h-14 rounded-xl bg-hover flex items-center justify-center mb-4">
+        <GitMerge size={26} strokeWidth={1.5} className="text-dim" />
       </div>
       <p className="text-[16px] font-[700] text-heading mb-2">Nothing to reconcile yet</p>
       <p className="text-[13.5px] text-text-secondary text-center max-w-[340px] leading-[1.6] mb-6">
@@ -170,7 +127,7 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
   return (
     <div className="flex flex-col">
       {/* Status tabs */}
-      <div className="flex items-center gap-[6px] mb-4 bg-white border border-[#E8EDFA] rounded-[12px] p-[5px] w-fit">
+      <div className="flex items-center gap-[6px] mb-4 bg-card border border-border rounded-[12px] p-[5px] w-fit">
         {tabs.map((t) => {
           const on = tab === t.id
           return (
@@ -196,13 +153,13 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#E8EDFA] rounded-[14px] overflow-hidden">
+      <div className="bg-card border border-border rounded-[14px] overflow-hidden">
         {/* Header */}
-        <div className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-[#E8EDFA]" style={GRID}>
+        <div className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-border" style={GRID}>
           {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
             <span
               key={h}
-              className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-[#64748B]"
+              className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary"
               style={i === 2 || i === 5 ? { textAlign: "right" } : undefined}
             >
               {h}
@@ -213,7 +170,7 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
         {transactions.length === 0 && <EmptyState />}
 
         {transactions.length > 0 && filtered.length === 0 && (
-          <div className="py-12 text-center text-[13.5px] text-[#94A3B8]">
+          <div className="py-12 text-center text-[13.5px] text-dim">
             No transactions in this view
           </div>
         )}
@@ -221,24 +178,34 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
         {filtered.map((txn) => {
           const meta = STATUS_META[txn.status]
           const inv = invoiceLabel(txn)
-          const pct = txn.matchConfidence !== null ? Math.round(txn.matchConfidence * 100) : null
-          const showBar = pct !== null && (txn.status === "MATCHED" || txn.status === "POSSIBLE")
+          const showBar =
+            txn.matchConfidence !== null &&
+            (txn.status === "MATCHED" || txn.status === "POSSIBLE")
           const pending = action.isPending && action.variables?.id === txn.id
 
           return (
             <div
               key={txn.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Review ${txn.merchant} — ${fmtMoney(txn.amount, txn.currency)}`}
               onClick={() => setDetailFor(txn)}
-              className="grid items-center px-[18px] py-[14px] border-b border-[#F1F3F8] last:border-b-0 hover:bg-[#FAFBFF] transition-colors cursor-pointer"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setDetailFor(txn)
+                }
+              }}
+              className="grid items-center px-[18px] py-[14px] border-b border-hover last:border-b-0 hover:bg-background transition-colors cursor-pointer focus:outline-none focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
               style={GRID}
             >
               {/* Date */}
-              <span className="text-[13px] text-[#64748B]">
+              <span className="text-[13px] text-text-secondary">
                 {format(new Date(txn.date), "MMM d")}
               </span>
 
               {/* Merchant */}
-              <span className="text-[13px] font-[600] text-[#334155] font-mono truncate">
+              <span className="text-[13px] font-[600] text-foreground font-mono truncate">
                 {txn.merchant}
               </span>
 
@@ -256,28 +223,19 @@ export function ReconcileClient({ transactions }: { transactions: TransactionRow
                   {inv.text}
                 </div>
                 {txn.matchReason && (
-                  <div className="text-[11.5px] text-[#94A3B8] truncate">{txn.matchReason}</div>
+                  <div className="text-[11.5px] text-dim truncate">{txn.matchReason}</div>
                 )}
               </div>
 
               {/* Confidence */}
               <div>
-                <Badge
-                  className="rounded-full h-auto text-[11.5px] font-[700] px-[10px] py-[2px]"
-                  style={{ background: meta.bg, color: meta.color }}
-                >
-                  {txn.matchConfirmed && txn.status === "MATCHED" ? "Confirmed" : meta.label}
-                </Badge>
+                <StatusBadge status={txn.status} confirmed={txn.matchConfirmed} />
                 {showBar && (
-                  <div className="flex items-center gap-[6px] mt-[5px]">
-                    <div className="flex-1 h-[5px] bg-[#F1F3F8] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, background: meta.barColor }}
-                      />
-                    </div>
-                    <span className="text-[11px] font-[600] text-[#94A3B8]">{pct}%</span>
-                  </div>
+                  <ConfidenceBar
+                    value={txn.matchConfidence!}
+                    barClassName={meta.bar}
+                    className="mt-[5px]"
+                  />
                 )}
               </div>
 
