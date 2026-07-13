@@ -1,12 +1,5 @@
 // Client component by import — only ever rendered from the Alerts page.
-import {
-  AlertTriangle,
-  Clock,
-  Plus,
-  TrendingDown,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 import type { AlertItem } from "@/types/alert"
 import {
   ALERT_META,
@@ -14,38 +7,8 @@ import {
   alertDescription,
   alertMetric,
 } from "@/lib/alert-helpers"
-
-const ALERT_ICON: Record<string, LucideIcon> = {
-  AMOUNT_HIGH:       AlertTriangle,
-  AMOUNT_LOW:        TrendingDown,
-  SPEND_SPIKE:       TrendingUp,
-  MISSING_RECURRING: Clock,
-  NEW_VENDOR:        Plus,
-}
-
-// Small pill-shaped button matching the mock's View/Dismiss affordances.
-function CardButton({
-  onClick,
-  disabled,
-  muted,
-  children,
-}: {
-  onClick: () => void
-  disabled?: boolean
-  muted?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="text-[12.5px] font-[600] px-[13px] py-[7px] rounded-[9px] border border-[#E8EDFA] bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-[#F1F3F8] disabled:opacity-50 disabled:cursor-default"
-      style={{ color: muted ? "#94A3B8" : "#475569" }}
-    >
-      {children}
-    </button>
-  )
-}
+import { ALERT_ICON } from "@/components/alerts/constants"
+import { CardButton } from "@/components/alerts/CardButton"
 
 export function AlertCard({
   alert,

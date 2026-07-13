@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { InvoicesClient, type InvoiceRow } from "@/components/invoices/InvoicesClient"
+import { InvoicesClient } from "@/components/invoices/InvoicesClient"
+import type { InvoiceRow } from "@/components/invoices/types"
 
 async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
   const invoices = await prisma.invoice.findMany({

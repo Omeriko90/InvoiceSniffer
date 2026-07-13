@@ -57,7 +57,9 @@ async function enqueueSyncForAllOrgs() {
     await gmailSyncQueue.add(
       "gmail:sync",
       { organizationId: org.id, mode: org.gmailSyncToken ? "incremental" : "full" } satisfies GmailSyncJobData,
-      { jobId: `sync-${org.id}-${Date.now()}` }
+      // Stable id (no timestamp) so a concurrent daily + on-demand sync for the
+      // same org dedupes to one job instead of double-scanning Gmail.
+      { jobId: `sync-${org.id}` }
     )
   }
 

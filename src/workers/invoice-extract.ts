@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
-import { anomalyQueue, type ExtractionJobData, type AnomalyJobData } from "@/lib/queues"
+import { type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { convert } from "html-to-text"
@@ -132,14 +132,11 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
     },
   })
 
-  if (extracted.vendorNormalized && extracted.totalAmount) {
-    await anomalyQueue.add(
-      "anomaly:check",
-      { organizationId, invoiceId: invoice.id } satisfies AnomalyJobData,
-      // BullMQ custom ids must not contain ':' (unless exactly 3 segments)
-      { jobId: `anomaly-${invoice.id}` }
-    )
-  }
+  // NOTE: anomaly detection is not implemented yet — there is no detector and
+  // no anomaly worker, so enqueuing `anomaly:check` here only piled unconsumed
+  // jobs into Redis (AnomalyLog is never written). Removed so the batch drain
+  // can reach idle. When anomaly detection is built, re-add the enqueue here
+  // *and* an `anomaly` consumer in the worker set + the batch drain loop.
 
   return { invoiceId: invoice.id, confidence: extracted.confidence }
 }
