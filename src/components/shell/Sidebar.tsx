@@ -1,32 +1,13 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  FileText,
-  Upload,
-  GitMerge,
-  Bell,
-  Download,
-  Settings,
-} from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { Settings } from "lucide-react"
 import { useAlerts } from "@/hooks/useAlerts"
-
-const WORKSPACE_NAV = [
-  { label: "Dashboard",  href: "/",           icon: LayoutDashboard },
-  { label: "Invoices",   href: "/invoices",   icon: FileText },
-  { label: "Import CSV", href: "/import",     icon: Upload },
-  { label: "Reconcile",  href: "/reconcile",  icon: GitMerge },
-]
-
-const INSIGHTS_NAV = [
-  { label: "Alerts",  href: "/alerts",  icon: Bell },
-  { label: "Exports", href: "/exports", icon: Download },
-]
+import { WORKSPACE_NAV, INSIGHTS_NAV } from "./constants"
+import { Logo } from "./Logo"
+import { NavGroup } from "./NavGroup"
+import { NavItem } from "./NavItem"
+import { UserCard } from "./UserCard"
 
 type SidebarProps = {
   orgName?: string
@@ -43,22 +24,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
   return (
     <aside className="w-[248px] shrink-0 h-full bg-surface border-r border-border flex flex-col">
       {/* Logo */}
-      <div className="px-[18px] pt-6 pb-5">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shadow-logo shrink-0"
-            style={{ background: "linear-gradient(135deg, #7AA7FF, #A78BFA)" }}
-          >
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-[15px] font-[800] text-heading leading-none">Reconcile</p>
-            <p className="text-[11px] text-dim mt-0.5 leading-none">{orgName}</p>
-          </div>
-        </div>
-      </div>
+      <Logo orgName={orgName} />
 
       {/* Nav */}
       <nav className="flex-1 px-[14px] flex flex-col gap-5 overflow-y-auto">
@@ -80,76 +46,8 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
           active={pathname === "/settings"}
         />
 
-        <div className="mt-1 flex items-center gap-2.5 px-2.5 py-2 rounded-[11px] bg-hover">
-          <Avatar className="size-8 rounded-lg after:rounded-lg">
-            <AvatarFallback
-              className="rounded-lg text-[12px] font-[700] text-white"
-              style={{ background: "linear-gradient(135deg, #7AA7FF, #A78BFA)" }}
-            >
-              {userInitials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-[12px] font-[600] text-heading truncate">{userName ?? "User"}</p>
-            <p className="text-[11px] text-dim truncate">{userEmail ?? ""}</p>
-          </div>
-        </div>
+        <UserCard userName={userName} userEmail={userEmail} userInitials={userInitials} />
       </div>
     </aside>
-  )
-}
-
-function NavGroup({ label, items, pathname, badges }: {
-  label: string
-  items: typeof WORKSPACE_NAV
-  pathname: string
-  badges?: Record<string, number | undefined>
-}) {
-  return (
-    <div>
-      <p className="text-[11px] font-[700] text-dim uppercase tracking-[0.05em] mb-1 px-2.5">
-        {label}
-      </p>
-      <div className="flex flex-col gap-0.5">
-        {items.map((item) => (
-          <NavItem
-            key={item.href}
-            label={item.label}
-            href={item.href}
-            icon={item.icon}
-            active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
-            badge={badges?.[item.href]}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function NavItem({ label, href, icon: Icon, active, badge }: {
-  label: string
-  href: string
-  icon: React.ElementType
-  active: boolean
-  badge?: number
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[14px] transition-colors",
-        active
-          ? "font-[600] text-[#3B6FE0] bg-[rgba(122,167,255,0.16)]"
-          : "font-[500] text-text-secondary hover:bg-hover"
-      )}
-    >
-      <Icon size={18} strokeWidth={2} className="shrink-0" />
-      <span className="flex-1">{label}</span>
-      {badge !== undefined && (
-        <Badge className="bg-danger text-white text-[10px] font-[700] rounded-full min-w-4 h-4 px-1 justify-center">
-          {badge}
-        </Badge>
-      )}
-    </Link>
   )
 }
