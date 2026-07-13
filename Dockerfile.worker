@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# Worker for the Cloud Run Job: `npm run worker:batch` drains the queues once
+# then exits. Runs under tsx (a devDependency), so keep dev deps installed.
+FROM node:22-slim AS base
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+RUN npm ci
+
+FROM base AS runtime
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate
+# MODE is supplied per-execution (daily | drain) via Cloud Run Job env override.
+CMD ["npm", "run", "worker:batch"]

@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <GmailConnectionCard>.
 import { Button } from "@/components/ui/button"
 import type { GmailConnection } from "@/api-types/settings"
+import { useGmailSync } from "@/hooks/useGmailSync"
 import { GoogleGlyph } from "./GoogleGlyph"
 import { syncedLabel } from "./helpers"
 
@@ -11,6 +12,8 @@ interface ConnectedAccountPanelProps {
 }
 
 export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: ConnectedAccountPanelProps) {
+  const sync = useGmailSync()
+
   if (gmail.connected) {
     return (
       <div className="flex items-center gap-3 rounded-[12px] border border-[#BBE7CD] bg-success-bg px-4 py-[14px]">
@@ -21,6 +24,14 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
             Connected · read-only · {syncedLabel(gmail.lastSyncedAt)}
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => sync.mutate()}
+          disabled={sync.isPending}
+          className="shrink-0 h-auto text-[13px] font-[600] text-[#047857] bg-surface border-[#BBE7CD] rounded-[9px] px-[14px] py-[7px] hover:bg-success-bg hover:text-[#047857] disabled:opacity-60"
+        >
+          {sync.isPending ? "Syncing…" : "Sync now"}
+        </Button>
         <Button
           variant="outline"
           onClick={onDisconnect}

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { gmailSyncQueue, type GmailSyncJobData } from "@/lib/queues"
+import { triggerBatchWorker } from "@/lib/worker-trigger"
 import { NextRequest, NextResponse } from "next/server"
 
 // POST /api/gmail/sync — trigger a manual sync
@@ -24,8 +25,14 @@ export async function POST(_req: NextRequest) {
   const job = await gmailSyncQueue.add(
     "gmail:sync",
     { organizationId, mode } satisfies GmailSyncJobData,
-    { jobId: `sync-${organizationId}-${Date.now()}` }
+    // Stable id (no timestamp) so rapid clicks / an overlap with the daily run
+    // dedupe to one sync per org instead of double-scanning Gmail.
+    { jobId: `sync-${organizationId}` }
   )
+
+  // Fire the batch worker to process the job (prod: Cloud Run Job; dev: no-op —
+  // the always-on worker handles it). Fire-and-forget; never fails the request.
+  await triggerBatchWorker()
 
   return NextResponse.json({ jobId: job.id, mode })
 }
