@@ -1,12 +1,8 @@
+// Client component by import — only ever rendered from <ImportWizard>.
 import Link from "next/link"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-type DoneStepProps = {
-  imported: number
-  skipped: number
-  onImportAnother: () => void
-}
+import { DoneStepProps } from "./types"
 
 export function DoneStep({ imported, skipped, onImportAnother }: DoneStepProps) {
   return (
