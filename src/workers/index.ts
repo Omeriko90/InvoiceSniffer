@@ -1,11 +1,15 @@
 import "dotenv/config"
 import { createGmailSyncWorker, registerDailySyncScheduler } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
+import { createMatchingWorker } from "./matching"
+import { createAnomalyWorker } from "./anomaly"
 import { captureServerException, shutdownPostHog, log } from "@/lib/posthog-server"
 
 const workers = [
   createGmailSyncWorker(),
   createInvoiceExtractWorker(),
+  createMatchingWorker(),
+  createAnomalyWorker(),
 ]
 
 log.info(`✓ ${workers.length} workers started`)
