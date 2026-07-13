@@ -5,6 +5,7 @@ import { gmailSyncQueue, extractionQueue, type GmailSyncJobData, type Extraction
 import { detectInvoiceCandidate, CANDIDATE_THRESHOLD } from "@/lib/invoice-detection"
 import { classifyInvoiceEmail, classifierEnabled, type ClassifierExample } from "@/lib/llm-classifier"
 import { parseFrom } from "./invoice-extract"
+import { log } from "@/lib/posthog-server"
 import type { gmail_v1 } from "googleapis"
 
 const connection = { url: process.env.REDIS_URL! }
@@ -301,6 +302,9 @@ async function checkAndQueueMessage(
       examples: ctx.examples,
     })
     if (verdict) isCandidate = verdict.isInvoice
+    // Classifier was expected to decide this borderline email but errored/returned
+    // nothing — surface the silent heuristic fallback instead of hiding it.
+    else log.warn("classifier enabled but returned no verdict; using heuristic for borderline email", { score, senderEmail })
   }
 
   // The rule flipped a would-be candidate to skipped — record the save so

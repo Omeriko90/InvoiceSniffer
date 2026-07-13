@@ -27,6 +27,43 @@ export function getGmailAuthUrl(state: string): string {
   })
 }
 
+// Coalesces concurrent token refreshes for the same org within this process.
+// The invoice-extract worker runs concurrency:5, so multiple jobs can hit an
+// expiring credential at once; without this they'd each call Google and race to
+// write back (last-writer-wins, wasted refreshes, possibly a stale token). All
+// concurrent callers now await the same in-flight refresh.
+// (Note: this serializes within a single process only. A cross-process race
+// between separate worker containers is still possible but rare — one drain
+// job typically owns an org's sync — and Google returns valid tokens either way.)
+const refreshInFlight = new Map<string, Promise<{ access_token: string; expiry_date: number }>>()
+
+async function refreshOrgToken(
+  organizationId: string,
+  oauth2Client: ReturnType<typeof createOAuthClient>
+): Promise<{ access_token: string; expiry_date: number }> {
+  const existing = refreshInFlight.get(organizationId)
+  if (existing) return existing
+
+  const promise = (async () => {
+    const { credentials } = await oauth2Client.refreshAccessToken()
+    await prisma.gmailCredential.update({
+      where: { organizationId },
+      data: {
+        accessToken: encrypt(credentials.access_token!),
+        expiresAt: new Date(credentials.expiry_date!),
+      },
+    })
+    return { access_token: credentials.access_token!, expiry_date: credentials.expiry_date! }
+  })()
+
+  refreshInFlight.set(organizationId, promise)
+  try {
+    return await promise
+  } finally {
+    refreshInFlight.delete(organizationId)
+  }
+}
+
 // Returns an authenticated Gmail API client for a given org, auto-refreshing if needed
 export async function getGmailClient(organizationId: string) {
   const credential = await prisma.gmailCredential.findUnique({
@@ -48,17 +85,12 @@ export async function getGmailClient(organizationId: string) {
   const isExpiringSoon = Date.now() > expiresAt - 5 * 60 * 1000
 
   if (isExpiringSoon) {
-    const { credentials } = await oauth2Client.refreshAccessToken()
-
-    await prisma.gmailCredential.update({
-      where: { organizationId },
-      data: {
-        accessToken: encrypt(credentials.access_token!),
-        expiresAt: new Date(credentials.expiry_date!),
-      },
+    const refreshed = await refreshOrgToken(organizationId, oauth2Client)
+    oauth2Client.setCredentials({
+      access_token: refreshed.access_token,
+      refresh_token: decrypt(credential.refreshToken),
+      expiry_date: refreshed.expiry_date,
     })
-
-    oauth2Client.setCredentials(credentials)
   }
 
   return google.gmail({ version: "v1", auth: oauth2Client })

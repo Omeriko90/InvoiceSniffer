@@ -4,7 +4,6 @@ import {
   Upload,
   GitMerge,
   Bell,
-  Download,
 } from "lucide-react"
 
 export const WORKSPACE_NAV = [
@@ -14,7 +13,9 @@ export const WORKSPACE_NAV = [
   { label: "Reconcile",  href: "/reconcile",  icon: GitMerge },
 ]
 
+// Exports is not built yet (the page is a stub). Hidden from nav so users can't
+// reach it; re-add { label: "Exports", href: "/exports", icon: Download } when
+// the export flow ships.
 export const INSIGHTS_NAV = [
   { label: "Alerts",  href: "/alerts",  icon: Bell },
-  { label: "Exports", href: "/exports", icon: Download },
 ]

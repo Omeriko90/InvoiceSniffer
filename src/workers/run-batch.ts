@@ -2,7 +2,9 @@ import "dotenv/config"
 import type { Worker } from "bullmq"
 import { createGmailSyncWorker } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
-import { gmailSyncQueue, extractionQueue } from "@/lib/queues"
+import { createMatchingWorker } from "./matching"
+import { createAnomalyWorker } from "./anomaly"
+import { gmailSyncQueue, extractionQueue, matchingQueue, anomalyQueue } from "@/lib/queues"
 import { prisma } from "@/lib/prisma"
 import { captureServerException, shutdownPostHog, log } from "@/lib/posthog-server"
 
@@ -18,12 +20,12 @@ const POLL_INTERVAL_MS = 2000
 const REQUIRED_IDLE_POLLS = 3 // consecutive idle polls before we trust "done"
 const MAX_RUNTIME_MS = 25 * 60 * 1000
 
-// Only the queues that have a consumer in this run. gmail-sync enqueues
-// extraction jobs *while its own job is still active*, so a combined
-// waiting+active+delayed==0 across both queues can only be true after the whole
-// chain has settled — that's what makes the drain safe. (The `anomaly`/`exports`
-// queues have no consumer today and are intentionally excluded.)
-const queues = [gmailSyncQueue, extractionQueue]
+// Only the queues that have a consumer in this run. Each stage enqueues the next
+// *while its own job is still active* (sync→extraction→anomaly, import→matching),
+// so a combined waiting+active+delayed==0 across all of them can only be true
+// after the whole chain has settled — that's what makes the drain safe. (The
+// `exports` queue has no consumer yet and is intentionally excluded.)
+const queues = [gmailSyncQueue, extractionQueue, matchingQueue, anomalyQueue]
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -46,7 +48,12 @@ async function main() {
   const mode = process.env.MODE ?? "drain"
   log.info(`batch worker starting (MODE=${mode})`)
 
-  const workers = [createGmailSyncWorker(), createInvoiceExtractWorker()]
+  const workers = [
+    createGmailSyncWorker(),
+    createInvoiceExtractWorker(),
+    createMatchingWorker(),
+    createAnomalyWorker(),
+  ]
 
   for (const worker of workers) {
     worker.on("failed", (job, err) => {

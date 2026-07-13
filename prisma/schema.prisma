@@ -205,6 +205,7 @@ model Invoice {
   @@unique([organizationId, gmailMessageId])
   @@index([organizationId, emailDate])
   @@index([organizationId, vendorNormalized])
+  @@index([organizationId, status])
 }
 
 // ─── Learning ─────────────────────────────────────────────
@@ -225,6 +226,7 @@ model VendorAlias {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, merchantPattern])
+  @@index([organizationId, type, active])
 }
 
 // ─── Analytics ────────────────────────────────────────────
@@ -296,12 +298,18 @@ model Transaction {
   matchReason      String?
   matchConfirmed   Boolean           @default(false)
   sourceFile       String?
+  // Natural-key hash (date|merchant|amount|currency) set at import time so a
+  // re-uploaded statement dedupes instead of doubling transactions. Nullable:
+  // rows imported before this column stay null (Postgres allows many nulls in a
+  // unique index), so no backfill is needed and only new imports are deduped.
+  dedupeKey        String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   matchedInvoice Invoice?     @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
 
+  @@unique([organizationId, dedupeKey])
   @@index([organizationId, date])
   @@index([organizationId, status])
 }

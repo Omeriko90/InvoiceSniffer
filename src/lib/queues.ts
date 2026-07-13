@@ -13,6 +13,7 @@ const defaultJobOptions = {
 
 export const gmailSyncQueue = new Queue("gmail-sync", { connection, defaultJobOptions })
 export const extractionQueue = new Queue("extraction", { connection, defaultJobOptions })
+export const matchingQueue = new Queue("matching", { connection, defaultJobOptions })
 export const anomalyQueue = new Queue("anomaly", { connection, defaultJobOptions })
 export const exportQueue = new Queue("exports", { connection, defaultJobOptions })
 
@@ -26,9 +27,14 @@ export type ExtractionJobData = {
   gmailMessageId: string
 }
 
+export type MatchingJobData = {
+  organizationId: string
+}
+
+// Org-level: the detector recomputes the org's vendor stats and re-evaluates
+// all anomaly types, so it doesn't need a single invoiceId.
 export type AnomalyJobData = {
   organizationId: string
-  invoiceId: string
 }
 
 export type ExportJobData = {
