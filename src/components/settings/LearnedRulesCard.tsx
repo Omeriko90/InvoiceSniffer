@@ -1,25 +1,12 @@
 "use client"
 
-import { X, ArrowRight } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useDeleteAlias } from "@/hooks/useDeleteAlias"
-import type { LearnedRule, RuleType } from "@/api-types/settings"
+import type { LearnedRule } from "@/api-types/settings"
+import { RuleChip } from "./RuleChip"
 
 interface LearnedRulesCardProps {
   rules: LearnedRule[]
-}
-
-const RULE_META: Record<RuleType, { color: string; bg: string; border: string }> = {
-  POSITIVE: { color: "#047857", bg: "#ECFDF5", border: "#BBE7CD" },
-  NEGATIVE: { color: "#B91C1C", bg: "#FEF2F2", border: "#FECACA" },
-  IGNORE:   { color: "#6D28D9", bg: "#F5F3FF", border: "#DDD6FE" },
-}
-
-function ruleTarget(rule: LearnedRule): string {
-  if (rule.type === "IGNORE") return "no invoice"
-  if (rule.type === "NEGATIVE") return `≠ ${rule.vendorName}`
-  return rule.vendorName
 }
 
 export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
@@ -46,28 +33,14 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
           </div>
         ) : (
           <div className="flex flex-wrap gap-[10px]">
-            {rules.map((rule) => {
-              const meta = RULE_META[rule.type]
-              return (
-                <Badge
-                  key={rule.id}
-                  className="h-auto gap-[9px] rounded-full border px-[14px] py-[7px] text-[13px] font-[700]"
-                  style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
-                >
-                  {rule.merchantPattern}
-                  <ArrowRight size={13} strokeWidth={2.4} className="opacity-70" />
-                  {ruleTarget(rule)}
-                  <button
-                    onClick={() => deleteAlias.mutate(rule.id)}
-                    disabled={deleteAlias.isPending}
-                    aria-label={`Remove rule for ${rule.merchantPattern}`}
-                    className="opacity-55 hover:opacity-100 transition-opacity disabled:opacity-30"
-                  >
-                    <X size={13} strokeWidth={2.4} />
-                  </button>
-                </Badge>
-              )
-            })}
+            {rules.map((rule) => (
+              <RuleChip
+                key={rule.id}
+                rule={rule}
+                onRemove={() => deleteAlias.mutate(rule.id)}
+                removing={deleteAlias.isPending}
+              />
+            ))}
           </div>
         )}
       </CardContent>
