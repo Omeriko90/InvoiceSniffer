@@ -42,8 +42,12 @@ function toOtlpAttributes(properties: Record<string, unknown>) {
 // so we POST the OTLP payload directly rather than pull in the OTel SDK.
 // Fire-and-forget: logging must never block or throw into the caller.
 function shipLogToPostHog(level: LogLevel, message: string, properties?: Record<string, unknown>) {
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  if (!key || process.env.NODE_ENV !== "production") return
+  // Authenticate with a server-only token when available. NEXT_PUBLIC_* vars are
+  // inlined into the client bundle and world-readable, so using one as a Bearer
+  // lets anyone POST arbitrary log lines. Fall back to the public key only so
+  // logging keeps working where POSTHOG_LOGS_TOKEN isn't configured yet.
+  const token = process.env.POSTHOG_LOGS_TOKEN ?? process.env.NEXT_PUBLIC_POSTHOG_KEY
+  if (!token || process.env.NODE_ENV !== "production") return
 
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com"
   const severity = SEVERITY[level]
@@ -72,7 +76,7 @@ function shipLogToPostHog(level: LogLevel, message: string, properties?: Record<
 
   fetch(`${host}/i/v1/logs`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   }).catch(() => {
     // Never let a logging transport failure surface to the caller

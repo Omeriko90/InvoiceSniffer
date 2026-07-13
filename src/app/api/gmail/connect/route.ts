@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth"
+import { requirePrivileged } from "@/lib/authz"
 import { getGmailAuthUrl, GMAIL_OAUTH_STATE_COOKIE } from "@/lib/gmail"
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { randomBytes } from "crypto"
 
 export async function GET() {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { response } = await requirePrivileged()
+  if (response) return response
 
   // State is a random, single-use CSRF nonce — NOT the org id. The callback
   // takes the org from the authenticated session, so state carries no

@@ -29,6 +29,10 @@ function makeAdapter() {
           image: data.image,
           emailVerified: data.emailVerified,
           organizationId: org.id,
+          // This path only runs for a brand-new signup, who creates and owns
+          // their own org — hence OWNER. Do NOT route invited users through
+          // here: assign them MEMBER and gate privileged routes via
+          // requirePrivileged() (see src/lib/authz.ts).
           role: "OWNER",
         },
       })
