@@ -1,9 +1,8 @@
 "use client"
 
-import { X, Clock, Check, Bell } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/useDashboard"
-import { StatCard } from "@/components/dashboard/StatCard"
+import { StatRow } from "@/components/dashboard/StatRow"
 import { ReconciliationCard } from "@/components/dashboard/ReconciliationCard"
 import { RecentAlertsCard } from "@/components/dashboard/RecentAlertsCard"
 
@@ -13,40 +12,14 @@ export default function DashboardPage() {
   if( isPending ) return <DashboardSkeleton />
   return (
     <div className="flex flex-col gap-[18px]">
-      <div className="grid grid-cols-4 gap-[14px]">
-        <StatCard
-          label="Unmatched"
-          value={dashboardData?.unmatched}
-          delta="needs review"
-          deltaColor="#FB7171"
-          iconBg="#FB7171"
-          icon={<X size={15} strokeWidth={2} />}
-        />
-        <StatCard
-          label="Possible matches"
-          value={dashboardData?.possible}
-          delta="awaiting confirm"
-          deltaColor="#B45309"
-          iconBg="#FBBF24"
-          icon={<Clock size={15} strokeWidth={2} />}
-        />
-        <StatCard
-          label="Matched this month"
-          value={dashboardData?.matched}
-          delta={dashboardData?.matchedDelta >= 0 ? `+${dashboardData?.matchedDelta} this week` : `${dashboardData?.matchedDelta} vs last month`}
-          deltaColor="#059669"
-          iconBg="#34D399"
-          icon={<Check size={15} strokeWidth={2.2} />}
-        />
-        <StatCard
-          label="Open alerts"
-          value={dashboardData?.alerts}
-          delta={dashboardData?.criticalAlerts > 0 ? `${dashboardData?.criticalAlerts} critical` : "No critical alerts"}
-          deltaColor={dashboardData?.criticalAlerts > 0 ? "#DC2626" : "#A78BFA"}
-          iconBg="#A78BFA"
-          icon={<Bell size={15} strokeWidth={2} />}
-        />
-      </div>
+      <StatRow
+        unmatched={dashboardData?.unmatched}
+        possible={dashboardData?.possible}
+        matched={dashboardData?.matched}
+        matchedDelta={dashboardData?.matchedDelta}
+        alerts={dashboardData?.alerts}
+        criticalAlerts={dashboardData?.criticalAlerts}
+      />
 
       {/* Main content */}
       <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
