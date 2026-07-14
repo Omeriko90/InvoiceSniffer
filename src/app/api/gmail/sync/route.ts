@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { gmailSyncQueue, type GmailSyncJobData } from "@/lib/queues"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { triggerBatchWorker } from "@/lib/worker-trigger"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -10,6 +11,11 @@ export async function POST(_req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { organizationId } = session.user
+
+  // Each sync fires a Cloud Run Job execution and a full mailbox scan; cap manual
+  // triggers to 5/min per org so repeated clicks can't drive up cost.
+  const limited = await enforceRateLimit(`gmail-sync:${organizationId}`, 5, 60_000)
+  if (limited) return limited
 
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },

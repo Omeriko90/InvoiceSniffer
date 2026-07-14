@@ -1,5 +1,7 @@
+import dns from "dns"
 import { lookup } from "dns/promises"
 import net from "net"
+import { Agent } from "undici"
 import { convert } from "html-to-text"
 import { PDFParse } from "pdf-parse"
 
@@ -136,7 +138,9 @@ function isPrivateAddress(ip: string): boolean {
 }
 
 // True only if every DNS answer for the host is publicly routable. Fails closed
-// on resolution errors.
+// on resolution errors. Used as a fast, fail-early pre-check; the authoritative,
+// TOCTOU-safe enforcement is `ssrfSafeLookup` below, which validates the exact IP
+// the socket connects to.
 async function resolvesToPublicHost(url: string): Promise<boolean> {
   try {
     const { hostname } = new URL(url)
@@ -146,6 +150,41 @@ async function resolvesToPublicHost(url: string): Promise<boolean> {
     return false
   }
 }
+
+// A separate pre-check (`resolvesToPublicHost`) and `fetch()` each resolve DNS
+// independently, so a rebinding record can return a public IP to the check and a
+// private IP to the connection (TOCTOU). This custom lookup closes that gap: it
+// runs at socket-connect time, so the IP it validates is the exact IP undici
+// dials. Any private answer makes the connection fail closed.
+function ssrfSafeLookup(
+  hostname: string,
+  options: dns.LookupOneOptions | dns.LookupAllOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void
+): void {
+  dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) return callback(err, "", 0)
+    const list = addresses as dns.LookupAddress[]
+    if (list.length === 0 || list.some((r) => isPrivateAddress(r.address))) {
+      return callback(
+        Object.assign(new Error(`SSRF: ${hostname} resolves to a non-public address`), {
+          code: "ESSRFBLOCKED",
+        }),
+        "",
+        0
+      )
+    }
+    // Honour the caller's requested shape (net.connect uses all:true; be safe).
+    if ((options as dns.LookupAllOptions).all) {
+      callback(null, list)
+    } else {
+      callback(null, list[0].address, list[0].family)
+    }
+  })
+}
+
+// Shared dispatcher that pins the SSRF check to the connecting IP. Reused across
+// fetches so undici can pool connections.
+const ssrfSafeAgent = new Agent({ connect: { lookup: ssrfSafeLookup } })
 
 // Scan the HTML body for the most likely receipt link.
 // Preference order: allowlisted host + matching text > matching anchor text > matching href.
@@ -199,7 +238,10 @@ export async function fetchReceiptText(url: string): Promise<string | null> {
         redirect: "manual",
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: { Accept: "application/pdf,text/html;q=0.9,*/*;q=0.5" },
-      })
+        // Pin the SSRF check to the IP undici actually connects to. A private
+        // answer here rejects the connection, closing the DNS-rebinding gap.
+        dispatcher: ssrfSafeAgent,
+      } as RequestInit & { dispatcher: Agent })
     } catch {
       return null
     }
