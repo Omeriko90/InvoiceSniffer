@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth"
+import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { decrypt } from "@/lib/encryption"
 import { google } from "googleapis"
 import { NextResponse } from "next/server"
 
 export async function DELETE() {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, response } = await requirePrivileged()
+  if (response) return response
 
   const { organizationId } = session.user
 

@@ -72,6 +72,14 @@ export async function GET(
 
     if (!data) return NextResponse.json({ error: "Attachment not found" }, { status: 404 })
 
+    // Enforce the cap on the ACTUAL downloaded bytes, not the Gmail-supplied
+    // `meta.size` — that pre-check trusts metadata and the stale-id fallback
+    // above resolves a fresh attachment whose size was never checked at all.
+    const bytes = Buffer.from(data, "base64url")
+    if (bytes.byteLength > MAX_ATTACHMENT_BYTES) {
+      return NextResponse.json({ error: "Attachment too large" }, { status: 413 })
+    }
+
     // Some senders mislabel PDFs as octet-stream; fix the type so the
     // browser renders inline instead of downloading
     const mimeType =
@@ -85,7 +93,7 @@ export async function GET(
     const disposition = INLINE_SAFE_TYPES.has(mimeType) ? "inline" : "attachment"
 
     const asciiName = meta.filename.replace(/[^\w .-]/g, "_")
-    return new NextResponse(new Uint8Array(Buffer.from(data, "base64url")), {
+    return new NextResponse(new Uint8Array(bytes), {
       headers: {
         "Content-Type": mimeType,
         // ASCII fallback plus RFC 5987 UTF-8 form for Hebrew filenames

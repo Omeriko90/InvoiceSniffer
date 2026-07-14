@@ -7,8 +7,7 @@ export default auth((req) => {
 
   const isAuthRoute = pathname.startsWith("/auth")
   const isApiRoute = pathname.startsWith("/api")
-  const isPreviewRoute = pathname.startsWith("/preview")
-  const isPublicRoute = isAuthRoute || isApiRoute || isPreviewRoute
+  const isPublicRoute = isAuthRoute || isApiRoute
 
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/auth/signin", req.url))

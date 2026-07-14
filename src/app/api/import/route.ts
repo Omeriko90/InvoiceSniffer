@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { runMatching } from "@/lib/run-matching"
 import { z } from "zod"
 import type { SavedMapping, ColumnMapping } from "@/api-types/import"
@@ -51,6 +52,11 @@ export async function POST(request: Request) {
   if (!session) return new Response("Unauthorized", { status: 401 })
 
   const { organizationId } = session.user
+
+  // Each import writes up to 10k rows and runs a full matching pass; cap to
+  // 10/min per org to prevent DB/CPU exhaustion from repeated bulk imports.
+  const limited = await enforceRateLimit(`import:${organizationId}`, 10, 60_000)
+  if (limited) return limited
 
   const parsed = importSchema.safeParse(await request.json())
   if (!parsed.success) {

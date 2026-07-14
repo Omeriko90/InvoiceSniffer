@@ -1,3 +1,7 @@
+import dns from "dns"
+import { lookup } from "dns/promises"
+import net from "net"
+import { Agent } from "undici"
 import { convert } from "html-to-text"
 import { PDFParse } from "pdf-parse"
 
@@ -74,26 +78,113 @@ export function isAllowlistedHost(url: string): boolean {
 }
 
 // Public cloud object storage — acceptable as a redirect *target* only
-// (never as the link we start from)
-const CLOUD_STORAGE_SUFFIXES = [
-  ".amazonaws.com",
-  ".cloudfront.net",
-  ".storage.googleapis.com",
-  ".blob.core.windows.net",
-]
-
+// (never as the link we start from). Deliberately narrow: only object-storage
+// and CDN hosts, NOT the whole provider apex. `*.amazonaws.com` would also
+// cover EC2 compute hosts (ec2-*.compute.amazonaws.com), letting an
+// open-redirect bounce us onto an arbitrary attacker VM — so we accept S3 only.
 function isCloudStorageHost(url: string): boolean {
   try {
     const { protocol, hostname } = new URL(url)
     if (protocol !== "https:") return false
-    return (
+    // AWS S3 (path- and virtual-hosted styles, any region) — not EC2/other AWS
+    if (
+      hostname === "s3.amazonaws.com" ||
+      hostname.endsWith(".s3.amazonaws.com") ||
+      /(^|\.)s3[.-][a-z0-9-]+\.amazonaws\.com$/.test(hostname)
+    ) {
+      return true
+    }
+    // Google Cloud Storage
+    if (
       hostname === "storage.googleapis.com" ||
-      CLOUD_STORAGE_SUFFIXES.some((s) => hostname.endsWith(s))
+      hostname.endsWith(".storage.googleapis.com")
+    ) {
+      return true
+    }
+    // Azure Blob Storage + CloudFront CDN
+    return (
+      hostname.endsWith(".blob.core.windows.net") ||
+      hostname.endsWith(".cloudfront.net")
     )
   } catch {
     return false
   }
 }
+
+// Reject addresses that aren't publicly routable — loopback, private (RFC 1918),
+// link-local, CGNAT, and their IPv6 equivalents. A DNS check before connecting
+// stops an allowlisted/provider hostname (or a rebinding record) from steering
+// a server-side fetch at internal infrastructure.
+function isPrivateAddress(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split(".").map(Number)
+    if (a === 10 || a === 127 || a === 0) return true
+    if (a === 172 && b >= 16 && b <= 31) return true
+    if (a === 192 && b === 168) return true
+    if (a === 169 && b === 254) return true // link-local
+    if (a === 100 && b >= 64 && b <= 127) return true // CGNAT
+    return false
+  }
+  if (net.isIPv6(ip)) {
+    const v = ip.toLowerCase()
+    if (v === "::1" || v === "::") return true
+    if (v.startsWith("fe80") || v.startsWith("fc") || v.startsWith("fd")) return true
+    // IPv4-mapped (::ffff:10.0.0.1) — validate the embedded v4
+    const mapped = v.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/)
+    if (mapped) return isPrivateAddress(mapped[1])
+    return false
+  }
+  return true // unparseable — treat as unsafe
+}
+
+// True only if every DNS answer for the host is publicly routable. Fails closed
+// on resolution errors. Used as a fast, fail-early pre-check; the authoritative,
+// TOCTOU-safe enforcement is `ssrfSafeLookup` below, which validates the exact IP
+// the socket connects to.
+async function resolvesToPublicHost(url: string): Promise<boolean> {
+  try {
+    const { hostname } = new URL(url)
+    const records = await lookup(hostname, { all: true })
+    return records.length > 0 && records.every((r) => !isPrivateAddress(r.address))
+  } catch {
+    return false
+  }
+}
+
+// A separate pre-check (`resolvesToPublicHost`) and `fetch()` each resolve DNS
+// independently, so a rebinding record can return a public IP to the check and a
+// private IP to the connection (TOCTOU). This custom lookup closes that gap: it
+// runs at socket-connect time, so the IP it validates is the exact IP undici
+// dials. Any private answer makes the connection fail closed.
+function ssrfSafeLookup(
+  hostname: string,
+  options: dns.LookupOneOptions | dns.LookupAllOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void
+): void {
+  dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
+    if (err) return callback(err, "", 0)
+    const list = addresses as dns.LookupAddress[]
+    if (list.length === 0 || list.some((r) => isPrivateAddress(r.address))) {
+      return callback(
+        Object.assign(new Error(`SSRF: ${hostname} resolves to a non-public address`), {
+          code: "ESSRFBLOCKED",
+        }),
+        "",
+        0
+      )
+    }
+    // Honour the caller's requested shape (net.connect uses all:true; be safe).
+    if ((options as dns.LookupAllOptions).all) {
+      callback(null, list)
+    } else {
+      callback(null, list[0].address, list[0].family)
+    }
+  })
+}
+
+// Shared dispatcher that pins the SSRF check to the connecting IP. Reused across
+// fetches so undici can pool connections.
+const ssrfSafeAgent = new Agent({ connect: { lookup: ssrfSafeLookup } })
 
 // Scan the HTML body for the most likely receipt link.
 // Preference order: allowlisted host + matching text > matching anchor text > matching href.
@@ -121,6 +212,7 @@ export function findReceiptUrl(html: string): string | null {
 
 const FETCH_TIMEOUT_MS = 10_000
 const MAX_BYTES = 5 * 1024 * 1024
+const MAX_REDIRECTS = 5
 
 // Fetches an allowlisted receipt URL and returns its plain-text content
 // (PDF or HTML), or null when the URL can't be fetched/parsed. The document
@@ -128,20 +220,46 @@ const MAX_BYTES = 5 * 1024 * 1024
 export async function fetchReceiptText(url: string): Promise<string | null> {
   if (!isAllowlistedHost(url)) return null
 
+  // Follow redirects manually so EVERY hop is re-validated, not just the final
+  // landing URL. The start must be an allowlisted provider; redirects may also
+  // land on the provider's cloud storage (e.g. EZcount serves PDFs from S3),
+  // but nothing else. Each hop's host is also DNS-checked to reject targets
+  // that resolve to internal/private IPs.
+  let currentUrl = url
   let res: Response
-  try {
-    res = await fetch(url, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      headers: { Accept: "application/pdf,text/html;q=0.9,*/*;q=0.5" },
-    })
-  } catch {
-    return null
+
+  for (let hop = 0; ; hop++) {
+    const hostOk = hop === 0 ? isAllowlistedHost(currentUrl) : (isAllowlistedHost(currentUrl) || isCloudStorageHost(currentUrl))
+    if (!hostOk) return null
+    if (!(await resolvesToPublicHost(currentUrl))) return null
+
+    try {
+      res = await fetch(currentUrl, {
+        redirect: "manual",
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        headers: { Accept: "application/pdf,text/html;q=0.9,*/*;q=0.5" },
+        // Pin the SSRF check to the IP undici actually connects to. A private
+        // answer here rejects the connection, closing the DNS-rebinding gap.
+        dispatcher: ssrfSafeAgent,
+      } as RequestInit & { dispatcher: Agent })
+    } catch {
+      return null
+    }
+
+    // Not a redirect — this is the response we'll parse.
+    if (res.status < 300 || res.status >= 400) break
+
+    if (hop >= MAX_REDIRECTS) return null
+    const location = res.headers.get("location")
+    if (!location) return null
+    try {
+      currentUrl = new URL(location, currentUrl).toString()
+    } catch {
+      return null
+    }
   }
 
-  // Redirects may land on the provider's cloud storage (e.g. EZcount serves
-  // PDFs from S3) — allow those, but nothing else outside the allowlist
-  if (!res.ok || !(isAllowlistedHost(res.url) || isCloudStorageHost(res.url))) return null
+  if (!res.ok) return null
 
   const contentLength = Number(res.headers.get("content-length") ?? 0)
   if (contentLength > MAX_BYTES) return null
