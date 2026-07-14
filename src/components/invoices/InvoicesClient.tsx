@@ -8,10 +8,20 @@ import { InvoicesTable } from "./InvoicesTable"
 import { InvoiceDetailDrawer } from "./InvoiceDetailDrawer"
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
-  const [search, setSearch]       = useState("")
-  const [statusFilter, setStatus] = useState<string>("all")
-  const [uiState, setUiState]     = useState<UIState>("data")
-  const [selected, setSelected]   = useState<InvoiceRow | null>(null)
+  const [search, setSearch]         = useState("")
+  const [statusFilter, setStatus]   = useState<string>("all")
+  const [accountFilter, setAccount] = useState<string>("all")
+  const [uiState, setUiState]       = useState<UIState>("data")
+  const [selected, setSelected]     = useState<InvoiceRow | null>(null)
+
+  // Distinct source mailboxes present in the data — drives the account filter.
+  const accounts = useMemo(() => {
+    const map = new Map<string, string>() // email -> label ?? email
+    for (const inv of invoices) {
+      if (inv.sourceAccount) map.set(inv.sourceAccount.email, inv.sourceAccount.label ?? inv.sourceAccount.email)
+    }
+    return Array.from(map, ([email, label]) => ({ email, label }))
+  }, [invoices])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -23,9 +33,11 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         inv.totalAmount.includes(q)
       const matchStatus =
         statusFilter === "all" || inv.status === statusFilter
-      return matchSearch && matchStatus
+      const matchAccount =
+        accountFilter === "all" || inv.sourceAccount?.email === accountFilter
+      return matchSearch && matchStatus && matchAccount
     })
-  }, [invoices, search, statusFilter])
+  }, [invoices, search, statusFilter, accountFilter])
 
   return (
     <div className="flex flex-col gap-4">
@@ -34,6 +46,9 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusChange={setStatus}
+        accountFilter={accountFilter}
+        onAccountChange={setAccount}
+        accounts={accounts}
         uiState={uiState}
         onUiStateChange={setUiState}
         count={filtered.length}

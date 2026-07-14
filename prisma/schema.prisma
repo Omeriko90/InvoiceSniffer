@@ -77,18 +77,15 @@ enum TransactionStatus {
 // ─── Models ───────────────────────────────────────────────
 
 model Organization {
-  id             String    @id @default(cuid())
-  name           String
-  slug           String    @unique
-  gmailConnected Boolean   @default(false)
-  gmailSyncToken String?
-  lastSyncedAt   DateTime?
-  planTier       PlanTier  @default(FREE)
-  createdAt      DateTime  @default(now())
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  planTier  PlanTier @default(FREE)
+  createdAt DateTime @default(now())
 
-  users           User[]
-  gmailCredential GmailCredential?
-  invoices        Invoice[]
+  users            User[]
+  gmailCredentials GmailCredential[]
+  invoices         Invoice[]
   vendorAliases   VendorAlias[]
   vendorStats     VendorStats[]
   anomalyLogs     AnomalyLog[]
@@ -155,17 +152,24 @@ model VerificationToken {
 
 model GmailCredential {
   id             String    @id @default(cuid())
-  organizationId String    @unique
+  organizationId String
   email          String
-  accessToken    String    // AES-256-GCM encrypted
-  refreshToken   String    // AES-256-GCM encrypted
+  label          String? // user-facing display name; falls back to email
+  accessToken    String // AES-256-GCM encrypted
+  refreshToken   String // AES-256-GCM encrypted
   expiresAt      DateTime
   scopes         String[]
+  connected      Boolean   @default(true)
+  syncToken      String? // Gmail historyId for incremental syncs
+  lastSyncedAt   DateTime?
   watchExpiry    DateTime? // Pub/Sub watch expiry — renew every 6 days
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+
+  @@unique([organizationId, email])
 }
 
 // ─── Invoices ─────────────────────────────────────────────
@@ -173,6 +177,7 @@ model GmailCredential {
 model Invoice {
   id                   String           @id @default(cuid())
   organizationId       String
+  gmailCredentialId    String? // source mailbox; nullable only for pre-migration orphans
   gmailMessageId       String
   gmailThreadId        String
   gmailLink            String
@@ -198,13 +203,16 @@ model Invoice {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  anomalyLogs  AnomalyLog[]
-  transactions Transaction[]
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  gmailCredential GmailCredential? @relation(fields: [gmailCredentialId], references: [id], onDelete: SetNull)
+  anomalyLogs     AnomalyLog[]
+  transactions    Transaction[]
 
   @@unique([organizationId, gmailMessageId])
   @@index([organizationId, emailDate])
   @@index([organizationId, vendorNormalized])
+  @@index([organizationId, status])
+  @@index([gmailCredentialId])
 }
 
 // ─── Learning ─────────────────────────────────────────────
@@ -225,6 +233,7 @@ model VendorAlias {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, merchantPattern])
+  @@index([organizationId, type, active])
 }
 
 // ─── Analytics ────────────────────────────────────────────
@@ -296,12 +305,18 @@ model Transaction {
   matchReason      String?
   matchConfirmed   Boolean           @default(false)
   sourceFile       String?
+  // Natural-key hash (date|merchant|amount|currency) set at import time so a
+  // re-uploaded statement dedupes instead of doubling transactions. Nullable:
+  // rows imported before this column stay null (Postgres allows many nulls in a
+  // unique index), so no backfill is needed and only new imports are deduped.
+  dedupeKey        String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   matchedInvoice Invoice?     @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
 
+  @@unique([organizationId, dedupeKey])
   @@index([organizationId, date])
   @@index([organizationId, status])
 }

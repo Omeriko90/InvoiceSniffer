@@ -14,7 +14,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-[14px]">
       <div className="grid grid-cols-2 gap-[14px]">
-        <GmailConnectionCard gmail={data.gmail} />
+        <GmailConnectionCard gmails={data.gmails} />
         <WorkspaceMembersCard members={data.members} />
       </div>
       <LearnedRulesCard rules={data.rules} />

@@ -66,7 +66,8 @@ async function main() {
 
   if (mode === "daily") {
     // Reuse the existing fan-out: the gmail-sync handler turns this single job
-    // into one per-org sync (enqueueSyncForAllOrgs is not exported, by design).
+    // into one sync per connected mailbox (enqueueSyncForAllCredentials is not
+    // exported, by design). The dummy payload is ignored by the SYNC_ALL branch.
     // No fixed jobId — a retained completed job would otherwise block re-runs.
     await gmailSyncQueue.add(SYNC_ALL_JOB, { organizationId: "", mode: "full" })
   }

@@ -25,6 +25,7 @@ export type InvoiceRow = {
   subject: string
   attachmentMeta: AttachmentMeta[]
   receiptUrl: string | null
+  sourceAccount: { email: string; label: string | null } | null
 }
 
 export type StatusMeta = { label: string; bg: string; color: string }

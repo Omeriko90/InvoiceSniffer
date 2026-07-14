@@ -169,6 +169,12 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <p className="text-[12px] text-[#94A3B8] mt-0.5">
             {format(new Date(invoice.emailDate), "MMM d, yyyy")}
           </p>
+          <p className="text-[12px] text-[#94A3B8] mt-[6px] pt-[8px] border-t border-[#F1F5F9]">
+            Received in{" "}
+            <span className="font-[600] text-[#64748B]">
+              {invoice.sourceAccount?.label ?? invoice.sourceAccount?.email ?? "Unknown mailbox"}
+            </span>
+          </p>
         </div>
 
         {/* Attachments — served on demand from Gmail, never stored */}

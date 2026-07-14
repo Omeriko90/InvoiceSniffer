@@ -3,8 +3,10 @@ export type MemberRole = "OWNER" | "ADMIN" | "MEMBER"
 export type RuleType = "POSITIVE" | "NEGATIVE" | "IGNORE"
 
 export interface GmailConnection {
+  id: string
   connected: boolean
-  email: string | null
+  email: string
+  label: string | null
   lastSyncedAt: string | null
 }
 
@@ -23,7 +25,7 @@ export interface LearnedRule {
 }
 
 export interface SettingsData {
-  gmail: GmailConnection
+  gmails: GmailConnection[]
   members: Member[]
   rules: LearnedRule[]
 }
