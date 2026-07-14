@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <MatchDrawer>.
-import { ArrowDown, CreditCard, ExternalLink, FileText } from "lucide-react"
+import { ArrowDown, CreditCard, ExternalLink, FileText, TriangleAlert } from "lucide-react"
 import {
   SheetDescription,
   SheetHeader,
@@ -49,6 +49,22 @@ export function MatchDrawerBody({
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto px-[22px] py-[18px] flex flex-col gap-[16px]">
+        {/* Collision: this invoice was already reconciled in an earlier session */}
+        {transaction.collision && invoice && (
+          <div className="flex gap-[10px] bg-warning-bg border border-[#FDE68A] rounded-[11px] px-[14px] py-[11px]">
+            <TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-[1px]" />
+            <div className="text-[12.5px] leading-[1.5] text-[#92400E]">
+              <p className="font-[700]">Already reconciled</p>
+              <p>
+                This invoice was matched
+                {invoice.reconciledSourceFile ? ` against ${invoice.reconciledSourceFile}` : ""}
+                {invoice.reconciledAt ? ` on ${fmtDate(invoice.reconciledAt)}` : ""}. Confirming
+                again may mean a duplicate charge or a re-uploaded statement.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Confidence banner */}
         {showConfidence && (
           <div className="flex items-center gap-[10px] bg-[#F8FAFF] border border-border rounded-[11px] px-[14px] py-[11px]">

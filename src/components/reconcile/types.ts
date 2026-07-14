@@ -1,29 +1,9 @@
-import type { TxnStatus } from "@/components/reconcile/status"
+import type { MatchRow } from "@/api-types/reconcile"
 
-export type TransactionRow = {
-  id: string
-  date: string
-  merchant: string
-  amount: string
-  currency: string
-  status: TxnStatus
-  matchConfidence: number | null
-  matchReason: string | null
-  matchConfirmed: boolean
-  sourceFile: string | null
-  invoice: {
-    id: string
-    vendorName: string | null
-    invoiceNumber: string | null
-    amount: string
-    currency: string
-    date: string
-    dueDate: string | null
-    senderEmail: string
-    gmailLink: string
-  } | null
-}
+// The reconcile table renders ephemeral session rows (MatchRow), not persisted
+// transactions. Aliased so the presentational components read the same shape.
+export type TransactionRow = MatchRow
 
-export type TabId = "all" | "matched" | "possible" | "missing" | "none"
+export type TabId = "all" | "matched" | "possible" | "missing" | "none" | "collisions" | "invoices"
 
 export type RunAction = "confirm" | "reject" | "no_invoice" | "undo"

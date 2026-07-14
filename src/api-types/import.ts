@@ -19,14 +19,10 @@ export interface ImportRow {
   currency?: string
 }
 
-export interface ImportRequest {
-  fileName: string
+// Column mappings persist for reuse; transactions do not (reconciliation is
+// ephemeral). The reconcile session saves the mapping when a file is added.
+export interface SaveMappingRequest {
   mappingLabel: string
   headersKey: string
   mapping: ColumnMapping
-  rows: ImportRow[]
-}
-
-export interface ImportResponse {
-  imported: number
 }

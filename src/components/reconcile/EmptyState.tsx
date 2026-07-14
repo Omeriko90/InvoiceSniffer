@@ -16,7 +16,7 @@ export function EmptyState() {
       </p>
       <Button
         nativeButton={false}
-        render={<Link href="/import" />}
+        render={<Link href="/reconcile" />}
         className="h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0"
         style={{
           background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",

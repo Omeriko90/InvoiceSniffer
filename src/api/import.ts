@@ -1,4 +1,4 @@
-import { SavedMapping, ImportRequest, ImportResponse } from "@/api-types/import"
+import { SavedMapping, SaveMappingRequest } from "@/api-types/import"
 
 async function fetchCsvMappings(): Promise<SavedMapping[]> {
   const res = await fetch("/api/import")
@@ -6,14 +6,15 @@ async function fetchCsvMappings(): Promise<SavedMapping[]> {
   return res.json()
 }
 
-async function importTransactions(body: ImportRequest): Promise<ImportResponse> {
+// Remember a file's column mapping so files with the same header signature
+// auto-map next time. Best-effort — a failure here shouldn't block reconciling.
+async function saveCsvMapping(body: SaveMappingRequest): Promise<void> {
   const res = await fetch("/api/import", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error("Failed to import transactions")
-  return res.json()
+  if (!res.ok) throw new Error("Failed to save mapping")
 }
 
-export { fetchCsvMappings, importTransactions }
+export { fetchCsvMappings, saveCsvMapping }

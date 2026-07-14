@@ -10,7 +10,7 @@ export function UploadCsvButton() {
       size="sm"
       className="gap-1.5 text-[13px]"
       nativeButton={false}
-      render={<Link href="/import" />}
+      render={<Link href="/reconcile" />}
     >
       <Upload size={14} />
       Upload CSV
