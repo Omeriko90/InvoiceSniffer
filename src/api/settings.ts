@@ -11,8 +11,12 @@ async function deleteAlias(id: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to remove rule")
 }
 
-async function disconnectGmail(): Promise<void> {
-  const res = await fetch("/api/gmail/disconnect", { method: "DELETE" })
+async function disconnectGmail(credentialId: string): Promise<void> {
+  const res = await fetch("/api/gmail/disconnect", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credentialId }),
+  })
   if (!res.ok) throw new Error("Failed to disconnect Gmail")
 }
 

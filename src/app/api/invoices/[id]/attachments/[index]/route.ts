@@ -29,9 +29,15 @@ export async function GET(
   const { id, index } = await params
   const invoice = await prisma.invoice.findFirst({
     where: { id, organizationId: session.user.organizationId },
-    select: { gmailMessageId: true, attachmentMeta: true },
+    select: { gmailMessageId: true, gmailCredentialId: true, attachmentMeta: true },
   })
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  // Attribution is required to know which mailbox holds this message. Orphaned
+  // rows (pre-migration, or whose mailbox was hard-removed) can't be fetched.
+  if (!invoice.gmailCredentialId) {
+    return NextResponse.json({ error: "Gmail is not connected" }, { status: 400 })
+  }
 
   const attachments = invoice.attachmentMeta as AttachmentMeta[]
   const meta = attachments[Number(index)]
@@ -40,7 +46,7 @@ export async function GET(
   }
 
   try {
-    const gmail = await getGmailClient(session.user.organizationId)
+    const gmail = await getGmailClient(invoice.gmailCredentialId)
 
     let data: string | null | undefined
     try {

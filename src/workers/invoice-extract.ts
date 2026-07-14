@@ -26,14 +26,18 @@ export function createInvoiceExtractWorker() {
   return new Worker<ExtractionJobData>(
     "extraction",
     async (job: Job<ExtractionJobData>) => {
-      const { organizationId, gmailMessageId } = job.data
-      return extractInvoice(organizationId, gmailMessageId)
+      const { organizationId, gmailCredentialId, gmailMessageId } = job.data
+      return extractInvoice(organizationId, gmailCredentialId, gmailMessageId)
     },
     { connection, concurrency: 5 }
   )
 }
 
-async function extractInvoice(organizationId: string, gmailMessageId: string) {
+async function extractInvoice(
+  organizationId: string,
+  gmailCredentialId: string,
+  gmailMessageId: string
+) {
   // Never overwrite an invoice the user explicitly marked "not an invoice"
   const existing = await prisma.invoice.findUnique({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
@@ -43,7 +47,7 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
     return { invoiceId: existing.id, skipped: "ignored_by_user" }
   }
 
-  const gmail = await getGmailClient(organizationId)
+  const gmail = await getGmailClient(gmailCredentialId)
 
   const msg = await gmail.users.messages.get({
     userId: "me",
@@ -93,6 +97,7 @@ async function extractInvoice(organizationId: string, gmailMessageId: string) {
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
     create: {
       organizationId,
+      gmailCredentialId,
       gmailMessageId,
       gmailThreadId,
       gmailLink,

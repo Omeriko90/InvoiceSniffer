@@ -27,13 +27,18 @@ export function getGmailAuthUrl(state: string): string {
   })
 }
 
-// Returns an authenticated Gmail API client for a given org, auto-refreshing if needed
-export async function getGmailClient(organizationId: string) {
+// Returns an authenticated Gmail API client for a given credential, auto-refreshing
+// if needed. Keyed by credential id so a message can be routed to the exact mailbox
+// it lives in — organizationId alone is ambiguous once an org has several mailboxes.
+export async function getGmailClient(credentialId: string) {
   const credential = await prisma.gmailCredential.findUnique({
-    where: { organizationId },
+    where: { id: credentialId },
   })
 
-  if (!credential) throw new GmailNotConnectedError()
+  // A missing row or a soft-disconnected one (tokens zeroed) can't authenticate
+  if (!credential || !credential.connected || !credential.refreshToken) {
+    throw new GmailNotConnectedError()
+  }
 
   const oauth2Client = createOAuthClient()
 
@@ -51,7 +56,7 @@ export async function getGmailClient(organizationId: string) {
     const { credentials } = await oauth2Client.refreshAccessToken()
 
     await prisma.gmailCredential.update({
-      where: { organizationId },
+      where: { id: credentialId },
       data: {
         accessToken: encrypt(credentials.access_token!),
         expiresAt: new Date(credentials.expiry_date!),
@@ -64,22 +69,43 @@ export async function getGmailClient(organizationId: string) {
   return google.gmail({ version: "v1", auth: oauth2Client })
 }
 
+// Connected credentials for an org, newest first. Never returns secrets.
+export async function listGmailCredentials(organizationId: string) {
+  return prisma.gmailCredential.findMany({
+    where: { organizationId, connected: true },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      email: true,
+      label: true,
+      lastSyncedAt: true,
+      syncToken: true,
+      expiresAt: true,
+    },
+  })
+}
+
+// Upsert keyed by (organizationId, email): a new address creates an additional
+// credential, while re-connecting a known address (including a soft-disconnected
+// one) refreshes its tokens in place and re-activates it without touching other
+// accounts or its accumulated sync state. Returns the credential id.
 export async function saveGmailCredential(
   organizationId: string,
+  email: string,
   tokens: {
     access_token: string
     refresh_token: string
     expiry_date: number
     scope: string
   }
-) {
+): Promise<string> {
   const scopes = tokens.scope.split(" ")
 
-  await prisma.gmailCredential.upsert({
-    where: { organizationId },
+  const credential = await prisma.gmailCredential.upsert({
+    where: { organizationId_email: { organizationId, email } },
     create: {
       organizationId,
-      email: "", // filled in after fetching profile
+      email,
       accessToken: encrypt(tokens.access_token),
       refreshToken: encrypt(tokens.refresh_token),
       expiresAt: new Date(tokens.expiry_date),
@@ -90,8 +116,12 @@ export async function saveGmailCredential(
       refreshToken: encrypt(tokens.refresh_token),
       expiresAt: new Date(tokens.expiry_date),
       scopes,
+      connected: true, // re-activate a soft-disconnected row; syncToken preserved
     },
+    select: { id: true },
   })
+
+  return credential.id
 }
 
 export class GmailNotConnectedError extends Error {

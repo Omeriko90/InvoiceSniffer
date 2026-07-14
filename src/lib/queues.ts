@@ -18,11 +18,13 @@ export const exportQueue = new Queue("exports", { connection, defaultJobOptions 
 
 export type GmailSyncJobData = {
   organizationId: string
+  credentialId: string
   mode: "full" | "incremental"
 }
 
 export type ExtractionJobData = {
   organizationId: string
+  gmailCredentialId: string
   gmailMessageId: string
 }
 

@@ -16,6 +16,9 @@ export function InvoicesToolbar({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  accountFilter,
+  onAccountChange,
+  accounts,
   uiState,
   onUiStateChange,
   count,
@@ -24,10 +27,18 @@ export function InvoicesToolbar({
   onSearchChange: (value: string) => void
   statusFilter: string
   onStatusChange: (value: string) => void
+  accountFilter: string
+  onAccountChange: (value: string) => void
+  accounts: { email: string; label: string }[]
   uiState: UIState
   onUiStateChange: (value: UIState) => void
   count: number
 }) {
+  // Only worth showing once there's more than one mailbox to filter by.
+  const accountOptions = [
+    { value: "all", label: "All accounts" },
+    ...accounts.map((a) => ({ value: a.email, label: a.label })),
+  ]
   return (
     <div className="flex items-center gap-3 flex-wrap">
       {/* Search */}
@@ -56,6 +67,24 @@ export function InvoicesToolbar({
           ))}
         </SelectContent>
       </Select>
+
+      {/* Source mailbox filter — only when the org has more than one account */}
+      {accounts.length > 1 && (
+        <Select
+          items={accountOptions}
+          value={accountFilter}
+          onValueChange={(v) => onAccountChange(v as string)}
+        >
+          <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {accountOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       {/* UI state tabs (dev helper) */}
       <div className="flex items-center gap-[3px] bg-white border border-[#E8EDFA] rounded-[9px] p-[3px] ml-auto">

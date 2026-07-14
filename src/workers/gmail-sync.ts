@@ -23,15 +23,15 @@ export function createGmailSyncWorker() {
     "gmail-sync",
     async (job: Job<GmailSyncJobData>) => {
       if (job.name === SYNC_ALL_JOB) {
-        return enqueueSyncForAllOrgs()
+        return enqueueSyncForAllCredentials()
       }
 
-      const { organizationId, mode } = job.data
+      const { organizationId, credentialId, mode } = job.data
 
       if (mode === "full") {
-        await runFullSync(organizationId, job)
+        await runFullSync(credentialId, organizationId, job)
       } else {
-        await runIncrementalSync(organizationId, job)
+        await runIncrementalSync(credentialId, organizationId, job)
       }
     },
     { connection, concurrency: 3 }
@@ -47,29 +47,35 @@ export async function registerDailySyncScheduler() {
   )
 }
 
-async function enqueueSyncForAllOrgs() {
-  const orgs = await prisma.organization.findMany({
-    where: { gmailConnected: true },
-    select: { id: true, gmailSyncToken: true },
+async function enqueueSyncForAllCredentials() {
+  // One job per connected mailbox across all orgs — the daily fan-out must key
+  // off credentials, not orgs, now that an org can have several mailboxes.
+  const credentials = await prisma.gmailCredential.findMany({
+    where: { connected: true },
+    select: { id: true, organizationId: true, syncToken: true },
   })
 
-  for (const org of orgs) {
+  for (const cred of credentials) {
     await gmailSyncQueue.add(
       "gmail:sync",
-      { organizationId: org.id, mode: org.gmailSyncToken ? "incremental" : "full" } satisfies GmailSyncJobData,
+      {
+        organizationId: cred.organizationId,
+        credentialId: cred.id,
+        mode: cred.syncToken ? "incremental" : "full",
+      } satisfies GmailSyncJobData,
       // Stable id (no timestamp) so a concurrent daily + on-demand sync for the
-      // same org dedupes to one job instead of double-scanning Gmail.
-      { jobId: `sync-${org.id}` }
+      // same mailbox dedupes to one job instead of double-scanning Gmail.
+      { jobId: `sync-${cred.id}` }
     )
   }
 
-  return { enqueued: orgs.length }
+  return { enqueued: credentials.length }
 }
 
 // ── Full sync: page through the last 3 months of Gmail messages ────
 
-async function runFullSync(organizationId: string, job: Job) {
-  const gmail = await getGmailClient(organizationId)
+async function runFullSync(credentialId: string, organizationId: string, job: Job) {
+  const gmail = await getGmailClient(credentialId)
   const ctx = await loadSyncContext(organizationId)
   let pageToken: string | undefined
   let totalProcessed = 0
@@ -98,7 +104,7 @@ async function runFullSync(organizationId: string, job: Job) {
       })
       if (exists) continue
 
-      const isCandidate = await checkAndQueueMessage(gmail, organizationId, msg.id, ctx)
+      const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, msg.id, ctx)
       if (isCandidate) candidatesFound++
       totalProcessed++
     }
@@ -108,10 +114,10 @@ async function runFullSync(organizationId: string, job: Job) {
 
   // Store historyId for future incremental syncs
   const profile = await gmail.users.getProfile({ userId: "me" })
-  await prisma.organization.update({
-    where: { id: organizationId },
+  await prisma.gmailCredential.update({
+    where: { id: credentialId },
     data: {
-      gmailSyncToken: profile.data.historyId ?? null,
+      syncToken: profile.data.historyId ?? null,
       lastSyncedAt: new Date(),
     },
   })
@@ -121,26 +127,26 @@ async function runFullSync(organizationId: string, job: Job) {
 
 // ── Incremental sync: fetch only new messages since last historyId ─
 
-async function runIncrementalSync(organizationId: string, job: Job) {
-  const org = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { gmailSyncToken: true },
+async function runIncrementalSync(credentialId: string, organizationId: string, job: Job) {
+  const credential = await prisma.gmailCredential.findUnique({
+    where: { id: credentialId },
+    select: { syncToken: true },
   })
 
-  if (!org?.gmailSyncToken) {
+  if (!credential?.syncToken) {
     // No history token yet — fall back to full sync
     await job.log("No historyId found, falling back to full sync")
-    return runFullSync(organizationId, job)
+    return runFullSync(credentialId, organizationId, job)
   }
 
-  const gmail = await getGmailClient(organizationId)
+  const gmail = await getGmailClient(credentialId)
   const ctx = await loadSyncContext(organizationId)
   let candidatesFound = 0
 
   try {
     const res = await gmail.users.history.list({
       userId: "me",
-      startHistoryId: org.gmailSyncToken,
+      startHistoryId: credential.syncToken,
       historyTypes: ["messageAdded"],
     })
 
@@ -161,21 +167,21 @@ async function runIncrementalSync(organizationId: string, job: Job) {
       })
       if (exists) continue
 
-      const isCandidate = await checkAndQueueMessage(gmail, organizationId, messageId, ctx)
+      const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, messageId, ctx)
       if (isCandidate) candidatesFound++
     }
 
     if (newHistoryId) {
-      await prisma.organization.update({
-        where: { id: organizationId },
-        data: { gmailSyncToken: newHistoryId, lastSyncedAt: new Date() },
+      await prisma.gmailCredential.update({
+        where: { id: credentialId },
+        data: { syncToken: newHistoryId, lastSyncedAt: new Date() },
       })
     }
   } catch (err: unknown) {
     // historyId too old (410 Gone) — do a full sync instead
     if (isGoogleError(err) && err.code === 410) {
       await job.log("historyId expired, falling back to full sync")
-      return runFullSync(organizationId, job)
+      return runFullSync(credentialId, organizationId, job)
     }
     throw err
   }
@@ -266,6 +272,7 @@ async function loadSyncContext(organizationId: string): Promise<SyncContext> {
 async function checkAndQueueMessage(
   gmail: gmail_v1.Gmail,
   organizationId: string,
+  credentialId: string,
   messageId: string,
   ctx: SyncContext
 ): Promise<boolean> {
@@ -320,8 +327,8 @@ async function checkAndQueueMessage(
   if (isCandidate) {
     await extractionQueue.add(
       "invoice:extract",
-      { organizationId, gmailMessageId: messageId } satisfies ExtractionJobData,
-      { jobId: `extract-${organizationId}-${messageId}` } // dedup
+      { organizationId, gmailCredentialId: credentialId, gmailMessageId: messageId } satisfies ExtractionJobData,
+      { jobId: `extract-${credentialId}-${messageId}` } // dedup
     )
   }
 

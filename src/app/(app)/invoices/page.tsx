@@ -25,6 +25,7 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
       subject: true,
       attachmentMeta: true,
       receiptUrl: true,
+      gmailCredential: { select: { email: true, label: true } },
     },
   })
 
@@ -45,6 +46,9 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
     subject: inv.subject,
     attachmentMeta: inv.attachmentMeta as InvoiceRow["attachmentMeta"],
     receiptUrl: inv.receiptUrl,
+    sourceAccount: inv.gmailCredential
+      ? { email: inv.gmailCredential.email, label: inv.gmailCredential.label }
+      : null,
   }))
 }
 

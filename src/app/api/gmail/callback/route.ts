@@ -2,6 +2,7 @@ import { google } from "googleapis"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { saveGmailCredential, GMAIL_OAUTH_STATE_COOKIE } from "@/lib/gmail"
+import { maxGmailAccounts } from "@/lib/plan-limits"
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { timingSafeEqual } from "crypto"
@@ -62,28 +63,39 @@ export async function GET(req: NextRequest) {
 
   oauth2Client.setCredentials(tokens)
 
-  // Fetch the Gmail address to store alongside the credential
+  // Fetch the Gmail address — it's the upsert key and the plan-limit check
   const gmail = google.gmail({ version: "v1", auth: oauth2Client })
   const profile = await gmail.users.getProfile({ userId: "me" })
   const gmailEmail = profile.data.emailAddress!
 
-  await saveGmailCredential(organizationId, {
+  // Enforce the per-tier mailbox cap. Only a genuinely NEW address counts —
+  // re-connecting a known (or soft-disconnected) address is always allowed and
+  // never consumes a slot.
+  const [org, existing] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { planTier: true },
+    }),
+    prisma.gmailCredential.findUnique({
+      where: { organizationId_email: { organizationId, email: gmailEmail } },
+      select: { id: true },
+    }),
+  ])
+
+  if (!existing && org) {
+    const connectedCount = await prisma.gmailCredential.count({
+      where: { organizationId, connected: true },
+    })
+    if (connectedCount >= maxGmailAccounts(org.planTier)) {
+      return NextResponse.redirect(new URL("/settings?gmail_error=account_limit", req.url))
+    }
+  }
+
+  await saveGmailCredential(organizationId, gmailEmail, {
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
     expiry_date: tokens.expiry_date!,
     scope: tokens.scope!,
-  })
-
-  // Store the Gmail email address
-  await prisma.gmailCredential.update({
-    where: { organizationId },
-    data: { email: gmailEmail },
-  })
-
-  // Mark the org as Gmail-connected
-  await prisma.organization.update({
-    where: { id: organizationId },
-    data: { gmailConnected: true },
   })
 
   return NextResponse.redirect(new URL("/settings?gmail_connected=true", req.url))
