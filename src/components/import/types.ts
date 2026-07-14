@@ -11,17 +11,13 @@ export type MapColumnsStepProps = {
   onImport: () => void
   importing: boolean
   importError: string | null
+  /** Overrides the default "Import N transactions" primary-button label. */
+  submitLabel?: string
 }
 
 export type UploadStepProps = {
   onFile: (file: File) => void
   error: string | null
-}
-
-export type DoneStepProps = {
-  imported: number
-  skipped: number
-  onImportAnother: () => void
 }
 
 export type ColumnSelectProps = {

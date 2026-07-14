@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
 import { format } from "date-fns"
+import { TriangleAlert } from "lucide-react"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { StatusCell } from "@/components/reconcile/StatusCell"
 import { MatchedInvoiceCell } from "@/components/reconcile/MatchedInvoiceCell"
@@ -41,9 +42,17 @@ export function ReconcileRow({
       </span>
 
       {/* Merchant */}
-      <span className="text-[13px] font-[600] text-foreground font-mono truncate">
-        {txn.merchant}
-      </span>
+      <div className="min-w-0">
+        <span className="flex items-center gap-[6px] text-[13px] font-[600] text-foreground font-mono truncate">
+          {txn.collision && (
+            <TriangleAlert size={13} className="text-[#B45309] shrink-0" aria-label="Already reconciled" />
+          )}
+          <span className="truncate">{txn.merchant}</span>
+        </span>
+        {txn.sourceFile && (
+          <span className="block text-[11px] text-dim truncate">{txn.sourceFile}</span>
+        )}
+      </div>
 
       {/* Amount */}
       <span className="text-[13.5px] font-[700] text-heading text-right">

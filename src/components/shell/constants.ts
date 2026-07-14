@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   FileText,
-  Upload,
   GitMerge,
   Bell,
   Download,
@@ -10,7 +9,6 @@ import {
 export const WORKSPACE_NAV = [
   { label: "Dashboard",  href: "/",           icon: LayoutDashboard },
   { label: "Invoices",   href: "/invoices",   icon: FileText },
-  { label: "Import CSV", href: "/import",     icon: Upload },
   { label: "Reconcile",  href: "/reconcile",  icon: GitMerge },
 ]
 

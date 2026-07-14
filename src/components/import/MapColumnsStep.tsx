@@ -9,7 +9,7 @@ import { PreviewTable } from "./PreviewTable"
 import { MapColumnsStepProps } from "./types"
 
 export function MapColumnsStep({
-  parsed, mapping, onMappingChange, savedMappingLabel, onBack, onImport, importing, importError,
+  parsed, mapping, onMappingChange, savedMappingLabel, onBack, onImport, importing, importError, submitLabel,
 }: MapColumnsStepProps) {
   const complete = Boolean(mapping.date && mapping.merchant && mapping.amount)
   const previewRows = parsed.records.slice(0, 3)
@@ -64,7 +64,9 @@ export function MapColumnsStep({
             disabled={!complete || importing}
             onClick={onImport}
           >
-            {importing ? "Importing…" : `Import ${parsed.records.length} transactions`}
+            {importing
+              ? "Adding…"
+              : submitLabel ?? `Import ${parsed.records.length} transactions`}
           </Button>
         </div>
       </div>

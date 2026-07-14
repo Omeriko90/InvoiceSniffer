@@ -12,11 +12,14 @@ import { Input } from "@/components/ui/input"
 import { CandidateList } from "@/components/reconcile/CandidateList"
 import { normalizeMerchant } from "@/lib/matching"
 import { fmtMoney } from "@/lib/money"
+import type { CandidateResult } from "@/api-types/reconcile"
 import type { TransactionRow } from "@/components/reconcile/types"
 
-export function FindInvoiceModalBody({ transaction, onClose }: {
+export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
   transaction: TransactionRow
-  onClose: () => void
+  range: { from: string; to: string }
+  linking: boolean
+  onLink: (candidate: CandidateResult) => void
 }) {
   // Pre-filled with the cleaned-up merchant guess; remounted per transaction
   const [search, setSearch] = useState(() => normalizeMerchant(transaction.merchant))
@@ -50,7 +53,13 @@ export function FindInvoiceModalBody({ transaction, onClose }: {
               Suggested matches
             </p>
 
-            <CandidateList transaction={transaction} search={search} onLinked={onClose} />
+            <CandidateList
+              transaction={transaction}
+              range={range}
+              search={search}
+              disabled={linking}
+              onLink={onLink}
+            />
 
             <div className="flex items-center gap-[7px] text-[11.5px] text-[#94A3B8] border-t border-[#F1F3F8] pt-[13px]">
               <Lightbulb size={13} strokeWidth={1.5} className="shrink-0" />
