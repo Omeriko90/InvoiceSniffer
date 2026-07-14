@@ -19,7 +19,7 @@ export const STATUS_META: Record<string, StatusMeta> = {
 }
 
 export const STATUS_OPTIONS = [
-  { value: "all",      label: "Status: All" },
+  { value: "all",      label: "All" },
   { value: "DETECTED", label: "Detected" },
   { value: "MATCHED",  label: "Confirmed" },
   { value: "UNMATCHED",label: "Review" },

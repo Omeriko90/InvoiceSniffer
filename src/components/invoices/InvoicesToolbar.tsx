@@ -48,11 +48,13 @@ export function InvoicesToolbar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search vendor, amount, invoice #…"
-          className="h-auto pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border-[#E8EDFA] rounded-[10px] bg-background"
+          className="h-auto pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border-[#E8EDFA] rounded-[10px] bg-white"
         />
       </div>
 
       {/* Status filter */}
+      <div className="relative flex items-center gap-2">
+      <span className="text-sm font-medium text-text-primary">Status:</span>
       <Select
         items={STATUS_OPTIONS}
         value={statusFilter}
@@ -67,6 +69,7 @@ export function InvoicesToolbar({
           ))}
         </SelectContent>
       </Select>
+      </div>
 
       {/* Source mailbox filter — only when the org has more than one account */}
       {accounts.length > 1 && (
@@ -85,23 +88,6 @@ export function InvoicesToolbar({
           </SelectContent>
         </Select>
       )}
-
-      {/* UI state tabs (dev helper) */}
-      <div className="flex items-center gap-[3px] bg-white border border-[#E8EDFA] rounded-[9px] p-[3px] ml-auto">
-        {(["data", "loading", "empty"] as UIState[]).map((s) => (
-          <button
-            key={s}
-            onClick={() => onUiStateChange(s)}
-            className="px-[7px] py-[7px] rounded-[7px] text-[12px] font-[600] capitalize transition-colors"
-            style={{
-              background: uiState === s ? "#EEF3FF" : "transparent",
-              color: uiState === s ? "#3B6FE0" : "#94A3B8",
-            }}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
 
       <span className="text-[13px] font-[500] text-[#94A3B8] shrink-0">
         {count} detected
