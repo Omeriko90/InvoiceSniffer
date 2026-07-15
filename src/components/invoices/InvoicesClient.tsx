@@ -2,10 +2,13 @@
 
 import { useState, useMemo } from "react"
 import { Sheet } from "@/components/ui/sheet"
+import { Dialog } from "@/components/ui/dialog"
 import type { InvoiceRow, UIState } from "./types"
+import type { ExportFormat } from "@/api/exports"
 import { InvoicesToolbar } from "./InvoicesToolbar"
 import { InvoicesTable } from "./InvoicesTable"
 import { InvoiceDetailDrawer } from "./InvoiceDetailDrawer"
+import { ExportDialog } from "./ExportDialog"
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
@@ -13,6 +16,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [accountFilter, setAccount] = useState<string>("all")
   const [uiState, setUiState]       = useState<UIState>("data")
   const [selected, setSelected]     = useState<InvoiceRow | null>(null)
+  const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null)
 
   // Distinct source mailboxes present in the data — drives the account filter.
   const accounts = useMemo(() => {
@@ -52,6 +56,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         uiState={uiState}
         onUiStateChange={setUiState}
         count={filtered.length}
+        onExport={setExportFormat}
       />
 
       <InvoicesTable
@@ -60,6 +65,13 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         filtered={filtered}
         onSelect={setSelected}
       />
+
+      {/* Export dialog */}
+      <Dialog open={!!exportFormat} onOpenChange={(open) => { if (!open) setExportFormat(null) }}>
+        {exportFormat && (
+          <ExportDialog format={exportFormat} onClose={() => setExportFormat(null)} />
+        )}
+      </Dialog>
 
       {/* Drawer */}
       <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>

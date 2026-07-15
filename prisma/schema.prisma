@@ -67,6 +67,12 @@ enum ExportStatus {
   FAILED
 }
 
+enum ExportFormat {
+  CSV
+  XLSX
+  PDF
+}
+
 enum TransactionStatus {
   UNMATCHED
   POSSIBLE
@@ -285,15 +291,29 @@ model AnomalyLog {
 model ExportJob {
   id             String       @id @default(cuid())
   organizationId String
+  format         ExportFormat @default(PDF)
   dateRangeStart DateTime
   dateRangeEnd   DateTime
+  invoiceIds     String[]
+  // Chosen spreadsheet columns (CSV/XLSX); empty for PDF.
+  fields         String[]
   status         ExportStatus @default(QUEUED)
   r2Key          String?
   downloadUrl    String?
+  fileName       String?
+  mimeType       String?
+  // Invoices with no PDF / a fetch failure — [{ invoiceId, vendorName, reason }].
+  skippedCount   Int          @default(0)
+  skipped        Json         @default("[]")
+  startedAt      DateTime?
+  finishedAt     DateTime?
   expiresAt      DateTime?
   createdAt      DateTime     @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([status])
 }
 
 // ─── Transactions (CSV imports) ───────────────────────────

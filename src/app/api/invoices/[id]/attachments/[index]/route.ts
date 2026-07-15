@@ -1,11 +1,15 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient, GmailNotConnectedError } from "@/lib/gmail"
-import { extractAttachmentMeta, type AttachmentMeta, type GmailPart } from "@/workers/invoice-extract"
+import { type AttachmentMeta } from "@/workers/invoice-extract"
+import {
+  fetchAttachmentBytes,
+  AttachmentNotFoundError,
+  AttachmentTooLargeError,
+  MAX_ATTACHMENT_BYTES,
+} from "@/lib/gmail-attachments"
 import { log } from "@/lib/posthog-server"
 import { NextResponse } from "next/server"
-
-const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
 
 // Types safe to render inline — PDFs and raster images can't execute script.
 // SVG and HTML are deliberately excluded (active content).
@@ -48,43 +52,7 @@ export async function GET(
   try {
     const gmail = await getGmailClient(invoice.gmailCredentialId)
 
-    let data: string | null | undefined
-    try {
-      const res = await gmail.users.messages.attachments.get({
-        userId: "me",
-        messageId: invoice.gmailMessageId,
-        id: meta.attachmentId,
-      })
-      data = res.data.data
-    } catch {
-      // Gmail attachment ids can go stale — re-fetch the message and resolve
-      // a fresh id by filename
-      const msg = await gmail.users.messages.get({
-        userId: "me",
-        id: invoice.gmailMessageId,
-        format: "full",
-      })
-      const fresh = extractAttachmentMeta(msg.data.payload as GmailPart).find(
-        (a) => a.filename === meta.filename
-      )
-      if (!fresh) return NextResponse.json({ error: "Attachment not found" }, { status: 404 })
-      const res = await gmail.users.messages.attachments.get({
-        userId: "me",
-        messageId: invoice.gmailMessageId,
-        id: fresh.attachmentId,
-      })
-      data = res.data.data
-    }
-
-    if (!data) return NextResponse.json({ error: "Attachment not found" }, { status: 404 })
-
-    // Enforce the cap on the ACTUAL downloaded bytes, not the Gmail-supplied
-    // `meta.size` — that pre-check trusts metadata and the stale-id fallback
-    // above resolves a fresh attachment whose size was never checked at all.
-    const bytes = Buffer.from(data, "base64url")
-    if (bytes.byteLength > MAX_ATTACHMENT_BYTES) {
-      return NextResponse.json({ error: "Attachment too large" }, { status: 413 })
-    }
+    const bytes = await fetchAttachmentBytes(gmail, invoice.gmailMessageId, meta)
 
     // Some senders mislabel PDFs as octet-stream; fix the type so the
     // browser renders inline instead of downloading
@@ -112,6 +80,12 @@ export async function GET(
   } catch (error) {
     if (error instanceof GmailNotConnectedError) {
       return NextResponse.json({ error: "Gmail is not connected" }, { status: 400 })
+    }
+    if (error instanceof AttachmentNotFoundError) {
+      return NextResponse.json({ error: "Attachment not found" }, { status: 404 })
+    }
+    if (error instanceof AttachmentTooLargeError) {
+      return NextResponse.json({ error: "Attachment too large" }, { status: 413 })
     }
     log.error("Attachment fetch failed", { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: "Failed to fetch attachment" }, { status: 502 })

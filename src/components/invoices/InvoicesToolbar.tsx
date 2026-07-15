@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { Search } from "lucide-react"
+import { Search, Download, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -8,8 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { STATUS_OPTIONS } from "./constants"
 import type { UIState } from "./types"
+import type { ExportFormat } from "@/api/exports"
 
 export function InvoicesToolbar({
   search,
@@ -22,6 +30,7 @@ export function InvoicesToolbar({
   uiState,
   onUiStateChange,
   count,
+  onExport,
 }: {
   search: string
   onSearchChange: (value: string) => void
@@ -33,6 +42,7 @@ export function InvoicesToolbar({
   uiState: UIState
   onUiStateChange: (value: UIState) => void
   count: number
+  onExport: (format: ExportFormat) => void
 }) {
   // Only worth showing once there's more than one mailbox to filter by.
   const accountOptions = [
@@ -92,6 +102,28 @@ export function InvoicesToolbar({
       <span className="text-[13px] font-[500] text-[#94A3B8] shrink-0">
         {count} detected
       </span>
+
+      <div className="ml-auto shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary gap-[6px]"
+              >
+                <Download size={14} />
+                Export
+                <ChevronDown size={14} className="text-[#94A3B8]" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onExport("csv")}>Export as CSV</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onExport("xlsx")}>Export as Excel</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onExport("pdf")}>Export as PDF (merged)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

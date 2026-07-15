@@ -42,3 +42,49 @@ export async function triggerBatchWorker(): Promise<void> {
     })
   }
 }
+
+// Kick off a one-shot PDF export build. Unlike triggerBatchWorker this does NOT
+// touch Redis/BullMQ — the QUEUED ExportJob rows are the work list.
+//
+// Production (WORKER_TRIGGER=cloudrun): run the same Cloud Run Job with
+// MODE=export, which drains pending export rows and exits. Local dev: run the
+// builder in-process (fire-and-forget) so the flow works without Redis or a
+// separate worker process. Errors are swallowed — the row stays QUEUED and the
+// next trigger (or a manual run) will pick it up.
+export async function triggerExportBatch(): Promise<void> {
+  if (process.env.WORKER_TRIGGER !== "cloudrun") {
+    // Dev/self-hosted: build inline without blocking the request.
+    void import("@/workers/export-build")
+      .then((m) => m.processPendingExports())
+      .catch((err) =>
+        log.error("triggerExportBatch: in-process build failed", {
+          error: err instanceof Error ? err.message : String(err),
+        })
+      )
+    return
+  }
+
+  const project = process.env.GCP_PROJECT_ID
+  const region = process.env.GCP_REGION
+  const jobName = process.env.WORKER_JOB_NAME
+
+  if (!project || !region || !jobName) {
+    log.error("triggerExportBatch: missing GCP_PROJECT_ID / GCP_REGION / WORKER_JOB_NAME")
+    return
+  }
+
+  try {
+    const { JobsClient } = await import("@google-cloud/run")
+    const client = new JobsClient()
+    await client.runJob({
+      name: `projects/${project}/locations/${region}/jobs/${jobName}`,
+      overrides: {
+        containerOverrides: [{ env: [{ name: "MODE", value: "export" }] }],
+      },
+    })
+  } catch (err) {
+    log.error("triggerExportBatch: failed to start Cloud Run Job", {
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
