@@ -20,4 +20,16 @@ async function disconnectGmail(credentialId: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to disconnect Gmail")
 }
 
-export { fetchSettings, deleteAlias, disconnectGmail }
+async function updateSettlementLag(settlementLagDays: number): Promise<void> {
+  const res = await fetch("/api/settings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ settlementLagDays }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to update settings")
+  }
+}
+
+export { fetchSettings, deleteAlias, disconnectGmail, updateSettlementLag }

@@ -4,8 +4,10 @@ import {
   NO_MATCH_REASON,
   LOW_SCORE_REASON,
   RULE_NO_INVOICE_REASON,
+  DEFAULT_DATE_WINDOW,
   normalizeMerchant,
   rankCandidates,
+  type DateWindow,
 } from "@/lib/matching"
 import { aliasApplies, aliasSignalFor, type AliasRow, type SessionInvoice } from "@/lib/matching-data"
 
@@ -57,7 +59,8 @@ export type SessionMatch = {
 export function matchSession(
   rows: SessionRow[],
   invoices: SessionInvoice[],
-  aliases: AliasRow[]
+  aliases: AliasRow[],
+  window: DateWindow = DEFAULT_DATE_WINDOW
 ): SessionMatch {
   const ignoreAliases = aliases.filter((a) => a.type === "IGNORE")
   const mapAliases = aliases.filter((a) => a.type !== "IGNORE")
@@ -74,7 +77,7 @@ export function matchSession(
       continue
     }
     for (const c of rankCandidates(row, invoices, (inv) =>
-      aliasSignalFor(mapAliases, row.merchant, inv)
+      aliasSignalFor(mapAliases, row.merchant, inv), window
     )) {
       proposals.push({ rowId: row.id, invoiceId: c.invoiceId, score: c.score, reason: c.reason })
       hadProposals.add(row.id)

@@ -5,6 +5,7 @@ import { useSettings } from "@/hooks/useSettings"
 import { GmailConnectionCard } from "@/components/settings/GmailConnectionCard"
 import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard"
 import { LearnedRulesCard } from "@/components/settings/LearnedRulesCard"
+import { ReconcileSettingsCard } from "@/components/settings/ReconcileSettingsCard"
 
 export default function SettingsPage() {
   const { data, isPending } = useSettings()
@@ -17,6 +18,7 @@ export default function SettingsPage() {
         <GmailConnectionCard gmails={data.gmails} />
         <WorkspaceMembersCard members={data.members} />
       </div>
+      <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
       <LearnedRulesCard rules={data.rules} />
     </div>
   )

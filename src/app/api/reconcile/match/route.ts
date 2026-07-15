@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { enforceRateLimit } from "@/lib/rate-limit"
 import { loadAliases, loadInvoiceCandidates, type SessionInvoice } from "@/lib/matching-data"
 import { matchSession, type SessionRow } from "@/lib/match-session"
+import { TRAIL_WINDOW_DAYS, type DateWindow } from "@/lib/matching"
 import { DATE_RANGE_PRESETS, resolveDateRange } from "@/lib/date-range"
 import type { MatchInvoice, MatchResponse, MatchRow, ReconcileStatus } from "@/api-types/reconcile"
 import { z } from "zod"
@@ -76,7 +78,9 @@ export async function POST(request: Request) {
       date: new Date(row.date),
       merchant: row.merchant,
       amount: row.amount,
-      currency: row.currency ?? "USD",
+      // Empty = unknown currency; the scorer skips the currency gate rather than
+      // wrongly assuming USD for CSVs without a currency column.
+      currency: row.currency ?? "",
       sourceFile: file.fileName,
     }))
   )
@@ -86,12 +90,21 @@ export async function POST(request: Request) {
   }
 
   const range = resolveDateRange(dateRange, new Date())
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { settlementLagDays: true },
+  })
+  const leadDays = org?.settlementLagDays ?? 30
+  const window: DateWindow = { leadDays, trailDays: TRAIL_WINDOW_DAYS }
+
   const [invoices, aliases] = await Promise.all([
-    loadInvoiceCandidates(organizationId, range),
+    // Widen the candidate lower bound by the settlement lag so invoices that
+    // precede in-range charges are loaded too.
+    loadInvoiceCandidates(organizationId, range, leadDays),
     loadAliases(organizationId),
   ])
 
-  const { results, unreconciledInvoices, summary } = matchSession(rows, invoices, aliases)
+  const { results, unreconciledInvoices, summary } = matchSession(rows, invoices, aliases, window)
 
   const rowDTOs: MatchRow[] = results.map((r) => ({
     id: r.row.id,
