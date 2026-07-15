@@ -46,7 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         userInitials={initials}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar title={title} gmailConnected={false} />
+        <Topbar title={title} />
         <main className="flex-1 overflow-y-auto bg-background p-7">
           {children}
         </main>

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { listGmailCredentials } from "@/lib/gmail"
+import { listGmailCredentialStatuses } from "@/lib/gmail"
 
 export async function GET() {
   const session = await auth()
@@ -9,7 +9,7 @@ export async function GET() {
   const { organizationId } = session.user
 
   const [credentials, members, rules] = await Promise.all([
-    listGmailCredentials(organizationId),
+    listGmailCredentialStatuses(organizationId),
     prisma.user.findMany({
       where: { organizationId },
       select: { id: true, name: true, email: true, role: true },
@@ -25,7 +25,7 @@ export async function GET() {
   return Response.json({
     gmails: credentials.map((c) => ({
       id: c.id,
-      connected: true,
+      connected: c.connected,
       email: c.email,
       label: c.label,
       lastSyncedAt: c.lastSyncedAt,

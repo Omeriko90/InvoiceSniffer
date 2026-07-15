@@ -53,7 +53,22 @@ export async function getGmailClient(credentialId: string) {
   const isExpiringSoon = Date.now() > expiresAt - 5 * 60 * 1000
 
   if (isExpiringSoon) {
-    const { credentials } = await oauth2Client.refreshAccessToken()
+    let credentials
+    try {
+      ;({ credentials } = await oauth2Client.refreshAccessToken())
+    } catch (err) {
+      // A revoked/expired refresh token (invalid_grant) can't be recovered
+      // without the user re-authorizing. Soft-disconnect so the UI prompts a
+      // reconnect, and surface a clean "not connected" error instead of an
+      // opaque failure to every caller (attachment viewer, sync, PDF export).
+      if (isInvalidGrant(err)) {
+        await prisma.gmailCredential
+          .update({ where: { id: credentialId }, data: { connected: false } })
+          .catch(() => {})
+        throw new GmailNotConnectedError()
+      }
+      throw err
+    }
 
     await prisma.gmailCredential.update({
       where: { id: credentialId },
@@ -81,6 +96,24 @@ export async function listGmailCredentials(organizationId: string) {
       lastSyncedAt: true,
       syncToken: true,
       expiresAt: true,
+    },
+  })
+}
+
+// All credentials for an org INCLUDING soft-disconnected ones — the settings
+// card and topbar pill need to show out-of-sync accounts so the user can
+// reconnect. Distinct from listGmailCredentials (connected-only), which drives
+// syncing and must never touch a disconnected mailbox.
+export async function listGmailCredentialStatuses(organizationId: string) {
+  return prisma.gmailCredential.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      email: true,
+      label: true,
+      lastSyncedAt: true,
+      connected: true,
     },
   })
 }
@@ -122,6 +155,15 @@ export async function saveGmailCredential(
   })
 
   return credential.id
+}
+
+// Google returns `invalid_grant` when a refresh token is expired or revoked.
+// The error shape varies (googleapis wraps it differently across paths), so
+// check both the message and the structured OAuth error body.
+function isInvalidGrant(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false
+  const e = err as { message?: string; response?: { data?: { error?: string } } }
+  return e.message === "invalid_grant" || e.response?.data?.error === "invalid_grant"
 }
 
 export class GmailNotConnectedError extends Error {
