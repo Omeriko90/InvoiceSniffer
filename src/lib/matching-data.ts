@@ -1,3 +1,4 @@
+import { subDays } from "date-fns"
 import { prisma } from "@/lib/prisma"
 import { normalizeMerchant, type AliasSignal, type InvoiceCandidate } from "@/lib/matching"
 import type { InvoiceStatus } from "@prisma/client"
@@ -61,8 +62,13 @@ export function aliasSignalFor(
 // collisions rather than silently re-matching. Only IGNORED invoices are excluded.
 export async function loadInvoiceCandidates(
   organizationId: string,
-  range: DateRange
+  range: DateRange,
+  // Card charges post after their invoice, so an invoice matching a charge in the
+  // range can be dated up to `leadDays` (settlement lag) BEFORE range.from. Widen
+  // the lower bound to load those earlier invoices as candidates.
+  leadDays = 0
 ): Promise<SessionInvoice[]> {
+  const from = leadDays > 0 ? subDays(range.from, leadDays) : range.from
   const invoices = await prisma.invoice.findMany({
     where: {
       organizationId,
@@ -70,8 +76,8 @@ export async function loadInvoiceCandidates(
       // Coalesce(invoiceDate, emailDate) within range — Prisma has no COALESCE
       // in `where`, so branch on whether invoiceDate is present.
       OR: [
-        { invoiceDate: { gte: range.from, lte: range.to } },
-        { invoiceDate: null, emailDate: { gte: range.from, lte: range.to } },
+        { invoiceDate: { gte: from, lte: range.to } },
+        { invoiceDate: null, emailDate: { gte: from, lte: range.to } },
       ],
     },
     select: {

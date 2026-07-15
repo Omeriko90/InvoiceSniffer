@@ -25,7 +25,7 @@ export function NewExportButton() {
       className="gap-1.5 text-[13px] text-white shadow-primary border-0"
       style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
       nativeButton={false}
-      render={<Link href="/exports" />}
+      render={<Link href="/invoices" />}
     >
       <Download size={14} />
       New export

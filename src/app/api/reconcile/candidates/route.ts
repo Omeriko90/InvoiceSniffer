@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { aliasSignalFor, loadAliases, loadInvoiceCandidates } from "@/lib/matching-data"
-import { nameSimilarity, scoreCandidate } from "@/lib/matching"
+import { nameSimilarity, scoreCandidate, TRAIL_WINDOW_DAYS, type DateWindow } from "@/lib/matching"
 import { resolveDateRange } from "@/lib/date-range"
 import { NextResponse } from "next/server"
 import type { CandidateResult } from "@/api-types/reconcile"
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
   const merchant = url.searchParams.get("merchant") ?? ""
   const amount = Number(url.searchParams.get("amount"))
   const dateStr = url.searchParams.get("date")
-  const currency = url.searchParams.get("currency") ?? "USD"
+  const currency = url.searchParams.get("currency") ?? ""
   const from = url.searchParams.get("from")
   const to = url.searchParams.get("to")
 
@@ -30,8 +31,15 @@ export async function GET(request: Request) {
   }
 
   const range = resolveDateRange({ from, to }, new Date())
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { settlementLagDays: true },
+  })
+  const leadDays = org?.settlementLagDays ?? 30
+  const window: DateWindow = { leadDays, trailDays: TRAIL_WINDOW_DAYS }
+
   const [invoices, aliases] = await Promise.all([
-    loadInvoiceCandidates(organizationId, range),
+    loadInvoiceCandidates(organizationId, range, leadDays),
     loadAliases(organizationId),
   ])
   const mapAliases = aliases.filter((a) => a.type !== "IGNORE")
@@ -46,7 +54,7 @@ export async function GET(request: Request) {
         (inv.invoiceNumber ?? "").toLowerCase().includes(q)
     )
     .map((inv) => {
-      const scored = scoreCandidate(charge, inv, aliasSignalFor(mapAliases, merchant, inv))
+      const scored = scoreCandidate(charge, inv, aliasSignalFor(mapAliases, merchant, inv), window)
       return {
         invoiceId: inv.id,
         vendorName: inv.vendorName,

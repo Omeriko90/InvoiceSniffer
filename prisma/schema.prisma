@@ -67,6 +67,12 @@ enum ExportStatus {
   FAILED
 }
 
+enum ExportFormat {
+  CSV
+  XLSX
+  PDF
+}
+
 enum TransactionStatus {
   UNMATCHED
   POSSIBLE
@@ -81,6 +87,10 @@ model Organization {
   name      String
   slug      String   @unique
   planTier  PlanTier @default(FREE)
+  // Max days a card charge may post AFTER its invoice (credit-card settlement
+  // lag). Widens the reconcile match window on the "invoice precedes charge"
+  // side and the invoice-candidate lookback. Configurable per org.
+  settlementLagDays Int @default(30)
   createdAt DateTime @default(now())
 
   users            User[]
@@ -285,15 +295,29 @@ model AnomalyLog {
 model ExportJob {
   id             String       @id @default(cuid())
   organizationId String
+  format         ExportFormat @default(PDF)
   dateRangeStart DateTime
   dateRangeEnd   DateTime
+  invoiceIds     String[]
+  // Chosen spreadsheet columns (CSV/XLSX); empty for PDF.
+  fields         String[]
   status         ExportStatus @default(QUEUED)
   r2Key          String?
   downloadUrl    String?
+  fileName       String?
+  mimeType       String?
+  // Invoices with no PDF / a fetch failure — [{ invoiceId, vendorName, reason }].
+  skippedCount   Int          @default(0)
+  skipped        Json         @default("[]")
+  startedAt      DateTime?
+  finishedAt     DateTime?
   expiresAt      DateTime?
   createdAt      DateTime     @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([status])
 }
 
 // ─── Transactions (CSV imports) ───────────────────────────

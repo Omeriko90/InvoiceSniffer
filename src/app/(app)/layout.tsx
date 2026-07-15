@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/shell/Sidebar"
 import { Topbar } from "@/components/shell/Topbar"
 import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
+import { ExportsProvider } from "@/components/exports/ExportsProvider"
 import { headers } from "next/headers"
 
 // Map pathnames to page titles
@@ -30,6 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     : session.user.email?.[0]?.toUpperCase() ?? "?"
 
   return (
+    <ExportsProvider>
     <div className="h-screen flex overflow-hidden">
       <PostHogIdentify
         userId={session.user.id}
@@ -44,11 +46,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         userInitials={initials}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar title={title} gmailConnected={false} />
+        <Topbar title={title} />
         <main className="flex-1 overflow-y-auto bg-background p-7">
           {children}
         </main>
       </div>
     </div>
+    </ExportsProvider>
   )
 }

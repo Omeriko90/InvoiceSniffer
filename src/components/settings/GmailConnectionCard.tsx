@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useDisconnectGmail } from "@/hooks/useDisconnectGmail"
@@ -32,8 +31,7 @@ export function GmailConnectionCard({ gmails }: GmailConnectionCardProps) {
             ))}
             <Button
               variant="outline"
-              nativeButton={false}
-              render={<Link href="/api/gmail/connect" />}
+              onClick={() => { window.location.href = "/api/gmail/connect" }}
               className="self-start h-auto text-[13px] font-[600] text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
             >
               + Add account
@@ -50,8 +48,7 @@ export function GmailConnectionCard({ gmails }: GmailConnectionCardProps) {
             </div>
             <Button
               className="shrink-0 h-auto text-[13px] font-[600] text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
-              nativeButton={false}
-              render={<Link href="/api/gmail/connect" />}
+              onClick={() => { window.location.href = "/api/gmail/connect" }}
             >
               Connect
             </Button>

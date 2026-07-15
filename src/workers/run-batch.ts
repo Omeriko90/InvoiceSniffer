@@ -46,6 +46,17 @@ async function main() {
   const mode = process.env.MODE ?? "drain"
   log.info(`batch worker starting (MODE=${mode})`)
 
+  // Export builds are DB-driven (no BullMQ): the QUEUED ExportJob rows are the
+  // work list. Skip booting the queue workers and the Redis drain loop entirely.
+  if (mode === "export") {
+    const { processPendingExports } = await import("./export-build")
+    const count = await processPendingExports()
+    log.info(`processed ${count} export job(s); shutting down`)
+    await prisma.$disconnect()
+    await shutdownPostHog()
+    process.exit(0)
+  }
+
   const workers = [createGmailSyncWorker(), createInvoiceExtractWorker()]
 
   for (const worker of workers) {
