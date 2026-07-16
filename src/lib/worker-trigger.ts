@@ -1,5 +1,41 @@
 import { log } from "@/lib/posthog-server"
 
+const GCP_JOB_VARS = ["GCP_PROJECT_ID", "GCP_REGION", "WORKER_JOB_NAME"] as const
+
+// Validate that the queue-draining path is actually wired up. Run once at server
+// startup (see instrumentation.ts) so a broken worker deployment surfaces at boot
+// instead of silently swallowing every enqueued sync/export.
+//
+// Failure modes this guards against:
+//  - WORKER_TRIGGER=cloudrun but a GCP var is missing → triggerBatchWorker() and
+//    triggerExportBatch() log-and-return, so jobs pile up in Redis unconsumed.
+//    This is an unrecoverable misconfig → throw and refuse to boot.
+//  - Production with WORKER_TRIGGER unset → no Cloud Run Job is ever kicked off,
+//    so on-demand syncs only drain on the daily batch (if that even exists). We
+//    can't prove there's no external always-on worker, so warn loudly, don't throw.
+export function assertWorkerConfig(): void {
+  const trigger = process.env.WORKER_TRIGGER
+
+  if (trigger === "cloudrun") {
+    const missing = GCP_JOB_VARS.filter((v) => !process.env[v])
+    if (missing.length > 0) {
+      throw new Error(
+        `WORKER_TRIGGER=cloudrun but missing required env var(s): ${missing.join(", ")}. ` +
+          `The web tier cannot start the Cloud Run Job, so enqueued jobs would never drain.`
+      )
+    }
+    return
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    log.error(
+      "worker-config: WORKER_TRIGGER is not 'cloudrun' in production — enqueued Gmail syncs " +
+        "and PDF exports will not be drained on demand. Set WORKER_TRIGGER=cloudrun (with " +
+        `${GCP_JOB_VARS.join(", ")}) or run an always-on worker (npm run worker:start).`
+    )
+  }
+}
+
 // Kick off a one-shot drain of the BullMQ queues.
 //
 // In production (WORKER_TRIGGER=cloudrun) this executes the Cloud Run Job with
