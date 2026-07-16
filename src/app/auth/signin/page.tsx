@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { SignInForm } from "./SignInForm"
 import { AuthBrandHeader } from "@/components/auth/AuthBrandHeader"
 import { BrandPanel } from "@/components/auth/BrandPanel"
@@ -19,7 +20,7 @@ export default function SignInPage() {
 
           <p className="text-[13.5px] text-[#64748B] text-center mt-[22px]">
             New to Reconcile?{" "}
-            <a href="/auth/signup" className="text-primary font-[700] hover:opacity-80">Create an account</a>
+            <Link href="/auth/signup" className="text-primary font-[700] hover:opacity-80">Create an account</Link>
           </p>
         </div>
       </div>

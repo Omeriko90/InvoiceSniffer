@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { SignUpForm } from "./SignUpForm"
 import { AuthBrandHeader } from "@/components/auth/AuthBrandHeader"
 import { BrandPanel } from "@/components/auth/BrandPanel"
@@ -19,7 +20,7 @@ export default function SignUpPage() {
 
           <p className="text-[13.5px] text-[#64748B] text-center mt-[22px]">
             Already have an account?{" "}
-            <a href="/auth/signin" className="text-primary font-[700] hover:opacity-80">Sign in</a>
+            <Link href="/auth/signin" className="text-primary font-[700] hover:opacity-80">Sign in</Link>
           </p>
         </div>
       </div>
