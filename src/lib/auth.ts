@@ -43,6 +43,9 @@ function makeAdapter() {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Running behind Cloud Run's proxy: trust the forwarded Host header so
+  // Auth.js can derive the callback URL instead of rejecting with UntrustedHost.
+  trustHost: true,
   adapter: makeAdapter(),
   providers: [
     Google({
