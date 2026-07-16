@@ -205,7 +205,7 @@ export function ReconcileSession() {
 
   if (phase === "collect") {
     return (
-      <div className="flex flex-col gap-[16px] max-w-[900px]">
+      <div className="flex flex-col gap-[16px] mx-auto">
         <DateRangeBar scope={scope} onChange={setScope} />
         <AddFilesPanel
           files={files}
