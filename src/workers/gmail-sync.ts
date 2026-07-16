@@ -40,7 +40,7 @@ export function createGmailSyncWorker() {
 
 // Idempotent — upsert keyed by scheduler id, safe to call on every startup
 export async function registerDailySyncScheduler() {
-  await gmailSyncQueue.upsertJobScheduler(
+  await gmailSyncQueue().upsertJobScheduler(
     "daily-gmail-sync",
     { pattern: "0 6 * * *", tz: "Asia/Jerusalem" },
     { name: SYNC_ALL_JOB }
@@ -56,7 +56,7 @@ async function enqueueSyncForAllCredentials() {
   })
 
   for (const cred of credentials) {
-    await gmailSyncQueue.add(
+    await gmailSyncQueue().add(
       "gmail:sync",
       {
         organizationId: cred.organizationId,
@@ -325,7 +325,7 @@ async function checkAndQueueMessage(
   }
 
   if (isCandidate) {
-    await extractionQueue.add(
+    await extractionQueue().add(
       "invoice:extract",
       { organizationId, gmailCredentialId: credentialId, gmailMessageId: messageId } satisfies ExtractionJobData,
       { jobId: `extract-${credentialId}-${messageId}` } // dedup

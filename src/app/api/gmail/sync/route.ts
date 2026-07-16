@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const mode: GmailSyncJobData["mode"] = credential.syncToken ? "incremental" : "full"
 
-  const job = await gmailSyncQueue.add(
+  const job = await gmailSyncQueue().add(
     "gmail:sync",
     { organizationId, credentialId, mode } satisfies GmailSyncJobData,
     // Stable id (no timestamp) so rapid clicks / an overlap with the daily run

@@ -23,7 +23,7 @@ const MAX_RUNTIME_MS = 25 * 60 * 1000
 // waiting+active+delayed==0 across both queues can only be true after the whole
 // chain has settled — that's what makes the drain safe. (The `anomaly`/`exports`
 // queues have no consumer today and are intentionally excluded.)
-const queues = [gmailSyncQueue, extractionQueue]
+const queues = [gmailSyncQueue(), extractionQueue()]
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -80,7 +80,7 @@ async function main() {
     // into one sync per connected mailbox (enqueueSyncForAllCredentials is not
     // exported, by design). The dummy payload is ignored by the SYNC_ALL branch.
     // No fixed jobId — a retained completed job would otherwise block re-runs.
-    await gmailSyncQueue.add(SYNC_ALL_JOB, { organizationId: "", mode: "full" })
+    await gmailSyncQueue().add(SYNC_ALL_JOB, { organizationId: "", mode: "full" })
   }
 
   const deadline = Date.now() + MAX_RUNTIME_MS

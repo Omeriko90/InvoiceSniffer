@@ -1,7 +1,15 @@
 import { Queue } from "bullmq"
 
-const connection = {
-  url: process.env.REDIS_URL!,
+// A Redis connection must NEVER be opened at import time. `next build` evaluates
+// route modules (which transitively import this file), and the build environment
+// has no Redis — with `url` undefined, BullMQ/ioredis silently fall back to
+// 127.0.0.1:6379 and spam ECONNREFUSED. So each queue is built lazily on first
+// use (at runtime, when REDIS_URL is present), and we fail fast with a clear
+// message if it's missing rather than dialing localhost.
+function connection() {
+  const url = process.env.REDIS_URL
+  if (!url) throw new Error("REDIS_URL is not set — cannot connect to the job queue")
+  return { url }
 }
 
 const defaultJobOptions = {
@@ -11,10 +19,17 @@ const defaultJobOptions = {
   removeOnFail: { count: 200 },
 }
 
-export const gmailSyncQueue = new Queue("gmail-sync", { connection, defaultJobOptions })
-export const extractionQueue = new Queue("extraction", { connection, defaultJobOptions })
-export const anomalyQueue = new Queue("anomaly", { connection, defaultJobOptions })
-export const exportQueue = new Queue("exports", { connection, defaultJobOptions })
+// Memoized accessor: constructs the Queue (and thus the Redis connection) on the
+// first call, then returns the same instance. Call as `gmailSyncQueue()`.
+function lazyQueue(name: string): () => Queue {
+  let instance: Queue | undefined
+  return () => (instance ??= new Queue(name, { connection: connection(), defaultJobOptions }))
+}
+
+export const gmailSyncQueue = lazyQueue("gmail-sync")
+export const extractionQueue = lazyQueue("extraction")
+export const anomalyQueue = lazyQueue("anomaly")
+export const exportQueue = lazyQueue("exports")
 
 export type GmailSyncJobData = {
   organizationId: string

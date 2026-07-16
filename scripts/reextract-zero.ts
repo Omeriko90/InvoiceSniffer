@@ -14,7 +14,7 @@ async function main() {
   let queued = 0
   for (const r of rows) {
     if (!r.gmailCredentialId) continue // can't route an orphaned invoice
-    await extractionQueue.add(
+    await extractionQueue().add(
       "invoice:extract",
       {
         organizationId: r.organizationId,
@@ -36,7 +36,7 @@ main()
     process.exitCode = 1
   })
   .finally(async () => {
-    await extractionQueue.close()
+    await extractionQueue().close()
     await prisma.$disconnect()
     // BullMQ can leave a lingering connection handle — exit explicitly
     process.exit(process.exitCode ?? 0)
