@@ -12,6 +12,8 @@ RUN npm ci
 
 # --- build: generate Prisma client + compile Next ---
 FROM base AS build
+# Next's build worker can exceed the default V8 heap on constrained CI machines.
+ENV NODE_OPTIONS=--max-old-space-size=4096
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate && npm run build
