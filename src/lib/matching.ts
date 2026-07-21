@@ -117,7 +117,7 @@ export type ScoredCandidate = {
 
 // Compare magnitudes: bank statements list charges as negative debits (-50.00)
 // while invoices store the positive total (50.00), so sign must not count.
-function amountScore(a: number, b: number): number {
+export function amountScore(a: number, b: number): number {
   const x = Math.abs(a)
   const y = Math.abs(b)
   const hi = Math.max(x, y)

@@ -37,6 +37,9 @@ export type MatchRow = {
   // Assigned invoice was already reconciled in a prior session — a warning, not
   // a silent re-match.
   collision: boolean
+  // This match was proposed by the Tier-3 LLM arbitrator (not the deterministic
+  // scorer), so the UI badges it for review. Always lands in the POSSIBLE band.
+  aiSuggested: boolean
   invoice: MatchInvoice | null
 }
 

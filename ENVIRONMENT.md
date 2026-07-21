@@ -76,6 +76,31 @@ found no amount, or an Israeli document is missing the allocation number.
 > Privacy: enabling this sends invoice PDF contents to the Anthropic API. Add a
 > line to the privacy note before the app has real users.
 
+## LLM reconcile arbitrator — Tier 3 match fallback (optional)
+
+The deterministic matcher refuses to match a charge on amount + date alone; it
+needs an identity signal (learned alias, invoice # in the bank text, or vendor
+name overlap). That leaves obfuscated bank descriptors (e.g. `PAYPAL *DESIGNSUPPORT`)
+with no candidate. When enabled, the arbitrator re-checks the ambiguous rows,
+asks the model whether any amount/date-matching invoice is genuinely the same
+purchase, and surfaces its picks as **Possible** (never auto-confirmed). One user
+confirmation then teaches a vendor alias, so that merchant matches deterministically
+afterwards — the model is paid ~once per obfuscated merchant.
+
+- Set `RECONCILE_ARBITER_MODEL` (start with `claude-haiku-4-5`) and `ANTHROPIC_API_KEY`.
+- `RECONCILE_ARBITER_MODEL` unset → disabled; the deterministic result stands, as before.
+- Only `claude-*` models are supported; any error falls back to the deterministic result (fail-open).
+- Adds latency to `POST /api/reconcile/match` when on (one model call per ambiguous row, bounded concurrency).
+
+| Var | Purpose |
+|---|---|
+| `RECONCILE_ARBITER_MODEL` | Which claude model to arbitrate ambiguous matches (e.g. `claude-haiku-4-5`); unset = disabled |
+| `RECONCILE_ARBITER_MAX_ROWS` | Max ambiguous rows sent to the model per session (default 25); excess are logged and left deterministic |
+| `ANTHROPIC_API_KEY` | Read by the SDK for the arbitrator (and the extractor/classifier) |
+
+> Privacy: enabling this sends charge descriptors + candidate invoice metadata to
+> the Anthropic API.
+
 ## Analytics — PostHog (optional; degrades gracefully if unset)
 
 | Var | Purpose |
