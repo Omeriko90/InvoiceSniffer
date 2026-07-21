@@ -57,6 +57,25 @@ Pick a `CLASSIFIER_MODEL`, then set exactly one key path:
 | `CLASSIFIER_API_BASE` | Override base URL for a non-Anthropic/OpenAI-compatible endpoint |
 | `CLASSIFIER_API_KEY` | Key for the custom `CLASSIFIER_API_BASE` endpoint |
 
+## LLM extractor — Tier 2 structured extraction (optional)
+
+Structured PDF-vision extraction that captures fields the regex heuristics can't
+(Israeli Tax Authority allocation number, vendor tax id, document type, line
+items) and cracks mojibake/RTL PDFs. Runs only when it uniquely helps: heuristics
+found no amount, or an Israeli document is missing the allocation number.
+
+- Set `EXTRACTION_MODEL` (start with `claude-haiku-4-5`, ~$0.005–0.01/invoice) and `ANTHROPIC_API_KEY`.
+- `EXTRACTION_MODEL` unset → extractor disabled; behaviour is heuristics-only, as before.
+- Only `claude-*` models are supported; any error falls back to the heuristic result (fail-open).
+
+| Var | Purpose |
+|---|---|
+| `EXTRACTION_MODEL` | Which claude model to use for PDF extraction (e.g. `claude-haiku-4-5`); unset = disabled |
+| `ANTHROPIC_API_KEY` | Read by the SDK for the extractor (and the classifier) |
+
+> Privacy: enabling this sends invoice PDF contents to the Anthropic API. Add a
+> line to the privacy note before the app has real users.
+
 ## Analytics — PostHog (optional; degrades gracefully if unset)
 
 | Var | Purpose |

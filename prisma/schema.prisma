@@ -26,6 +26,13 @@ enum ExtractionMethod {
   MANUAL
 }
 
+enum DocumentType {
+  TAX_INVOICE
+  RECEIPT
+  CREDIT_INVOICE
+  UNKNOWN
+}
+
 enum InvoiceStatus {
   DETECTED
   REVIEWED
@@ -198,6 +205,9 @@ model Invoice {
   vendorName           String?
   vendorNormalized     String?
   invoiceNumber        String?
+  allocationNumber     String? // Israeli Tax Authority clearance id (מספר הקצאה); LLM-only
+  vendorTaxId          String? // business id (ח.פ. / ע.מ. / VAT); LLM-only
+  documentType         DocumentType @default(UNKNOWN)
   invoiceDate          DateTime?
   dueDate              DateTime?
   totalAmount          Decimal          @db.Decimal(12, 2)

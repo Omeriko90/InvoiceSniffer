@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
 import { type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
+import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { convert } from "html-to-text"
 
@@ -73,11 +74,20 @@ async function extractInvoice(
 
   let extracted = extractInvoiceMetadata(senderEmail, senderName, subject, bodyText)
 
-  // When the email body didn't yield an amount, dig deeper: first any PDF
-  // attachment, then the hosted receipt link. Documents are parsed in memory
-  // and never stored.
-  if (!extracted.totalAmount) {
-    const pdfText = await fetchAttachmentPdfText(gmail, gmailMessageId, attachmentMeta)
+  // Fetch the PDF bytes once, up front — reused for both text parsing (below)
+  // and the LLM vision extractor (Tier 2). Documents are parsed in memory and
+  // never stored.
+  const pdfBytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachmentMeta)
+
+  // When the email body didn't yield an amount, dig deeper: first the PDF
+  // attachment's text layer, then the hosted receipt link.
+  if (!extracted.totalAmount && pdfBytes) {
+    let pdfText: string | null = null
+    try {
+      pdfText = await parsePdfText(pdfBytes)
+    } catch {
+      pdfText = null
+    }
     if (pdfText) {
       const fromPdf = extractInvoiceMetadata(senderEmail, senderName, subject, pdfText)
       extracted = mergeExtractions(extracted, fromPdf)
@@ -90,6 +100,25 @@ async function extractInvoice(
     if (remoteText) {
       const remote = extractInvoiceMetadata(senderEmail, senderName, subject, remoteText)
       extracted = mergeExtractions(extracted, remote)
+    }
+  }
+
+  // Tier 2: structured LLM vision extraction. Runs only when it uniquely helps
+  // and a PDF exists: either the cheaper signals never found an amount (the
+  // deferred mojibake/RTL fallback), or this is an Israeli document missing the
+  // Tax Authority allocation number (which the regex heuristics never extract).
+  let extractionMethod: "HEURISTIC" | "AI" = "HEURISTIC"
+  if (extractorEnabled() && pdfBytes) {
+    const isIsraeli =
+      extracted.currency === "ILS" || /[֐-׿]/.test(`${subject}\n${bodyText}`)
+    const needsLlm =
+      !extracted.totalAmount || (isIsraeli && !extracted.allocationNumber)
+    if (needsLlm) {
+      const llm = await extractInvoiceFromPdf({ pdfBytes, subject, senderEmail })
+      if (llm) {
+        extracted = applyLlmExtraction(extracted, llm)
+        extractionMethod = "AI"
+      }
     }
   }
 
@@ -108,6 +137,9 @@ async function extractInvoice(
       vendorName: extracted.vendorName,
       vendorNormalized: extracted.vendorNormalized,
       invoiceNumber: extracted.invoiceNumber,
+      allocationNumber: extracted.allocationNumber,
+      vendorTaxId: extracted.vendorTaxId,
+      documentType: extracted.documentType,
       // Receipts are emailed the moment they're issued, so the email date is
       // a solid default when the document itself didn't yield one
       invoiceDate: extracted.invoiceDate ?? emailDate,
@@ -118,13 +150,16 @@ async function extractInvoice(
       lineItems: extracted.lineItems as never,
       attachmentMeta: attachmentMeta as never,
       receiptUrl,
-      extractionMethod: "HEURISTIC",
+      extractionMethod,
       extractionConfidence: extracted.confidence,
     },
     update: {
       vendorName: extracted.vendorName,
       vendorNormalized: extracted.vendorNormalized,
       invoiceNumber: extracted.invoiceNumber,
+      allocationNumber: extracted.allocationNumber,
+      vendorTaxId: extracted.vendorTaxId,
+      documentType: extracted.documentType,
       invoiceDate: extracted.invoiceDate ?? emailDate,
       dueDate: extracted.dueDate,
       totalAmount: extracted.totalAmount ?? 0,
@@ -133,6 +168,7 @@ async function extractInvoice(
       lineItems: extracted.lineItems as never,
       attachmentMeta: attachmentMeta as never,
       receiptUrl,
+      extractionMethod,
       extractionConfidence: extracted.confidence,
     },
   })
@@ -150,12 +186,14 @@ async function extractInvoice(
 
 const MAX_PDF_BYTES = 10 * 1024 * 1024
 
-// Download the first reasonably-sized PDF attachment and return its text
-export async function fetchAttachmentPdfText(
+// Download the first reasonably-sized PDF attachment and return its raw bytes.
+// The bytes are reused both for text parsing (heuristics) and, when enabled,
+// the LLM vision extractor — so we only download the attachment once.
+export async function fetchAttachmentPdfBytes(
   gmail: Awaited<ReturnType<typeof getGmailClient>>,
   gmailMessageId: string,
   attachments: AttachmentMeta[]
-): Promise<string | null> {
+): Promise<Buffer | null> {
   // Match by mime OR filename — some senders (e.g. Partner) attach PDFs
   // as application/octet-stream
   const pdf = attachments.find(
@@ -173,7 +211,22 @@ export async function fetchAttachmentPdfText(
       id: pdf.attachmentId,
     })
     if (!res.data.data) return null
-    return parsePdfText(Buffer.from(res.data.data, "base64url"))
+    return Buffer.from(res.data.data, "base64url")
+  } catch {
+    return null
+  }
+}
+
+// Download the first reasonably-sized PDF attachment and return its text
+export async function fetchAttachmentPdfText(
+  gmail: Awaited<ReturnType<typeof getGmailClient>>,
+  gmailMessageId: string,
+  attachments: AttachmentMeta[]
+): Promise<string | null> {
+  const bytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachments)
+  if (!bytes) return null
+  try {
+    return parsePdfText(bytes)
   } catch {
     return null
   }
@@ -185,6 +238,9 @@ function mergeExtractions(email: ExtractedInvoice, remote: ExtractedInvoice): Ex
     vendorName: email.vendorName ?? remote.vendorName,
     vendorNormalized: email.vendorNormalized ?? remote.vendorNormalized,
     invoiceNumber: email.invoiceNumber ?? remote.invoiceNumber,
+    allocationNumber: email.allocationNumber ?? remote.allocationNumber,
+    vendorTaxId: email.vendorTaxId ?? remote.vendorTaxId,
+    documentType: email.documentType !== "UNKNOWN" ? email.documentType : remote.documentType,
     invoiceDate: email.invoiceDate ?? remote.invoiceDate,
     dueDate: email.dueDate ?? remote.dueDate,
     totalAmount: email.totalAmount ?? remote.totalAmount,
@@ -192,6 +248,34 @@ function mergeExtractions(email: ExtractedInvoice, remote: ExtractedInvoice): Ex
     taxAmount: email.taxAmount ?? remote.taxAmount,
     lineItems: email.lineItems.length > 0 ? email.lineItems : remote.lineItems,
     confidence: Math.max(email.confidence, remote.confidence),
+  }
+}
+
+// Overlay an LLM extraction onto the heuristic result. The LLM read the
+// rendered page, so it's authoritative for the Israeli fields the heuristics
+// never produce (allocation number, tax id, document type, line items) and
+// fills any gaps the heuristics left; existing heuristic values are kept where
+// present. Confidence is bumped to reflect the richer extraction.
+function applyLlmExtraction(base: ExtractedInvoice, llm: LlmExtraction): ExtractedInvoice {
+  const llmDate = (raw: string | null): Date | null => {
+    if (!raw) return null
+    const d = new Date(raw)
+    return isNaN(d.getTime()) ? null : d
+  }
+  return {
+    vendorName: base.vendorName ?? llm.vendorName,
+    vendorNormalized: base.vendorNormalized,
+    invoiceNumber: base.invoiceNumber ?? llm.invoiceNumber,
+    allocationNumber: llm.allocationNumber ?? base.allocationNumber,
+    vendorTaxId: llm.vendorTaxId ?? base.vendorTaxId,
+    documentType: llm.documentType !== "UNKNOWN" ? llm.documentType : base.documentType,
+    invoiceDate: base.invoiceDate ?? llmDate(llm.invoiceDate),
+    dueDate: base.dueDate ?? llmDate(llm.dueDate),
+    totalAmount: base.totalAmount ?? llm.totalAmount,
+    currency: base.totalAmount ? base.currency : llm.currency ?? base.currency,
+    taxAmount: base.taxAmount ?? llm.vatAmount,
+    lineItems: llm.lineItems.length > 0 ? llm.lineItems : base.lineItems,
+    confidence: Math.max(base.confidence, 0.95),
   }
 }
 

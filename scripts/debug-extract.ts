@@ -12,9 +12,11 @@ import {
   extractBodyHtml,
   extractAttachmentMeta,
   fetchAttachmentPdfText,
+  fetchAttachmentPdfBytes,
   parseFrom,
   type GmailPart,
 } from "@/workers/invoice-extract"
+import { extractorEnabled, extractInvoiceFromPdf } from "@/lib/llm-extractor"
 
 function preview(text: string | null, label: string) {
   console.log(`\n── ${label} ${"─".repeat(Math.max(0, 60 - label.length))}`)
@@ -96,6 +98,21 @@ async function main() {
     preview(remoteText, "fetched receipt text")
     if (remoteText) {
       printExtraction("fetched receipt", extractInvoiceMetadata(senderEmail, senderName, subject, remoteText))
+    }
+  }
+
+  // 4. Tier 2 LLM extraction (only when EXTRACTION_MODEL is set)
+  console.log(`\n── Tier 2 LLM extractor ${"─".repeat(40)}`)
+  if (!extractorEnabled()) {
+    console.log("(disabled — set EXTRACTION_MODEL=claude-haiku-4-5 to test)")
+  } else {
+    const pdfBytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachments)
+    if (!pdfBytes) {
+      console.log("(no PDF attachment to send to the LLM)")
+    } else {
+      console.log(`Sending ${pdfBytes.length} bytes to ${process.env.EXTRACTION_MODEL} …`)
+      const llm = await extractInvoiceFromPdf({ pdfBytes, subject, senderEmail })
+      console.log(llm ? JSON.stringify(llm, null, 2) : "(extractor returned null / failed — see warnings above)")
     }
   }
 }
