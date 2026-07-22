@@ -104,9 +104,20 @@ async function runFullSync(credentialId: string, organizationId: string, job: Jo
       })
       if (exists) continue
 
-      const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, msg.id, ctx)
-      if (isCandidate) candidatesFound++
-      totalProcessed++
+      try {
+        const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, msg.id, ctx)
+        if (isCandidate) candidatesFound++
+        totalProcessed++
+      } catch (err) {
+        // A message listed a moment ago can vanish before we fetch it (deleted or
+        // moved), which 404s. Skip that one message rather than aborting the whole
+        // mailbox sync; genuine auth/quota errors still propagate.
+        if (isGoogleError(err) && err.code === 404) {
+          console.warn(`[gmail-sync] skipping message ${msg.id}: not found (404)`)
+          continue
+        }
+        throw err
+      }
     }
 
     await job.updateProgress({ phase: "scanning", processed: totalProcessed, candidates: candidatesFound })
@@ -167,8 +178,18 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
       })
       if (exists) continue
 
-      const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, messageId, ctx)
-      if (isCandidate) candidatesFound++
+      try {
+        const isCandidate = await checkAndQueueMessage(gmail, organizationId, credentialId, messageId, ctx)
+        if (isCandidate) candidatesFound++
+      } catch (err) {
+        // Skip a message that 404s (deleted/moved since the history entry) rather
+        // than failing the whole incremental sync.
+        if (isGoogleError(err) && err.code === 404) {
+          console.warn(`[gmail-sync] skipping message ${messageId}: not found (404)`)
+          continue
+        }
+        throw err
+      }
     }
 
     if (newHistoryId) {
@@ -178,9 +199,10 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
       })
     }
   } catch (err: unknown) {
-    // historyId too old (410 Gone) — do a full sync instead
-    if (isGoogleError(err) && err.code === 410) {
-      await job.log("historyId expired, falling back to full sync")
+    // A stale/invalid historyId returns 410 (Gone) or 404 (Requested entity was
+    // not found); either way the incremental cursor is unusable — do a full sync.
+    if (isGoogleError(err) && (err.code === 410 || err.code === 404)) {
+      await job.log("historyId invalid/expired, falling back to full sync")
       return runFullSync(credentialId, organizationId, job)
     }
     throw err
