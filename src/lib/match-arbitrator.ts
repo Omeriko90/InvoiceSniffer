@@ -1,7 +1,7 @@
-import Anthropic from "@anthropic-ai/sdk"
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"
+import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
 import { differenceInCalendarDays } from "date-fns"
+import { geminiClient, isGeminiModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 import {
   DEFAULT_DATE_WINDOW,
@@ -28,13 +28,13 @@ import type { SessionResult, SessionRow } from "@/lib/match-session"
 // match deterministically forever after, so the LLM cost is paid ~once per
 // obfuscated merchant.
 //
+// Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
 // Config (mirrors llm-extractor.ts):
-//   RECONCILE_ARBITER_MODEL     e.g. "claude-haiku-4-5" — claude-* only
+//   RECONCILE_ARBITER_MODEL     e.g. "gemini-2.5-flash" — gemini-* only
 //   RECONCILE_ARBITER_MAX_ROWS  per-session cap on rows sent to the model (default 25)
-//   ANTHROPIC_API_KEY           read by the SDK
 //
-// Unset RECONCILE_ARBITER_MODEL disables arbitration; any runtime error returns
-// null so the deterministic result stands (fail-open).
+// Unset RECONCILE_ARBITER_MODEL (or a non-gemini value) disables arbitration;
+// any runtime error returns null so the deterministic result stands (fail-open).
 
 // Candidates surfaced per ambiguous row before calling the model. Small so the
 // prompt stays cheap and the model isn't asked to rank a haystack.
@@ -54,6 +54,17 @@ const arbitrationSchema = z.object({
 })
 
 export type ArbitrationVerdict = z.infer<typeof arbitrationSchema>
+
+// Gemini structured-output schema, kept in lockstep with arbitrationSchema.
+const RESPONSE_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    invoiceId: { type: Type.STRING, nullable: true },
+    confidence: { type: Type.NUMBER },
+    reasoning: { type: Type.STRING },
+  },
+  required: ["invoiceId", "confidence", "reasoning"],
+}
 
 // A per-row correction the route applies onto the deterministic results. The
 // row is promoted into the "possible" band and tagged aiSuggested so the UI can
@@ -77,8 +88,7 @@ Guardrails:
 - reasoning is one short sentence a user can read to understand the link.`
 
 export function arbiterEnabled(): boolean {
-  const model = process.env.RECONCILE_ARBITER_MODEL
-  return Boolean(model && model.startsWith("claude"))
+  return isGeminiModel(process.env.RECONCILE_ARBITER_MODEL)
 }
 
 function maxRows(): number {
@@ -151,19 +161,23 @@ export async function arbitrate(
   candidates: SessionInvoice[]
 ): Promise<ArbitrationVerdict | null> {
   const model = process.env.RECONCILE_ARBITER_MODEL
-  if (!model || !model.startsWith("claude") || candidates.length === 0) return null
+  if (!isGeminiModel(model) || candidates.length === 0) return null
 
   try {
-    const client = new Anthropic()
-    const message = await client.messages.parse({
+    const res = await geminiClient().models.generateContent({
       model,
-      max_tokens: 512,
-      system: INSTRUCTIONS,
-      messages: [{ role: "user", content: buildPrompt(row, candidates) }],
-      output_config: { format: zodOutputFormat(arbitrationSchema) },
+      contents: [{ role: "user", parts: [{ text: buildPrompt(row, candidates) }] }],
+      config: {
+        systemInstruction: INSTRUCTIONS,
+        maxOutputTokens: 512,
+        responseMimeType: "application/json",
+        responseSchema: RESPONSE_SCHEMA,
+      },
     })
-    const verdict = message.parsed_output
-    if (!verdict) return null
+    if (!res.text) return null
+    const parsed = arbitrationSchema.safeParse(JSON.parse(res.text))
+    if (!parsed.success) return null
+    const verdict = parsed.data
     if (verdict.invoiceId !== null && !candidates.some((c) => c.id === verdict.invoiceId)) {
       // Model referenced an invoice we never offered — discard rather than trust.
       return null

@@ -105,7 +105,7 @@ async function main() {
   // 4. Tier 2 LLM extraction (only when EXTRACTION_MODEL is set)
   console.log(`\n── Tier 2 LLM extractor ${"─".repeat(40)}`)
   if (!extractorEnabled()) {
-    console.log("(disabled — set EXTRACTION_MODEL=claude-haiku-4-5 to test)")
+    console.log("(disabled — set EXTRACTION_MODEL=gemini-2.5-flash to test)")
   } else {
     const pdfBytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachments)
     if (!pdfBytes) {
