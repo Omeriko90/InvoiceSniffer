@@ -1,18 +1,21 @@
 name: Deploy to GCP
 
-# Merge to main → apply DB migrations, build both images, deploy the web
-# service and update the worker job. Auth is keyless via Workload Identity
-# Federation (see DEPLOY.md for the one-time GCP setup + required secrets).
+# On PRs: validate that the lockfile installs cleanly (npm ci), the same check
+# the Docker build relies on — so a cross-platform lockfile gap fails the PR
+# instead of a deploy. On merge to main: validate, then build both images,
+# apply DB migrations, deploy the web service and update the worker job.
+# Auth is keyless via Workload Identity Federation (see DEPLOY.md).
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Never let two deploys overlap; don't cancel one that's mid-flight.
 concurrency:
-  group: deploy-main
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel stale PR runs; never cancel a main deploy mid-flight.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   PROJECT_ID: invoicesniffer
@@ -22,7 +25,23 @@ env:
   WORKER_JOB: invoicesniffer-worker
 
 jobs:
+  # Runs on every PR and every push. `npm ci` fails if package-lock.json is out
+  # of sync with package.json (e.g. missing linux-only optional deps) — the same
+  # failure the Docker build would hit, caught early.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install (validates lockfile sync)
+        run: npm ci
+
   deploy:
+    needs: validate
+    if: github.event_name != 'pull_request' # only main pushes / manual dispatch deploy
     runs-on: ubuntu-latest
     permissions:
       contents: read
