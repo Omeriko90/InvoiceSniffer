@@ -6,8 +6,15 @@ All environment variables used by the project, grouped by function.
 > doesn't appear in a code grep: `AUTH_SECRET` (NextAuth v5).
 >
 > All three LLM features (classifier, extractor, arbitrator) run on Google
-> Gemini via Vertex AI and authenticate with GCP Application Default
-> Credentials — no API key. They share `GCP_PROJECT_ID` / `GCP_REGION`.
+> Gemini and share one backend, auto-selected in `gemini.ts`:
+> - **Gemini Developer API** — set `GEMINI_API_KEY` (from aistudio.google.com).
+>   Simplest; use a billing-enabled ("paid tier") project so prompts aren't used
+>   for training.
+> - **Vertex AI** — used when `GEMINI_API_KEY` is unset. Auth is GCP Application
+>   Default Credentials (no key); needs `GCP_PROJECT_ID` / `GCP_REGION` and the
+>   Vertex AI User role on the runtime service account.
+>
+> Either way, each feature is enabled by its own `*_MODEL` var below.
 
 ## Core (required)
 
@@ -49,8 +56,7 @@ All environment variables used by the project, grouped by function.
 ## LLM classifier (invoice detection)
 
 Second opinion on borderline invoice-detection scores. Runs on Google Gemini
-via Vertex AI (auth is GCP Application Default Credentials; see `GCP_PROJECT_ID`
-/ `GCP_REGION`).
+(backend auto-selected — see the LLM note at the top).
 - Set `CLASSIFIER_MODEL` (e.g. `gemini-2.5-flash`).
 - `CLASSIFIER_MODEL` unset (or non-`gemini-*`) → classifier disabled; falls back to heuristics.
 
@@ -65,23 +71,20 @@ Structured PDF-vision extraction that captures fields the regex heuristics can't
 items) and cracks mojibake/RTL PDFs. Runs only when it uniquely helps: heuristics
 found no amount, or an Israeli document is missing the allocation number.
 
-- Runs on Google Gemini via Vertex AI. Set `EXTRACTION_MODEL` (e.g. `gemini-2.5-flash`); auth is GCP Application Default Credentials, so no API key.
-- Requires `GCP_PROJECT_ID` and `GCP_REGION` (the Vertex location, e.g. `us-central1`).
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `EXTRACTION_MODEL` (e.g. `gemini-2.5-flash`).
 - `EXTRACTION_MODEL` unset (or non-`gemini-*`) → extractor disabled; behaviour is heuristics-only, as before.
 - Any error falls back to the heuristic result (fail-open).
 
 | Var | Purpose |
 |---|---|
 | `EXTRACTION_MODEL` | Which Gemini model to use for PDF extraction (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
-| `GCP_PROJECT_ID` | Vertex AI project (shared with the Cloud Run worker config) |
-| `GCP_REGION` | Vertex AI location, e.g. `us-central1` (defaults to `us-central1`) |
+| `GEMINI_API_KEY` | Developer API key; when set, used instead of Vertex (shared by all LLM features) |
+| `GCP_PROJECT_ID` / `GCP_REGION` | Vertex AI project + location; used only when `GEMINI_API_KEY` is unset |
 
-> Auth: Vertex uses Application Default Credentials — the Cloud Run service
-> account in prod, or `gcloud auth application-default login` locally. The
-> service account needs the Vertex AI User role.
->
-> Privacy: enabling this sends invoice PDF contents to Google Vertex AI. Add a
-> line to the privacy note before the app has real users.
+> Privacy: enabling this sends invoice PDF contents to Google Gemini. On the
+> Developer API, use a paid-tier project so prompts aren't used for training;
+> Vertex never trains on your data. Add a line to the privacy note before the
+> app has real users.
 
 ## LLM reconcile arbitrator — Tier 3 match fallback (optional)
 
@@ -94,7 +97,7 @@ purchase, and surfaces its picks as **Possible** (never auto-confirmed). One use
 confirmation then teaches a vendor alias, so that merchant matches deterministically
 afterwards — the model is paid ~once per obfuscated merchant.
 
-- Runs on Google Gemini via Vertex AI. Set `RECONCILE_ARBITER_MODEL` (e.g. `gemini-2.5-flash`); auth is GCP Application Default Credentials (see `GCP_PROJECT_ID` / `GCP_REGION` above).
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `RECONCILE_ARBITER_MODEL` (e.g. `gemini-2.5-flash`).
 - `RECONCILE_ARBITER_MODEL` unset (or non-`gemini-*`) → disabled; the deterministic result stands, as before.
 - Any error falls back to the deterministic result (fail-open).
 - Adds latency to `POST /api/reconcile/match` when on (one model call per ambiguous row, bounded concurrency).
@@ -105,7 +108,7 @@ afterwards — the model is paid ~once per obfuscated merchant.
 | `RECONCILE_ARBITER_MAX_ROWS` | Max ambiguous rows sent to the model per session (default 25); excess are logged and left deterministic |
 
 > Privacy: enabling this sends charge descriptors + candidate invoice metadata to
-> Google Vertex AI.
+> Google Gemini.
 
 ## Analytics — PostHog (optional; degrades gracefully if unset)
 

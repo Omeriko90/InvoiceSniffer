@@ -28,7 +28,7 @@ import type { SessionResult, SessionRow } from "@/lib/match-session"
 // match deterministically forever after, so the LLM cost is paid ~once per
 // obfuscated merchant.
 //
-// Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
+// Runs on Google Gemini (Developer API or Vertex AI; see gemini.ts for config).
 // Config (mirrors llm-extractor.ts):
 //   RECONCILE_ARBITER_MODEL     e.g. "gemini-2.5-flash" — gemini-* only
 //   RECONCILE_ARBITER_MAX_ROWS  per-session cap on rows sent to the model (default 25)

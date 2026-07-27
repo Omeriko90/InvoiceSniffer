@@ -10,7 +10,7 @@ import { log } from "@/lib/posthog-server"
 // get: the Israeli Tax Authority allocation number (מספר הקצאה), the vendor
 // tax id (ח.פ./ע.מ.), the document type, and line items.
 //
-// Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
+// Runs on Google Gemini (Developer API or Vertex AI; see gemini.ts for config).
 // The model is picked via env so it can be swapped without code changes:
 //   EXTRACTION_MODEL   e.g. "gemini-2.5-flash"
 //
