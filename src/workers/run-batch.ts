@@ -1,5 +1,6 @@
 import "dotenv/config"
 import type { Worker } from "bullmq"
+import { pendingWorkCount } from "./drain-idle"
 import { createGmailSyncWorker } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
 import { gmailSyncQueue, extractionQueue } from "@/lib/queues"
@@ -31,8 +32,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function allIdle(): Promise<boolean> {
   for (const q of queues) {
-    const c = await q.getJobCounts("waiting", "active", "delayed")
-    if ((c.waiting ?? 0) + (c.active ?? 0) + (c.delayed ?? 0) > 0) return false
+    const counts = await q.getJobCounts("waiting", "active", "delayed")
+    // Repeatable schedule placeholders (the daily sync) permanently occupy the
+    // `delayed` set but aren't pending work; pendingWorkCount discounts them.
+    const delayedJobs = (counts.delayed ?? 0) > 0 ? await q.getJobs(["delayed"]) : []
+    if (pendingWorkCount(counts, delayedJobs) > 0) return false
   }
   return true
 }
