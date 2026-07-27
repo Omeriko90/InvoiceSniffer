@@ -109,6 +109,7 @@ model Organization {
   exportJobs      ExportJob[]
   transactions    Transaction[]
   csvMappings     CsvMapping[]
+  classificationBatches ClassificationBatch[]
 }
 
 model User {
@@ -373,4 +374,55 @@ model CsvMapping {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, headersKey])
+}
+
+// ─── LLM batch classification (ephemeral waiting-list) ────
+//
+// The Gemini Batch API is asynchronous: a Gmail sync submits borderline
+// messages as one batch and returns; a later scheduled `classify-consume` run
+// polls the batch, applies verdicts, and DELETES these rows. So both tables are
+// short-lived operational bookkeeping, not durable app state — a batch row and
+// its items exist only between submit and consume (see src/workers/run-batch.ts).
+
+model ClassificationBatch {
+  id             String    @id @default(cuid())
+  organizationId String
+  credentialId   String // the GmailCredential this batch's messages came from
+  provider       String    @default("gemini-batch")
+  resourceName   String? // Vertex BatchJob.name; null only if create() failed
+  model          String // CLASSIFIER_MODEL used to build the batch
+  state          String    @default("QUEUED") // QUEUED|RUNNING — row is DELETED once consumed
+  itemCount      Int
+  error          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  finishedAt     DateTime?
+
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items        PendingClassification[]
+
+  @@index([state])
+  @@index([organizationId, createdAt])
+}
+
+model PendingClassification {
+  id             String @id @default(cuid())
+  batchId        String
+  organizationId String
+  credentialId   String
+  gmailMessageId String
+  requestIndex   Int // position in the batch's inlinedRequests[] (maps back the verdict)
+  // Fail-open fallback: post-penalty candidacy (score >= threshold). Used as the
+  // final verdict if the batch errors/expires or an item's response is missing.
+  heuristicIsCandidate Boolean
+  // Pre-penalty candidacy (detection.isCandidate). Only used to reproduce the
+  // deferred vendorAlias.useCount "learned rule worked" increment on consume.
+  rawIsCandidate Boolean
+  senderEmail    String // sender for the deferred vendorAlias.useCount increment
+  hadPenalty     Boolean
+
+  batch ClassificationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, gmailMessageId]) // dedup across re-syncs
+  @@index([batchId])
 }

@@ -57,9 +57,37 @@ Second opinion on borderline invoice-detection scores. Runs on Google Gemini
 - Set `CLASSIFIER_MODEL` (e.g. `gemini-2.5-flash`).
 - `CLASSIFIER_MODEL` unset (or non-`gemini-*`) → classifier disabled; falls back to heuristics.
 
+### Batch mode (optional, enabled by setting `CLASSIFIER_BATCH_GCS_BUCKET`)
+
+By default each borderline email is classified with one **synchronous** Gemini
+call inside the Gmail sync. Set `CLASSIFIER_BATCH_GCS_BUCKET` to instead **defer**
+those emails to the asynchronous [Gemini Batch API](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/batch-prediction-gemini)
+(~50% cheaper): the sync submits one batch job and returns; a later
+`MODE=classify-consume` run applies the verdicts and enqueues extractions.
+
+- Enabled when a valid `CLASSIFIER_MODEL` **and** `CLASSIFIER_BATCH_GCS_BUCKET` are set; unset the bucket and the sync uses the inline classifier.
+- Vertex batch requires a GCS staging bucket (it rejects inline requests). Input/output JSONL live under `classifier-batches/…` in that bucket. Uses the same Vertex ADC as every other tier — the worker SA needs `roles/aiplatform.user` **and** `roles/storage.objectAdmin` on the bucket. Keep the bucket in the same region as `GCP_REGION`.
+- Cleanup: `classify-consume` deletes each batch's staged objects after applying its verdicts. Add a bucket **lifecycle rule** as a safety net for anything a crash leaves behind, e.g. delete objects after 7 days:
+  ```
+  gcloud storage buckets update gs://BUCKET \
+    --add-lifecycle-rule action=Delete,age=7
+  ```
+- Fail-open preserved: if a batch fails/expires or a submit throws, the heuristic threshold decides, so no email is dropped.
+- **Requires a scheduled consumer.** Trigger the worker Cloud Run Job with `MODE=classify-consume` on a short interval (~15 min), the same way the daily `MODE=daily` job is scheduled. Example:
+  ```
+  gcloud scheduler jobs create http classify-consume \
+    --location "$REGION" --schedule "*/15 * * * *" \
+    --uri "https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/invoicesniffer-worker:run" \
+    --oauth-service-account-email "<worker-invoker-SA>" \
+    --headers "Content-Type=application/json" \
+    --message-body '{"overrides":{"containerOverrides":[{"env":[{"name":"MODE","value":"classify-consume"}]}]}}'
+  ```
+- Validate inline batch works on Vertex first: `npx tsx scripts/smoke-batch-classifier.ts`.
+
 | Var | Purpose |
 |---|---|
 | `CLASSIFIER_MODEL` | Which Gemini model to use (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
+| `CLASSIFIER_BATCH_GCS_BUCKET` | Set → classify borderline emails via the async Gemini Batch API, staging JSONL in this bucket (also needs the `classify-consume` scheduler); unset = synchronous inline calls |
 
 ## LLM extractor — Tier 2 structured extraction (optional)
 

@@ -3,7 +3,20 @@ import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
 import { gmailSyncQueue, extractionQueue, type GmailSyncJobData, type ExtractionJobData } from "@/lib/queues"
 import { detectInvoiceCandidate, CANDIDATE_THRESHOLD } from "@/lib/invoice-detection"
-import { classifyInvoiceEmail, classifierEnabled, type ClassifierExample } from "@/lib/llm-classifier"
+import {
+  classifyInvoiceEmail,
+  classifierEnabled,
+  type ClassifierExample,
+  type ClassifierInput,
+} from "@/lib/llm-classifier"
+import {
+  batchClassifierEnabled,
+  buildClassifierRequest,
+  submitClassifierBatch,
+  classifierModel,
+  MAX_BATCH_REQUESTS,
+} from "@/lib/llm-classifier-batch"
+import { log } from "@/lib/posthog-server"
 import { parseFrom } from "./invoice-extract"
 import type { gmail_v1 } from "googleapis"
 
@@ -133,6 +146,8 @@ async function runFullSync(credentialId: string, organizationId: string, job: Jo
     },
   })
 
+  await flushPendingClassifications(ctx, organizationId, credentialId)
+
   return { totalProcessed, candidatesFound }
 }
 
@@ -208,6 +223,8 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
     throw err
   }
 
+  await flushPendingClassifications(ctx, organizationId, credentialId)
+
   return { candidatesFound }
 }
 
@@ -227,9 +244,24 @@ const BORDERLINE_MAX = 55
 const SENDER_PENALTY_STEP = 15
 const SENDER_PENALTY_MAX = 45
 
+// A borderline message deferred to the async batch classifier. Carries
+// everything needed to (a) build the batch request and (b) later reproduce the
+// candidacy decision + useCount flip in classify-consume without re-fetching.
+type PendingClassificationItem = {
+  gmailMessageId: string
+  senderEmail: string
+  hadPenalty: boolean
+  heuristicIsCandidate: boolean // post-penalty score >= threshold (fail-open value)
+  rawIsCandidate: boolean // pre-penalty detection.isCandidate (for the useCount flip)
+  input: ClassifierInput
+}
+
 type SyncContext = {
   senderPenalties: Map<string, number>
   examples: ClassifierExample[]
+  // Filled during the message loop when batchClassifierEnabled(); flushed to a
+  // single Gemini batch job after the loop (flushPendingClassifications).
+  pending: PendingClassificationItem[]
 }
 
 // Loaded once per sync run, not per message
@@ -286,6 +318,7 @@ async function loadSyncContext(organizationId: string): Promise<SyncContext> {
       ...negatives.map((i) => ({ subject: i.subject, senderEmail: i.senderEmail, isInvoice: false })),
       ...positives.map((i) => ({ subject: i.subject, senderEmail: i.senderEmail, isInvoice: true })),
     ],
+    pending: [],
   }
 }
 
@@ -321,40 +354,148 @@ async function checkAndQueueMessage(
   let isCandidate = score >= CANDIDATE_THRESHOLD
 
   // Ambiguous score — let the LLM decide, few-shot on this org's feedback
-  if (classifierEnabled() && score >= BORDERLINE_MIN && score <= BORDERLINE_MAX) {
-    const verdict = await classifyInvoiceEmail({
-      subject,
-      snippet,
-      senderEmail,
-      attachmentNames: attachments.map((a) => a.filename),
-      examples: ctx.examples,
-    })
-    if (verdict) isCandidate = verdict.isInvoice
+  if (score >= BORDERLINE_MIN && score <= BORDERLINE_MAX) {
+    if (batchClassifierEnabled()) {
+      // Defer: collect for the async batch classifier (submitted after the loop).
+      // Candidacy — plus the useCount flip and extraction enqueue below — is
+      // decided later in classify-consume, once the verdict comes back.
+      ctx.pending.push({
+        gmailMessageId: messageId,
+        senderEmail,
+        hadPenalty: penalty > 0,
+        heuristicIsCandidate: isCandidate,
+        rawIsCandidate: detection.isCandidate,
+        input: {
+          subject,
+          snippet,
+          senderEmail,
+          attachmentNames: attachments.map((a) => a.filename),
+          examples: ctx.examples,
+        },
+      })
+      return false
+    }
+    if (classifierEnabled()) {
+      const verdict = await classifyInvoiceEmail({
+        subject,
+        snippet,
+        senderEmail,
+        attachmentNames: attachments.map((a) => a.filename),
+        examples: ctx.examples,
+      })
+      if (verdict) isCandidate = verdict.isInvoice
+    }
   }
 
   // The rule flipped a would-be candidate to skipped — record the save so
   // the Settings "learned rules" card shows it working
   if (penalty > 0 && detection.isCandidate && !isCandidate) {
-    await prisma.vendorAlias.updateMany({
-      where: {
-        organizationId,
-        type: "IGNORE",
-        active: true,
-        senderEmail: senderEmail.toLowerCase(),
-      },
-      data: { useCount: { increment: 1 } },
-    })
+    await incrementIgnoreRuleUseCount(organizationId, senderEmail)
   }
 
   if (isCandidate) {
-    await extractionQueue().add(
-      "invoice:extract",
-      { organizationId, gmailCredentialId: credentialId, gmailMessageId: messageId } satisfies ExtractionJobData,
-      { jobId: `extract-${credentialId}-${messageId}` } // dedup
-    )
+    await enqueueExtraction(organizationId, credentialId, messageId)
   }
 
   return isCandidate
+}
+
+// ── Shared side-effects (reused by the inline path, the batch flush, and the
+// classify-consume poller in classify-consume.ts) ──────────────────
+
+// Enqueue a PDF-extraction job. jobId dedupes so a message queued twice (e.g. a
+// re-sync, or fail-open re-enqueue) collapses to one extraction.
+export async function enqueueExtraction(
+  organizationId: string,
+  credentialId: string,
+  gmailMessageId: string
+): Promise<void> {
+  await extractionQueue().add(
+    "invoice:extract",
+    { organizationId, gmailCredentialId: credentialId, gmailMessageId } satisfies ExtractionJobData,
+    { jobId: `extract-${credentialId}-${gmailMessageId}` }
+  )
+}
+
+// Bump the sender's active IGNORE rule useCount — the "learned rule worked"
+// signal shown in Settings when a penalty flips a would-be candidate to skipped.
+export async function incrementIgnoreRuleUseCount(
+  organizationId: string,
+  senderEmail: string
+): Promise<void> {
+  await prisma.vendorAlias.updateMany({
+    where: { organizationId, type: "IGNORE", active: true, senderEmail: senderEmail.toLowerCase() },
+    data: { useCount: { increment: 1 } },
+  })
+}
+
+// ── Flush deferred borderline messages to Gemini batch job(s) ───────
+
+// After the message loop, submit all collected borderline messages as inline
+// batch job(s) and persist a ClassificationBatch (+ items) waiting-list row per
+// job. classify-consume polls these later. Fail-open: if a submit throws, the
+// heuristic decision is applied immediately so nothing is silently dropped.
+async function flushPendingClassifications(
+  ctx: SyncContext,
+  organizationId: string,
+  credentialId: string
+): Promise<void> {
+  if (!batchClassifierEnabled() || ctx.pending.length === 0) return
+
+  // Skip messages already parked in an unconsumed batch (a re-sync before
+  // classify-consume ran) — the @@unique(credentialId, gmailMessageId) would
+  // otherwise reject the whole insert.
+  const existing = await prisma.pendingClassification.findMany({
+    where: { credentialId, gmailMessageId: { in: ctx.pending.map((i) => i.gmailMessageId) } },
+    select: { gmailMessageId: true },
+  })
+  const alreadyPending = new Set(existing.map((e) => e.gmailMessageId))
+  const items = ctx.pending.filter((i) => !alreadyPending.has(i.gmailMessageId))
+  ctx.pending = []
+  if (items.length === 0) return
+
+  for (let start = 0; start < items.length; start += MAX_BATCH_REQUESTS) {
+    const chunk = items.slice(start, start + MAX_BATCH_REQUESTS)
+    const requests = chunk.map((it) => buildClassifierRequest(it.input, it.gmailMessageId))
+
+    try {
+      const { resourceName } = await submitClassifierBatch(requests, `classify-${credentialId}-${start}`)
+      await prisma.classificationBatch.create({
+        data: {
+          organizationId,
+          credentialId,
+          model: classifierModel(),
+          resourceName,
+          state: "QUEUED",
+          itemCount: chunk.length,
+          items: {
+            create: chunk.map((it, i) => ({
+              organizationId,
+              credentialId,
+              gmailMessageId: it.gmailMessageId,
+              requestIndex: i,
+              heuristicIsCandidate: it.heuristicIsCandidate,
+              rawIsCandidate: it.rawIsCandidate,
+              senderEmail: it.senderEmail,
+              hadPenalty: it.hadPenalty,
+            })),
+          },
+        },
+      })
+    } catch (err) {
+      log.warn("classifier batch submit failed, falling back to heuristics", {
+        credentialId,
+        count: chunk.length,
+        err: String(err),
+      })
+      for (const it of chunk) {
+        if (it.heuristicIsCandidate) await enqueueExtraction(organizationId, credentialId, it.gmailMessageId)
+        if (it.hadPenalty && it.rawIsCandidate && !it.heuristicIsCandidate) {
+          await incrementIgnoreRuleUseCount(organizationId, it.senderEmail)
+        }
+      }
+    }
+  }
 }
 
 // Attachments can be nested inside multipart/* parts, so walk recursively
