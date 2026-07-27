@@ -119,6 +119,7 @@ export function ReconcileSession() {
           status: "UNMATCHED",
           invoice: null,
           collision: false,
+          aiSuggested: false,
           matchConfidence: null,
           matchConfirmed: false,
           matchReason: "You rejected the suggested match",
@@ -130,6 +131,7 @@ export function ReconcileSession() {
           status: "NO_INVOICE",
           invoice: null,
           collision: false,
+          aiSuggested: false,
           matchConfidence: null,
           matchConfirmed: false,
           matchReason: "You marked this — won’t be flagged",
@@ -170,6 +172,7 @@ export function ReconcileSession() {
         matchConfidence: candidate.confidence ?? 1,
         matchReason: "Linked by you — alias learned",
         collision: candidate.status === "MATCHED",
+        aiSuggested: false,
         invoice: candidateToInvoice(candidate),
       }))
       setFindFor(null)

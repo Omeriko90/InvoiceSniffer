@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { enforceRateLimit } from "@/lib/rate-limit"
 import { loadAliases, loadInvoiceCandidates, type SessionInvoice } from "@/lib/matching-data"
 import { matchSession, type SessionRow } from "@/lib/match-session"
+import { arbiterEnabled, arbitrateSession } from "@/lib/match-arbitrator"
 import { TRAIL_WINDOW_DAYS, type DateWindow } from "@/lib/matching"
 import { DATE_RANGE_PRESETS, resolveDateRange } from "@/lib/date-range"
 import type { MatchInvoice, MatchResponse, MatchRow, ReconcileStatus } from "@/api-types/reconcile"
@@ -118,13 +119,47 @@ export async function POST(request: Request) {
     matchConfirmed: false,
     sourceFile: r.row.sourceFile,
     collision: r.collision,
+    aiSuggested: false,
     invoice: r.invoice ? toInvoiceDTO(r.invoice) : null,
   }))
+
+  // Tier 3 (opt-in): let the LLM arbitrate the ambiguous rows the deterministic
+  // scorer left unmatched — obfuscated merchants with no name/alias signal. It
+  // proposes matches from the AVAILABLE invoices (those no deterministic match
+  // took); each pick is surfaced as POSSIBLE (needs review), never auto-committed.
+  // Writes nothing — persistence still happens only when the user confirms.
+  let arbitratedInvoices = 0
+  if (arbiterEnabled()) {
+    const overrides = await arbitrateSession(results, unreconciledInvoices, window)
+    const byRowId = new Map(rowDTOs.map((row) => [row.id, row]))
+    const invoiceById = new Map(invoices.map((inv) => [inv.id, inv]))
+    for (const o of overrides) {
+      const row = byRowId.get(o.rowId)
+      const invoice = invoiceById.get(o.invoiceId)
+      if (!row || !invoice) continue
+      row.status = "POSSIBLE"
+      row.matchConfidence = o.confidence
+      row.matchReason = `AI: ${o.reason}`
+      row.aiSuggested = true
+      row.invoice = toInvoiceDTO(invoice)
+      arbitratedInvoices++
+    }
+  }
+
+  // Recompute the bands the overrides moved (missing/possible → possible) so the
+  // tab counts match the rows. Arbitrated invoices are no longer "missing a charge".
+  const adjustedSummary: typeof summary = {
+    ...summary,
+    matched: rowDTOs.filter((r) => r.status === "MATCHED").length,
+    possible: rowDTOs.filter((r) => r.status === "POSSIBLE").length,
+    chargesMissingInvoice: rowDTOs.filter((r) => r.status === "UNMATCHED").length,
+    invoicesMissingCharge: summary.invoicesMissingCharge - arbitratedInvoices,
+  }
 
   const response: MatchResponse = {
     results: rowDTOs,
     unreconciledInvoices: unreconciledInvoices.map(toInvoiceDTO),
-    summary,
+    summary: adjustedSummary,
   }
   return Response.json(response)
 }

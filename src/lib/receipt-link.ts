@@ -214,10 +214,24 @@ const FETCH_TIMEOUT_MS = 10_000
 const MAX_BYTES = 5 * 1024 * 1024
 const MAX_REDIRECTS = 5
 
-// Fetches an allowlisted receipt URL and returns its plain-text content
-// (PDF or HTML), or null when the URL can't be fetched/parsed. The document
-// is parsed in memory and never written to disk.
-export async function fetchReceiptText(url: string): Promise<string | null> {
+// Below this many characters we treat the extracted text as effectively empty —
+// a plausible signal that an HTML page rendered its invoice client-side (a
+// JS-SPA the plain fetch can't see). Logged so we can decide, from the real
+// corpus, whether any host actually warrants a headless-browser fetch.
+const THIN_TEXT_CHARS = 40
+
+export type ReceiptFetch = {
+  // Plain text of the linked document (PDF text layer or HTML→text), or null.
+  text: string | null
+  // Raw PDF bytes when the linked document was a PDF — so a linked invoice can
+  // feed the same Tier 2 LLM extractor an attached PDF does. null for HTML.
+  pdfBytes: Buffer | null
+}
+
+// Fetches an allowlisted receipt URL and returns its text plus, when the
+// document is a PDF, the raw bytes. Returns null when the URL can't be
+// fetched/parsed. Everything is handled in memory and never written to disk.
+export async function fetchReceiptText(url: string): Promise<ReceiptFetch | null> {
   if (!isAllowlistedHost(url)) return null
 
   // Follow redirects manually so EVERY hop is re-validated, not just the final
@@ -272,12 +286,35 @@ export async function fetchReceiptText(url: string): Promise<string | null> {
     contentType.includes("application/pdf") ||
     buffer.subarray(0, 5).toString("latin1") === "%PDF-"
 
-  if (isPdf) return parsePdfText(buffer)
-  try {
-    return convert(buffer.toString("utf8"), { wordwrap: false }) || null
-  } catch {
-    return null
+  let text: string | null
+  if (isPdf) {
+    text = await parsePdfText(buffer)
+  } else {
+    try {
+      text = convert(buffer.toString("utf8"), { wordwrap: false }) || null
+    } catch {
+      text = null
+    }
   }
+
+  // Instrumentation: record, per landing host, what the fetch actually returned.
+  // A run of HTML responses whose text is "thin" points at a JS-rendered page
+  // that a headless browser (not this plain fetch) would be needed to read.
+  const textLen = text?.trim().length ?? 0
+  const thin = !isPdf && textLen < THIN_TEXT_CHARS
+  let landingHost = ""
+  try {
+    landingHost = new URL(currentUrl).hostname
+  } catch {
+    landingHost = "?"
+  }
+  console.log(
+    `[receipt-link] fetched host=${landingHost} type=${contentType || "?"} ` +
+      `bytes=${buffer.byteLength} pdf=${isPdf} textLen=${textLen}` +
+      (thin ? " thin=true (possible JS-rendered page)" : "")
+  )
+
+  return { text, pdfBytes: isPdf ? buffer : null }
 }
 
 const PDF_PARSE_TIMEOUT_MS = 30_000

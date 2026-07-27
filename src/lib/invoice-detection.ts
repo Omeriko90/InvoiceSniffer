@@ -86,10 +86,17 @@ export function detectInvoiceCandidate(
 
 // ── Metadata extraction ──────────────────────────────────────────
 
+export type DocumentType = "TAX_INVOICE" | "RECEIPT" | "CREDIT_INVOICE" | "UNKNOWN"
+
 export type ExtractedInvoice = {
   vendorName: string | null
   vendorNormalized: string | null
   invoiceNumber: string | null
+  // Israeli-specific fields the heuristics can't reliably get — populated only
+  // by the LLM extractor (src/lib/llm-extractor.ts).
+  allocationNumber: string | null
+  vendorTaxId: string | null
+  documentType: DocumentType
   invoiceDate: Date | null
   dueDate: Date | null
   totalAmount: number | null
@@ -194,6 +201,9 @@ export function extractInvoiceMetadata(
     vendorName,
     vendorNormalized,
     invoiceNumber,
+    allocationNumber: null,
+    vendorTaxId: null,
+    documentType: "UNKNOWN",
     invoiceDate,
     dueDate,
     totalAmount,
