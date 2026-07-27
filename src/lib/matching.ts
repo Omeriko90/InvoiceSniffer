@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns"
+import { token_set_ratio } from "fuzzball"
 import { normalizeCurrencyCode } from "@/lib/csv-import"
 
 // Matching algorithm per the implementation plan: deterministic, explainable,
@@ -75,19 +76,17 @@ export function normalizeCurrency(currency: string): string {
   return normalizeCurrencyCode(currency)
 }
 
-// Overlap coefficient with prefix-tolerant token equality, so
-// "aws emea luxembourg" vs "aws" and "openai chatgpt" vs "openai" score high.
+// Fuzzy vendor-name similarity in [0,1] via fuzzball's token_set_ratio, which
+// compares the two names as bags of tokens: it scores a subset or reordering
+// ("aws emea luxembourg" vs "aws", "openai chatgpt" vs "openai") as a full match
+// while tolerating the typos/truncation ("linear" vs "linearapp") the prior
+// overlap-coefficient test missed. Names are pre-normalized here, so full_process
+// is off — its default ASCII folding would otherwise strip Hebrew/Unicode vendors.
 export function nameSimilarity(merchant: string, vendor: string): number {
-  const a = normalizeMerchant(merchant).split(" ").filter(Boolean)
-  const b = normalizeMerchant(vendor).split(" ").filter(Boolean)
-  if (a.length === 0 || b.length === 0) return 0
-
-  const tokenMatch = (x: string, y: string) =>
-    x === y || (x.length >= 3 && y.length >= 3 && (x.startsWith(y) || y.startsWith(x)))
-
-  let hits = 0
-  for (const x of a) if (b.some((y) => tokenMatch(x, y))) hits++
-  return hits / Math.min(a.length, b.length)
+  const a = normalizeMerchant(merchant)
+  const b = normalizeMerchant(vendor)
+  if (!a || !b) return 0
+  return token_set_ratio(a, b, { full_process: false }) / 100
 }
 
 export type TxnInput = {
