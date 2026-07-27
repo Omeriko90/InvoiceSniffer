@@ -94,27 +94,42 @@ async function extractInvoice(
     }
   }
 
+  // Whether the document is Israeli decides when the richer hosted-doc/LLM
+  // extraction is worth it — heuristics never produce the Tax Authority
+  // allocation number, so a missing one is reason enough to dig deeper even when
+  // an amount was already found. Re-evaluated as `extracted` gains fields.
+  const isIsraeli = () =>
+    extracted.currency === "ILS" || /[֐-׿]/.test(`${subject}\n${bodyText}`)
+
+  // Follow the hosted receipt link when a gap remains: no amount yet, or an
+  // Israeli doc still missing its allocation number. A linked PDF is captured as
+  // bytes so it can feed the same Tier 2 LLM path an attachment does; an HTML
+  // page is parsed to text and merged.
   const receiptUrl = bodyHtml ? findReceiptUrl(bodyHtml) : null
-  if (receiptUrl && !extracted.totalAmount) {
-    const remoteText = await fetchReceiptText(receiptUrl)
-    if (remoteText) {
-      const remote = extractInvoiceMetadata(senderEmail, senderName, subject, remoteText)
-      extracted = mergeExtractions(extracted, remote)
+  let remotePdfBytes: Buffer | null = null
+  if (receiptUrl && (!extracted.totalAmount || (isIsraeli() && !extracted.allocationNumber))) {
+    const remote = await fetchReceiptText(receiptUrl)
+    if (remote?.text) {
+      const parsed = extractInvoiceMetadata(senderEmail, senderName, subject, remote.text)
+      extracted = mergeExtractions(extracted, parsed)
     }
+    remotePdfBytes = remote?.pdfBytes ?? null
   }
 
   // Tier 2: structured LLM vision extraction. Runs only when it uniquely helps
-  // and a PDF exists: either the cheaper signals never found an amount (the
-  // deferred mojibake/RTL fallback), or this is an Israeli document missing the
-  // Tax Authority allocation number (which the regex heuristics never extract).
+  // and a PDF exists — from the attachment or, failing that, the linked receipt:
+  // either the cheaper signals never found an amount (the deferred mojibake/RTL
+  // fallback), or this is an Israeli document missing the Tax Authority
+  // allocation number (which the regex heuristics never extract).
+  const docBytes = pdfBytes ?? remotePdfBytes
   let extractionMethod: "HEURISTIC" | "AI" = "HEURISTIC"
-  if (extractorEnabled() && pdfBytes) {
-    const isIsraeli =
-      extracted.currency === "ILS" || /[֐-׿]/.test(`${subject}\n${bodyText}`)
+  if (extractorEnabled() && docBytes) {
     const needsLlm =
-      !extracted.totalAmount || (isIsraeli && !extracted.allocationNumber)
+      !extracted.totalAmount || (isIsraeli() && !extracted.allocationNumber)
     if (needsLlm) {
-      const llm = await extractInvoiceFromPdf({ pdfBytes, subject, senderEmail })
+      const source = pdfBytes ? "attachment" : "link"
+      console.log(`[invoice-extract] Tier 2 LLM on ${source} PDF for ${gmailMessageId}`)
+      const llm = await extractInvoiceFromPdf({ pdfBytes: docBytes, subject, senderEmail })
       if (llm) {
         extracted = applyLlmExtraction(extracted, llm)
         extractionMethod = "AI"

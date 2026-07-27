@@ -94,10 +94,11 @@ async function main() {
   console.log(`\nReceipt URL: ${receiptUrl ?? "(none found)"}`)
   if (receiptUrl) {
     console.log(`   allowlisted for fetching: ${isAllowlistedHost(receiptUrl)}`)
-    const remoteText = await fetchReceiptText(receiptUrl)
-    preview(remoteText, "fetched receipt text")
-    if (remoteText) {
-      printExtraction("fetched receipt", extractInvoiceMetadata(senderEmail, senderName, subject, remoteText))
+    const remote = await fetchReceiptText(receiptUrl)
+    console.log(`   linked document is a PDF: ${remote?.pdfBytes != null}`)
+    preview(remote?.text ?? null, "fetched receipt text")
+    if (remote?.text) {
+      printExtraction("fetched receipt", extractInvoiceMetadata(senderEmail, senderName, subject, remote.text))
     }
   }
 
