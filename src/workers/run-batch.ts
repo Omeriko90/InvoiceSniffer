@@ -10,8 +10,10 @@ import { captureServerException, shutdownPostHog, log } from "@/lib/posthog-serv
 // queue chain to idle, then exit. Unlike src/workers/index.ts (always-on, used
 // for local dev), this process is meant to start, do all pending work, and die.
 //
-//   MODE=daily  → enqueue the fan-out job, then drain (Cloud Scheduler path)
-//   MODE=drain  → drain whatever the web tier already enqueued (on-demand path)
+//   MODE=daily            → enqueue the fan-out job, then drain (Cloud Scheduler path)
+//   MODE=drain            → drain whatever the web tier already enqueued (on-demand path)
+//   MODE=classify-consume → poll finished Gemini batch classifier jobs, enqueue
+//                           the resulting extractions, then drain (Scheduler path)
 
 const SYNC_ALL_JOB = "gmail:sync-all"
 const POLL_INTERVAL_MS = 2000
@@ -55,6 +57,15 @@ async function main() {
     await prisma.$disconnect()
     await shutdownPostHog()
     process.exit(0)
+  }
+
+  // Poll finished Gemini batch classifier jobs first (DB-driven, no Redis): this
+  // enqueues extraction jobs for messages the batch judged to be invoices. Then
+  // fall through to the standard worker boot + drain so those extractions run.
+  if (mode === "classify-consume") {
+    const { processPendingClassifications } = await import("./classify-consume")
+    const count = await processPendingClassifications()
+    log.info(`classify-consume: examined ${count} batch(es)`)
   }
 
   const workers = [createGmailSyncWorker(), createInvoiceExtractWorker()]
