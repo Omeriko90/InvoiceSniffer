@@ -10,7 +10,7 @@ import { log } from "@/lib/posthog-server"
 // get: the Israeli Tax Authority allocation number (מספר הקצאה), the vendor
 // tax id (ח.פ./ע.מ.), the document type, and line items.
 //
-// Runs on Google Gemini (Developer API or Vertex AI; see gemini.ts for config).
+// Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
 // The model is picked via env so it can be swapped without code changes:
 //   EXTRACTION_MODEL   e.g. "gemini-2.5-flash"
 //
@@ -130,6 +130,10 @@ export async function extractInvoiceFromPdf(input: {
       config: {
         systemInstruction: INSTRUCTIONS,
         maxOutputTokens: 2048,
+        // Disable "thinking" (Gemini 2.5 flash): it spends maxOutputTokens on
+        // reasoning that this transcription task doesn't need, and can starve
+        // the actual JSON output. Cheaper and faster too.
+        thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },

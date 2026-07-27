@@ -6,15 +6,12 @@ All environment variables used by the project, grouped by function.
 > doesn't appear in a code grep: `AUTH_SECRET` (NextAuth v5).
 >
 > All three LLM features (classifier, extractor, arbitrator) run on Google
-> Gemini and share one backend, auto-selected in `gemini.ts`:
-> - **Gemini Developer API** — set `GEMINI_API_KEY` (from aistudio.google.com).
->   Simplest; use a billing-enabled ("paid tier") project so prompts aren't used
->   for training.
-> - **Vertex AI** — used when `GEMINI_API_KEY` is unset. Auth is GCP Application
->   Default Credentials (no key); needs `GCP_PROJECT_ID` / `GCP_REGION` and the
->   Vertex AI User role on the runtime service account.
->
-> Either way, each feature is enabled by its own `*_MODEL` var below.
+> Gemini via **Vertex AI**. Auth is GCP Application Default Credentials (the
+> Cloud Run service account in prod, or `gcloud auth application-default login`
+> locally) — no API key. They share `GCP_PROJECT_ID` / `GCP_REGION`, and the
+> runtime service account needs the **Vertex AI User** role
+> (`roles/aiplatform.user`). Each feature is enabled by its own `*_MODEL` var
+> below.
 
 ## Core (required)
 
@@ -78,13 +75,11 @@ found no amount, or an Israeli document is missing the allocation number.
 | Var | Purpose |
 |---|---|
 | `EXTRACTION_MODEL` | Which Gemini model to use for PDF extraction (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
-| `GEMINI_API_KEY` | Developer API key; when set, used instead of Vertex (shared by all LLM features) |
-| `GCP_PROJECT_ID` / `GCP_REGION` | Vertex AI project + location; used only when `GEMINI_API_KEY` is unset |
+| `GCP_PROJECT_ID` / `GCP_REGION` | Vertex AI project + location (shared by all LLM features) |
 
-> Privacy: enabling this sends invoice PDF contents to Google Gemini. On the
-> Developer API, use a paid-tier project so prompts aren't used for training;
-> Vertex never trains on your data. Add a line to the privacy note before the
-> app has real users.
+> Privacy: enabling this sends invoice PDF contents to Google Vertex AI, which
+> does not use your data to train Google's models. Add a line to the privacy
+> note before the app has real users.
 
 ## LLM reconcile arbitrator — Tier 3 match fallback (optional)
 

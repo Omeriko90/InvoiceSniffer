@@ -3,7 +3,7 @@ import { geminiClient, isGeminiModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 
 // LLM second opinion for borderline invoice-detection scores. Runs on Google
-// Gemini (Developer API or Vertex AI; see gemini.ts for config). The model is
+// Gemini via Vertex AI (see gemini.ts for auth/project config). The model is
 // picked via env so it can be swapped without code changes:
 //   CLASSIFIER_MODEL   e.g. "gemini-2.5-flash"
 //
@@ -60,6 +60,9 @@ export async function classifyInvoiceEmail(input: ClassifierInput): Promise<Clas
       config: {
         systemInstruction: INSTRUCTIONS,
         maxOutputTokens: 256,
+        // Disable "thinking" (Gemini 2.5 flash): it spends maxOutputTokens on
+        // reasoning and can starve the JSON verdict. Cheaper and faster too.
+        thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },

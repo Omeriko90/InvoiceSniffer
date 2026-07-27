@@ -11,7 +11,8 @@
     "lint": "eslint",
     "worker": "tsx watch src/workers/index.ts",
     "worker:start": "tsx src/workers/index.ts",
-    "worker:batch": "tsx src/workers/run-batch.ts"
+    "worker:batch": "tsx src/workers/run-batch.ts",
+    "smoke:gemini": "tsx scripts/smoke-gemini.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
