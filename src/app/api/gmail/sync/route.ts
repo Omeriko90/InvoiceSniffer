@@ -38,12 +38,23 @@ export async function POST(req: NextRequest) {
 
   const mode: GmailSyncJobData["mode"] = credential.syncToken ? "incremental" : "full"
 
+  // Stable id (no timestamp) so rapid clicks / an overlap with the daily run
+  // dedupe to one sync per mailbox instead of double-scanning Gmail. Caveat:
+  // defaultJobOptions RETAINS settled jobs (removeOnComplete/removeOnFail
+  // counts), and BullMQ ignores add() when a job with the id already exists — so
+  // a completed/failed job under this id would silently block every future
+  // click. Drop it first, but only once it's no longer in flight, so an
+  // active/waiting/delayed job still dedupes as intended.
+  const jobId = `sync-${credentialId}`
+  const existing = await gmailSyncQueue().getJob(jobId)
+  if (existing && ["completed", "failed"].includes(await existing.getState())) {
+    await existing.remove()
+  }
+
   const job = await gmailSyncQueue().add(
     "gmail:sync",
     { organizationId, credentialId, mode } satisfies GmailSyncJobData,
-    // Stable id (no timestamp) so rapid clicks / an overlap with the daily run
-    // dedupe to one sync per mailbox instead of double-scanning Gmail.
-    { jobId: `sync-${credentialId}` }
+    { jobId }
   )
 
   // Fire the batch worker to process the job (prod: Cloud Run Job; dev: no-op —

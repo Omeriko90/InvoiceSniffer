@@ -12,6 +12,7 @@
     "worker": "tsx watch src/workers/index.ts",
     "worker:start": "tsx src/workers/index.ts",
     "worker:batch": "tsx src/workers/run-batch.ts",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "smoke:gemini": "tsx scripts/smoke-gemini.ts",
     "relock": "bash scripts/relock.sh"
   },
