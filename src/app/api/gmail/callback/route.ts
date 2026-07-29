@@ -14,10 +14,15 @@ function statesMatch(a: string, b: string): boolean {
 }
 
 export async function GET(req: NextRequest) {
+  // Behind Cloud Run / a proxy, req.url resolves to the container's internal
+  // bind address (0.0.0.0:80), so redirects built from it send the browser to
+  // a dead host. Base every redirect on the public origin instead.
+  const origin = process.env.NEXTAUTH_URL!
+
   // Require an authenticated session — the org to connect comes from here,
   // never from a client-supplied parameter
   const session = await auth()
-  if (!session) return NextResponse.redirect(new URL("/auth/signin", req.url))
+  if (!session) return NextResponse.redirect(new URL("/auth/signin", origin))
 
   const { searchParams } = req.nextUrl
   const code = searchParams.get("code")
@@ -26,12 +31,12 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/settings?gmail_error=${encodeURIComponent(error)}`, req.url)
+      new URL(`/settings?gmail_error=${encodeURIComponent(error)}`, origin)
     )
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(new URL("/settings?gmail_error=missing_params", req.url))
+    return NextResponse.redirect(new URL("/settings?gmail_error=missing_params", origin))
   }
 
   // Validate the single-use CSRF nonce set during /connect, then clear it
@@ -39,7 +44,7 @@ export async function GET(req: NextRequest) {
   const expectedState = cookieStore.get(GMAIL_OAUTH_STATE_COOKIE)?.value
   cookieStore.delete(GMAIL_OAUTH_STATE_COOKIE)
   if (!expectedState || !statesMatch(state, expectedState)) {
-    return NextResponse.redirect(new URL("/settings?gmail_error=invalid_state", req.url))
+    return NextResponse.redirect(new URL("/settings?gmail_error=invalid_state", origin))
   }
 
   const organizationId = session.user.organizationId
@@ -54,11 +59,11 @@ export async function GET(req: NextRequest) {
   try {
     ;({ tokens } = await oauth2Client.getToken(code))
   } catch {
-    return NextResponse.redirect(new URL("/settings?gmail_error=token_exchange_failed", req.url))
+    return NextResponse.redirect(new URL("/settings?gmail_error=token_exchange_failed", origin))
   }
 
   if (!tokens.access_token || !tokens.refresh_token) {
-    return NextResponse.redirect(new URL("/settings?gmail_error=no_tokens", req.url))
+    return NextResponse.redirect(new URL("/settings?gmail_error=no_tokens", origin))
   }
 
   oauth2Client.setCredentials(tokens)
@@ -87,7 +92,7 @@ export async function GET(req: NextRequest) {
       where: { organizationId, connected: true },
     })
     if (connectedCount >= maxGmailAccounts(org.planTier)) {
-      return NextResponse.redirect(new URL("/settings?gmail_error=account_limit", req.url))
+      return NextResponse.redirect(new URL("/settings?gmail_error=account_limit", origin))
     }
   }
 
@@ -98,5 +103,5 @@ export async function GET(req: NextRequest) {
     scope: tokens.scope!,
   })
 
-  return NextResponse.redirect(new URL("/settings?gmail_connected=true", req.url))
+  return NextResponse.redirect(new URL("/settings?gmail_connected=true", origin))
 }

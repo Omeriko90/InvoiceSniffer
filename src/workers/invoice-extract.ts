@@ -5,6 +5,7 @@ import { type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
+import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
 
 const connection = { url: process.env.REDIS_URL! }
@@ -47,6 +48,8 @@ async function extractInvoice(
   if (existing?.status === "IGNORED") {
     return { invoiceId: existing.id, skipped: "ignored_by_user" }
   }
+
+  log.info("extract: extracting invoice from email", { gmailMessageId })
 
   const gmail = await getGmailClient(gmailCredentialId)
 
@@ -193,6 +196,14 @@ async function extractInvoice(
   // jobs into Redis (AnomalyLog is never written). Removed so the batch drain
   // can reach idle. When anomaly detection is built, re-add the enqueue here
   // *and* an `anomaly` consumer in the worker set + the batch drain loop.
+
+  log.info("extract: invoice saved", {
+    gmailMessageId,
+    vendor: extracted.vendorNormalized ?? extracted.vendorName ?? null,
+    totalAmount: extracted.totalAmount ?? 0,
+    currency: extracted.currency,
+    method: extractionMethod,
+  })
 
   return { invoiceId: invoice.id, confidence: extracted.confidence }
 }

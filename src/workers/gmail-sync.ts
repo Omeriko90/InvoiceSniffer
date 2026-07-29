@@ -94,6 +94,8 @@ async function runFullSync(credentialId: string, organizationId: string, job: Jo
   let totalProcessed = 0
   let candidatesFound = 0
 
+  log.info("sync: fetching emails from gmail (full scan)", { credentialId })
+
   await job.updateProgress({ phase: "scanning", processed: 0, candidates: 0 })
 
   do {
@@ -146,6 +148,8 @@ async function runFullSync(credentialId: string, organizationId: string, job: Jo
     },
   })
 
+  log.info("sync: scanned emails", { credentialId, scanned: totalProcessed, candidates: candidatesFound })
+
   await flushPendingClassifications(ctx, organizationId, credentialId)
 
   return { totalProcessed, candidatesFound }
@@ -169,6 +173,8 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
   const ctx = await loadSyncContext(organizationId)
   let candidatesFound = 0
 
+  log.info("sync: fetching new emails from gmail (incremental)", { credentialId })
+
   try {
     const res = await gmail.users.history.list({
       userId: "me",
@@ -185,6 +191,8 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
         if (added.message?.id) messageIds.add(added.message.id)
       }
     }
+
+    log.info("sync: fetched new emails", { credentialId, newEmails: messageIds.size })
 
     for (const messageId of messageIds) {
       const exists = await prisma.invoice.findUnique({
@@ -222,6 +230,8 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
     }
     throw err
   }
+
+  log.info("sync: scanned emails", { credentialId, candidates: candidatesFound })
 
   await flushPendingClassifications(ctx, organizationId, credentialId)
 
@@ -459,6 +469,7 @@ async function flushPendingClassifications(
     const requests = chunk.map((it) => buildClassifierRequest(it.input, it.gmailMessageId))
 
     try {
+      log.info("sync: sending borderline emails to classifier (LLM)", { credentialId, count: chunk.length })
       const { resourceName } = await submitClassifierBatch(requests, `classify-${credentialId}-${start}`)
       await prisma.classificationBatch.create({
         data: {
