@@ -28,6 +28,8 @@ const FETCH_ALLOWLIST = [
   "invoice4u.co.il",
   "tranzila.com",
   "invoice-one.com",
+  // Israeli retailer receipt portals
+  "rami-levy.co.il",
 ]
 
 // Anchor text that suggests the link leads to a receipt/invoice (EN + HE).
@@ -186,26 +188,38 @@ function ssrfSafeLookup(
 // fetches so undici can pool connections.
 const ssrfSafeAgent = new Agent({ connect: { lookup: ssrfSafeLookup } })
 
-// Scan the HTML body for the most likely receipt link.
-// Preference order: allowlisted host + matching text > matching anchor text > matching href.
+// Scan the HTML body for the most likely receipt link. Preference order:
+//   allowlisted host + matching text  (strongest)
+//   matching anchor text
+//   allowlisted host                  (a known billing/receipt provider is a
+//                                       strong signal even with generic anchor
+//                                       text and a keyword-free path — many
+//                                       providers use tokenized links like
+//                                       https://digi.rami-levy.co.il/… whose
+//                                       host/path carry no "invoice" keyword)
+//   matching href                     (weakest — any host, keyword in the path)
 export function findReceiptUrl(html: string): string | null {
   let textMatch: string | null = null
+  let allowlistMatch: string | null = null
   let hrefMatch: string | null = null
 
   for (const m of html.matchAll(ANCHOR_RE)) {
     const href = unwrapTrackingUrl(m[1])
     if (!/^https:\/\//i.test(href)) continue
     const anchorText = m[2].replace(/<[^>]+>/g, " ")
+    const allowlisted = isAllowlistedHost(href)
 
     if (LINK_TEXT_RE.test(anchorText)) {
-      if (isAllowlistedHost(href)) return href
+      if (allowlisted) return href
       textMatch ??= href
+    } else if (allowlisted) {
+      allowlistMatch ??= href
     } else if (LINK_HREF_RE.test(href)) {
       hrefMatch ??= href
     }
   }
 
-  return textMatch ?? hrefMatch
+  return textMatch ?? allowlistMatch ?? hrefMatch
 }
 
 // ── Fetching and parsing the linked document ───────────────────────

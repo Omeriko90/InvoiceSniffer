@@ -176,21 +176,31 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
   log.info("sync: fetching new emails from gmail (incremental)", { credentialId })
 
   try {
-    const res = await gmail.users.history.list({
-      userId: "me",
-      startHistoryId: credential.syncToken,
-      historyTypes: ["messageAdded"],
-    })
-
-    const history = res.data.history ?? []
-    const newHistoryId = res.data.historyId
-
+    // history.list is paginated, but the response's historyId is always the
+    // mailbox's CURRENT id (not the page's). So we must drain every page before
+    // advancing the cursor — otherwise messagesAdded on pages 2+ are dropped and
+    // then skipped permanently once syncToken jumps to the latest id.
     const messageIds = new Set<string>()
-    for (const item of history) {
-      for (const added of item.messagesAdded ?? []) {
-        if (added.message?.id) messageIds.add(added.message.id)
+    let newHistoryId: string | null | undefined
+    let pageToken: string | undefined
+
+    do {
+      const res = await gmail.users.history.list({
+        userId: "me",
+        startHistoryId: credential.syncToken,
+        historyTypes: ["messageAdded"],
+        pageToken,
+      })
+
+      for (const item of res.data.history ?? []) {
+        for (const added of item.messagesAdded ?? []) {
+          if (added.message?.id) messageIds.add(added.message.id)
+        }
       }
-    }
+
+      newHistoryId = res.data.historyId ?? newHistoryId
+      pageToken = res.data.nextPageToken ?? undefined
+    } while (pageToken)
 
     log.info("sync: fetched new emails", { credentialId, newEmails: messageIds.size })
 
@@ -240,10 +250,14 @@ async function runIncrementalSync(credentialId: string, organizationId: string, 
 
 // ── Per-sync learning context: user feedback applied to detection ───
 
-// Heuristic scores in this band are ambiguous enough to ask the LLM
-// (candidate threshold is 40); outside it the heuristics decide alone
+// Heuristic scores in this band are ambiguous enough to ask the LLM. The band
+// sits strictly BELOW the candidate threshold (50): the LLM only ever *promotes*
+// a sub-threshold email to a candidate, and can never veto one that already
+// cleared the threshold — a score-40 invoice must not be silently dropped by a
+// deferred/failing classifier verdict. Outside the band the heuristics decide
+// alone (>= threshold → candidate; < BORDERLINE_MIN → skipped).
 const BORDERLINE_MIN = 30
-const BORDERLINE_MAX = 55
+const BORDERLINE_MAX = CANDIDATE_THRESHOLD - 1
 
 // A "not an invoice" mark penalizes the sender's score rather than blocking
 // outright — senders often mix invoices with statements/marketing, and a

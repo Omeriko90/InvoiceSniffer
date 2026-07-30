@@ -40,12 +40,13 @@ function printExtraction(label: string, e: ReturnType<typeof extractInvoiceMetad
 
 async function main() {
   let gmailMessageId = process.argv[2]
-  let organizationId: string
+  let credentialId: string
 
   if (gmailMessageId) {
     const inv = await prisma.invoice.findFirst({ where: { gmailMessageId } })
     if (!inv) throw new Error(`No invoice found for gmailMessageId ${gmailMessageId}`)
-    organizationId = inv.organizationId
+    if (!inv.gmailCredentialId) throw new Error(`Invoice ${inv.id} has no gmailCredentialId`)
+    credentialId = inv.gmailCredentialId
   } else {
     const inv = await prisma.invoice.findFirst({
       where: { totalAmount: 0 },
@@ -55,12 +56,15 @@ async function main() {
       console.log("No invoices with amount 0 found — nothing to debug.")
       return
     }
+    if (!inv.gmailCredentialId) throw new Error(`Invoice ${inv.id} has no gmailCredentialId`)
     gmailMessageId = inv.gmailMessageId
-    organizationId = inv.organizationId
+    credentialId = inv.gmailCredentialId
     console.log(`Debugging most recent zero-amount invoice: "${inv.subject}"`)
   }
 
-  const gmail = await getGmailClient(organizationId)
+  // getGmailClient is keyed by credential id (an org can have several mailboxes),
+  // so route to the exact mailbox this invoice was ingested from.
+  const gmail = await getGmailClient(credentialId)
   const msg = await gmail.users.messages.get({ userId: "me", id: gmailMessageId, format: "full" })
   const payload = msg.data.payload as GmailPart
   const headers = (msg.data.payload?.headers ?? []) as { name?: string; value?: string }[]
@@ -92,6 +96,19 @@ async function main() {
   const bodyHtml = extractBodyHtml(payload)
   const receiptUrl = bodyHtml ? findReceiptUrl(bodyHtml) : null
   console.log(`\nReceipt URL: ${receiptUrl ?? "(none found)"}`)
+  if (!receiptUrl) {
+    // Why did the finder come up empty? Dump every anchor so we can see what it
+    // rejected (no <a href>, non-https, or anchor text/href missing the keywords).
+    console.log(`   bodyHtml present: ${bodyHtml != null} (${bodyHtml?.length ?? 0} chars)`)
+    if (bodyHtml) {
+      const anchors = [...bodyHtml.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)]
+      console.log(`   anchors found: ${anchors.length}`)
+      for (const a of anchors.slice(0, 25)) {
+        const text = a[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 50)
+        console.log(`     href=${a[1].slice(0, 100)}  text="${text}"`)
+      }
+    }
+  }
   if (receiptUrl) {
     console.log(`   allowlisted for fetching: ${isAllowlistedHost(receiptUrl)}`)
     const remote = await fetchReceiptText(receiptUrl)
