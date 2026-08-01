@@ -32,6 +32,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Emit a self-contained server bundle for the Cloud Run web container.
   output: "standalone",
+  // @napi-rs/canvas ships a native .node addon (used by pdf-parse and our
+  // pdf-polyfill). Turbopack can't place a native binary in an ESM chunk
+  // ("asset is not placeable in ESM chunks"), so keep these as runtime
+  // requires instead of bundling them into the server output.
+  serverExternalPackages: ["@napi-rs/canvas", "pdf-parse"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
