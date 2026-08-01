@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
-import { getGmailClient } from "@/lib/gmail"
-import { redisUrl, type ExtractionJobData } from "@/lib/queues"
+import { getGmailClient, buildGmailMessageLink } from "@/lib/gmail"
+import { redisUrl,type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
@@ -88,7 +88,15 @@ async function extractInvoice(
   const { senderEmail, senderName } = parseFrom(fromHeader)
   const emailDate = new Date(dateHeader)
   const gmailThreadId = msg.data.threadId ?? ""
-  const gmailLink = `https://mail.google.com/mail/u/0/#inbox/${gmailThreadId}`
+  // Link straight to this message in the mailbox that actually holds it. Using
+  // the mailbox address (not `u/0`) and `#all/<id>` (not `#inbox/<thread>`) is
+  // what makes the link resolve for forwarded invoices, which are usually
+  // filtered out of the Inbox and may live in a non-default account.
+  const mailbox = await prisma.gmailCredential.findUnique({
+    where: { id: gmailCredentialId },
+    select: { email: true },
+  })
+  const gmailLink = buildGmailMessageLink(mailbox?.email ?? "", gmailMessageId)
 
   const bodyText = extractBodyText(payload)
   const bodyHtml = extractBodyHtml(payload)
