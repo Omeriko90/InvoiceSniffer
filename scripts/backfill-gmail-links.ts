@@ -10,19 +10,12 @@ import { buildGmailMessageLink } from "@/lib/gmail"
 
 async function main() {
   const rows = await prisma.invoice.findMany({
-    where: { gmailCredentialId: { not: null } },
-    select: {
-      id: true,
-      gmailMessageId: true,
-      gmailLink: true,
-      gmailCredential: { select: { email: true } },
-    },
+    select: { id: true, gmailMessageId: true, gmailLink: true },
   })
 
   let updated = 0
   for (const r of rows) {
-    const email = r.gmailCredential?.email ?? ""
-    const next = buildGmailMessageLink(email, r.gmailMessageId)
+    const next = buildGmailMessageLink(r.gmailMessageId)
     if (next === r.gmailLink) continue // already current
     await prisma.invoice.update({ where: { id: r.id }, data: { gmailLink: next } })
     updated++

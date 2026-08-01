@@ -88,15 +88,10 @@ async function extractInvoice(
   const { senderEmail, senderName } = parseFrom(fromHeader)
   const emailDate = new Date(dateHeader)
   const gmailThreadId = msg.data.threadId ?? ""
-  // Link straight to this message in the mailbox that actually holds it. Using
-  // the mailbox address (not `u/0`) and `#all/<id>` (not `#inbox/<thread>`) is
-  // what makes the link resolve for forwarded invoices, which are usually
-  // filtered out of the Inbox and may live in a non-default account.
-  const mailbox = await prisma.gmailCredential.findUnique({
-    where: { id: gmailCredentialId },
-    select: { email: true },
-  })
-  const gmailLink = buildGmailMessageLink(mailbox?.email ?? "", gmailMessageId)
+  // Link straight to this message with `#all/<id>` (not `#inbox/<thread>`) so it
+  // resolves even for forwarded invoices, which are usually filtered out of the
+  // Inbox.
+  const gmailLink = buildGmailMessageLink(gmailMessageId)
 
   const bodyText = extractBodyText(payload)
   const bodyHtml = extractBodyHtml(payload)

@@ -11,18 +11,19 @@ export const GMAIL_OAUTH_STATE_COOKIE = "gmail_oauth_state"
 
 // Deep-link that opens a specific message in the Gmail web UI.
 //
-// Two deliberate choices, both of which matter for mailboxes that only receive
-// *forwarded* invoices (the forwards are typically auto-filtered out of the Inbox):
-//   - `#all/<messageId>` targets the exact message under ANY label, whereas
-//     `#inbox/<threadId>` silently falls back to the plain inbox view when the
-//     thread isn't in the Inbox.
-//   - `u/<mailbox-email>` pins the account by address instead of the positional
-//     `u/0`, so it opens in the connected mailbox regardless of which Google
-//     account happens to be first in the browser (as long as that account is
-//     signed in — Gmail can't switch to an account you're not logged into).
-export function buildGmailMessageLink(mailboxEmail: string, gmailMessageId: string): string {
-  const account = mailboxEmail ? encodeURIComponent(mailboxEmail) : "0"
-  return `https://mail.google.com/mail/u/${account}/#all/${gmailMessageId}`
+// `#all/<messageId>` targets the exact message under ANY label, whereas the old
+// `#inbox/<threadId>` silently fell back to the plain inbox view when the thread
+// wasn't in the Inbox — which is the common case for *forwarded* invoices, since
+// they're usually auto-filtered out of the Inbox.
+//
+// The `u/` segment must be an integer account index — putting an email there
+// yields Gmail error 6446 ("account temporarily unavailable"). We use `u/0`; if
+// the connected mailbox isn't the browser's first Google account, the user may
+// need to be signed into it (Gmail resolves the message within the active
+// account). `authuser` isn't used here because it doesn't reliably survive the
+// hash-fragment navigation.
+export function buildGmailMessageLink(gmailMessageId: string): string {
+  return `https://mail.google.com/mail/u/0/#all/${gmailMessageId}`
 }
 
 function createOAuthClient() {
