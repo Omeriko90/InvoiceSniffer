@@ -143,7 +143,7 @@ export function InvoicesToolbar({
           <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-fit min-w-(--anchor-width)">
             {accountOptions.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
