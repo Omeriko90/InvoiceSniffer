@@ -95,6 +95,9 @@ export async function loadInvoiceCandidates(
       reconciledSourceFile: true,
       reconciledAt: true,
     },
+    // Defense-in-depth cap on in-memory candidate scoring, independent of the
+    // upstream range validation.
+    take: 10_000,
   })
   return invoices.map((inv) => ({
     id: inv.id,

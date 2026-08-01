@@ -2,6 +2,35 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
+import { z } from "zod"
+
+const MAX_TEXT = 500
+const MAX_AMOUNT = 1e12 // generous per-invoice ceiling; blocks storage/overflow abuse
+
+// Bounded, whitelisted patch schema. Every field is optional so this stays a
+// partial update, but each has a length/format cap — untrusted strings here flow
+// into exports and matching, so they must not be unbounded. `.strict()` rejects
+// unknown keys (no mass-assignment). Amount is a decimal string (no scientific
+// notation / negatives / absurd precision) so it lands cleanly in the Decimal
+// column. Dates must be parseable ISO strings or null.
+const dateField = z
+  .string()
+  .refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date")
+  .nullable()
+
+const patchSchema = z
+  .object({
+    vendorName: z.string().trim().max(MAX_TEXT).nullable(),
+    invoiceNumber: z.string().trim().max(MAX_TEXT).nullable(),
+    totalAmount: z
+      .string()
+      .regex(/^\d+(\.\d{1,4})?$/, "Invalid amount")
+      .refine((s) => Number(s) < MAX_AMOUNT, "Amount too large"),
+    invoiceDate: dateField,
+    dueDate: dateField,
+  })
+  .partial()
+  .strict()
 
 export async function PATCH(
   request: Request,
@@ -11,49 +40,33 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const body = await request.json().catch(() => null)
-  if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+  const parsed = patchSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", details: z.treeifyError(parsed.error) },
+      { status: 400 }
+    )
   }
+  const p = parsed.data
 
   const data: Prisma.InvoiceUpdateManyMutationInput = {}
 
-  if ("vendorName" in body) {
-    const v = body.vendorName
-    if (v !== null && typeof v !== "string") {
-      return NextResponse.json({ error: "Invalid vendor name" }, { status: 400 })
-    }
-    data.vendorName = v?.trim() || null
-    data.vendorNormalized = v?.trim().toLowerCase() || null
+  if (p.vendorName !== undefined) {
+    const name = p.vendorName || null
+    data.vendorName = name
+    data.vendorNormalized = name?.toLowerCase() ?? null
   }
-
-  if ("invoiceNumber" in body) {
-    const v = body.invoiceNumber
-    if (v !== null && typeof v !== "string") {
-      return NextResponse.json({ error: "Invalid invoice number" }, { status: 400 })
-    }
-    data.invoiceNumber = v?.trim() || null
+  if (p.invoiceNumber !== undefined) {
+    data.invoiceNumber = p.invoiceNumber || null
   }
-
-  if ("totalAmount" in body) {
-    const n = Number(body.totalAmount)
-    if (typeof body.totalAmount !== "string" || !Number.isFinite(n) || n < 0) {
-      return NextResponse.json({ error: "Invalid amount" }, { status: 400 })
-    }
-    data.totalAmount = body.totalAmount
+  if (p.totalAmount !== undefined) {
+    data.totalAmount = p.totalAmount
   }
-
-  for (const field of ["invoiceDate", "dueDate"] as const) {
-    if (field in body) {
-      const v = body[field]
-      if (v === null) {
-        data[field] = null
-      } else if (typeof v === "string" && !Number.isNaN(Date.parse(v))) {
-        data[field] = new Date(v)
-      } else {
-        return NextResponse.json({ error: `Invalid ${field}` }, { status: 400 })
-      }
-    }
+  if (p.invoiceDate !== undefined) {
+    data.invoiceDate = p.invoiceDate === null ? null : new Date(p.invoiceDate)
+  }
+  if (p.dueDate !== undefined) {
+    data.dueDate = p.dueDate === null ? null : new Date(p.dueDate)
   }
 
   if (Object.keys(data).length === 0) {

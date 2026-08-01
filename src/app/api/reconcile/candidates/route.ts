@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { aliasSignalFor, loadAliases, loadInvoiceCandidates } from "@/lib/matching-data"
 import { nameSimilarity, scoreCandidate, TRAIL_WINDOW_DAYS, type DateWindow } from "@/lib/matching"
-import { resolveDateRange } from "@/lib/date-range"
+import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import { NextResponse } from "next/server"
 import type { CandidateResult } from "@/api-types/reconcile"
 
@@ -30,7 +30,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing charge parameters" }, { status: 400 })
   }
 
-  const range = resolveDateRange({ from, to }, new Date())
+  let range
+  try {
+    range = resolveDateRange({ from, to }, new Date())
+  } catch (e) {
+    if (e instanceof InvalidDateRangeError) {
+      return NextResponse.json({ error: e.message }, { status: 400 })
+    }
+    throw e
+  }
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
     select: { settlementLagDays: true },
