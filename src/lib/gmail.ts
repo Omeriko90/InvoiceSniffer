@@ -9,21 +9,20 @@ export const GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 // Cookie holding the single-use OAuth CSRF nonce (set in /connect, checked in /callback)
 export const GMAIL_OAUTH_STATE_COOKIE = "gmail_oauth_state"
 
-// Deep-link that opens a specific message in the Gmail web UI.
-//
-// `#all/<messageId>` targets the exact message under ANY label, whereas the old
-// `#inbox/<threadId>` silently fell back to the plain inbox view when the thread
-// wasn't in the Inbox — which is the common case for *forwarded* invoices, since
-// they're usually auto-filtered out of the Inbox.
-//
-// The `u/` segment must be an integer account index — putting an email there
-// yields Gmail error 6446 ("account temporarily unavailable"). We use `u/0`; if
-// the connected mailbox isn't the browser's first Google account, the user may
-// need to be signed into it (Gmail resolves the message within the active
-// account). `authuser` isn't used here because it doesn't reliably survive the
-// hash-fragment navigation.
-export function buildGmailMessageLink(gmailMessageId: string): string {
-  return `https://mail.google.com/mail/u/0/#all/${gmailMessageId}`
+// Deep-link that opens a specific message in the Gmail web UI, in the mailbox
+// that actually holds it. Two parts, both load-bearing for forwarded invoices:
+//   - `#all/<messageId>` targets the exact message under ANY label, whereas the
+//     old `#inbox/<threadId>` fell back to the inbox view when the thread wasn't
+//     in the Inbox — the common case for forwards (auto-filtered out).
+//   - `?authuser=<email>` selects the account by address. This is the ONLY form
+//     that works: `u/<email>` yields Gmail error 6446 (that segment must be an
+//     integer), and `u/0` opens whichever account is first in the browser, which
+//     for a connected forwarding mailbox is usually the wrong one.
+// (The user must be signed into that account in the browser — Gmail can't open
+// an account you're not logged into.)
+export function buildGmailMessageLink(mailboxEmail: string, gmailMessageId: string): string {
+  if (!mailboxEmail) return `https://mail.google.com/mail/u/0/#all/${gmailMessageId}`
+  return `https://mail.google.com/mail/?authuser=${encodeURIComponent(mailboxEmail)}#all/${gmailMessageId}`
 }
 
 function createOAuthClient() {
