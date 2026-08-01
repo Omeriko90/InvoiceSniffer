@@ -3,6 +3,7 @@ import { lookup } from "dns/promises"
 import net from "net"
 import { Agent } from "undici"
 import { convert } from "html-to-text"
+import "@/lib/pdf-polyfill" // must precede any pdf.js use — provides DOMMatrix et al. under Node
 import { PDFParse } from "pdf-parse"
 
 // ── Finding the receipt link in an email body ──────────────────────
