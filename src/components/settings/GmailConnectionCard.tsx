@@ -9,10 +9,17 @@ import { ConnectedAccountPanel } from "./ConnectedAccountPanel"
 
 interface GmailConnectionCardProps {
   gmails: GmailConnection[]
+  maxGmailAccounts: number
 }
 
-export function GmailConnectionCard({ gmails }: GmailConnectionCardProps) {
+export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectionCardProps) {
   const disconnect = useDisconnectGmail()
+
+  // Only *connected* mailboxes count against the plan cap — mirrors the
+  // enforcement in the OAuth callback. A soft-disconnected account is free to
+  // reconnect and never consumes a slot.
+  const connectedCount = gmails.filter((g) => g.connected).length
+  const atLimit = connectedCount >= maxGmailAccounts
 
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
@@ -29,13 +36,20 @@ export function GmailConnectionCard({ gmails }: GmailConnectionCardProps) {
                 disconnecting={disconnect.isPending && disconnect.variables === gmail.id}
               />
             ))}
-            <Button
-              variant="outline"
-              onClick={() => { window.location.href = "/api/gmail/connect" }}
-              className="self-start h-auto text-[13px] font-[600] text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
-            >
-              + Add account
-            </Button>
+            {atLimit ? (
+              <p className="self-start text-[12.5px] text-text-secondary mt-[2px]">
+                You&apos;ve reached your plan&apos;s limit of {maxGmailAccounts}{" "}
+                {maxGmailAccounts === 1 ? "mailbox" : "mailboxes"}.
+              </p>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => { window.location.href = "/api/gmail/connect" }}
+                className="self-start h-auto text-[13px] font-[600] text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
+              >
+                + Add account
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-[12px] border border-border bg-hover px-4 py-[14px]">

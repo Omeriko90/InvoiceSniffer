@@ -1,7 +1,9 @@
 "use client"
 
+import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSettings } from "@/hooks/useSettings"
+import { GmailConnectResult } from "@/components/settings/GmailConnectResult"
 import { GmailConnectionCard } from "@/components/settings/GmailConnectionCard"
 import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard"
 import { LearnedRulesCard } from "@/components/settings/LearnedRulesCard"
@@ -14,8 +16,11 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-[14px]">
+      <Suspense fallback={null}>
+        <GmailConnectResult />
+      </Suspense>
       <div className="grid grid-cols-2 gap-[14px]">
-        <GmailConnectionCard gmails={data.gmails} />
+        <GmailConnectionCard gmails={data.gmails} maxGmailAccounts={data.maxGmailAccounts} />
         <WorkspaceMembersCard members={data.members} />
       </div>
       <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
