@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { Search, Download, ChevronDown } from "lucide-react"
+import { Search, Download, ChevronDown, CalendarDays } from "lucide-react"
+import { format as formatDate } from "date-fns"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -13,11 +14,27 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { STATUS_OPTIONS } from "./constants"
 import type { UIState } from "./types"
 import type { ExportFormat } from "@/api/exports"
+import {
+  INVOICE_DATE_PRESETS,
+  INVOICE_DATE_PRESET_LABELS,
+  isPreset,
+  type InvoiceDateScope,
+} from "@/lib/invoice-date-filter"
+
+function dateScopeLabel(scope: InvoiceDateScope): string {
+  if (isPreset(scope)) return INVOICE_DATE_PRESET_LABELS[scope.preset]
+  const from = new Date(scope.from)
+  const to = new Date(scope.to)
+  // Drop the start year only when both ends share it; show it when they differ.
+  const fromFmt = from.getFullYear() === to.getFullYear() ? "d MMM" : "d MMM yyyy"
+  return `${formatDate(from, fromFmt)} – ${formatDate(to, "d MMM yyyy")}`
+}
 
 export function InvoicesToolbar({
   search,
@@ -27,6 +44,9 @@ export function InvoicesToolbar({
   accountFilter,
   onAccountChange,
   accounts,
+  dateScope,
+  onDateScopeChange,
+  onOpenCustomDate,
   uiState,
   onUiStateChange,
   count,
@@ -39,6 +59,9 @@ export function InvoicesToolbar({
   accountFilter: string
   onAccountChange: (value: string) => void
   accounts: { email: string; label: string }[]
+  dateScope: InvoiceDateScope
+  onDateScopeChange: (scope: InvoiceDateScope) => void
+  onOpenCustomDate: () => void
   uiState: UIState
   onUiStateChange: (value: UIState) => void
   count: number
@@ -53,12 +76,12 @@ export function InvoicesToolbar({
     <div className="flex items-center gap-3 flex-wrap">
       {/* Search */}
       <div className="relative" style={{ maxWidth: "340px", flex: "1 1 220px" }}>
-        <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+        <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-dim" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search vendor, amount, invoice #…"
-          className="h-auto pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border-[#E8EDFA] rounded-[10px] bg-white"
+          className="h-auto pl-[34px] pr-3 py-[8px] text-[13.5px] text-text-primary border-border rounded-[10px] bg-surface"
         />
       </div>
 
@@ -70,7 +93,7 @@ export function InvoicesToolbar({
         value={statusFilter}
         onValueChange={(v) => onStatusChange(v as string)}
       >
-        <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary">
+        <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -81,6 +104,31 @@ export function InvoicesToolbar({
       </Select>
       </div>
 
+      {/* Date filter */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
+            >
+              <CalendarDays size={14} className="text-dim" />
+              {dateScopeLabel(dateScope)}
+              <ChevronDown size={14} className="text-dim" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="start">
+          {INVOICE_DATE_PRESETS.map((p) => (
+            <DropdownMenuItem key={p} onClick={() => onDateScopeChange({ preset: p })}>
+              {INVOICE_DATE_PRESET_LABELS[p]}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onOpenCustomDate}>Custom range…</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       {/* Source mailbox filter — only when the org has more than one account */}
       {accounts.length > 1 && (
         <Select
@@ -88,7 +136,7 @@ export function InvoicesToolbar({
           value={accountFilter}
           onValueChange={(v) => onAccountChange(v as string)}
         >
-          <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary">
+          <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -99,7 +147,7 @@ export function InvoicesToolbar({
         </Select>
       )}
 
-      <span className="text-[13px] font-[500] text-[#94A3B8] shrink-0">
+      <span className="text-[13px] font-[500] text-dim shrink-0">
         {count} detected
       </span>
 
@@ -109,11 +157,11 @@ export function InvoicesToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-auto py-[8px] rounded-[10px] border-[#E8EDFA] bg-white text-[13px] font-[600] text-text-primary gap-[6px]"
+                className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
               >
                 <Download size={14} />
                 Export
-                <ChevronDown size={14} className="text-[#94A3B8]" />
+                <ChevronDown size={14} className="text-dim" />
               </Button>
             }
           />
