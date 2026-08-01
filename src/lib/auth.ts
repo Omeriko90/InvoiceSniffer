@@ -6,7 +6,14 @@ import { prisma } from "@/lib/prisma"
 
 // AUTH_SECRET signs the session cookie and CSRF token. Fail fast at boot rather
 // than silently degrading cookie integrity if it's missing/empty in an env.
-if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
+// Skip during `next build`: page-data collection evaluates this module with
+// NODE_ENV=production, but the secret is a runtime-only env (injected by Cloud
+// Run), so the guard would otherwise abort the build. It still runs at boot.
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PHASE !== "phase-production-build" &&
+  !process.env.AUTH_SECRET
+) {
   throw new Error("AUTH_SECRET is required in production")
 }
 
