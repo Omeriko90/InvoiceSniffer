@@ -5,7 +5,7 @@ import { loadAliases, loadInvoiceCandidates, type SessionInvoice } from "@/lib/m
 import { matchSession, type SessionRow } from "@/lib/match-session"
 import { arbiterEnabled, arbitrateSession } from "@/lib/match-arbitrator"
 import { TRAIL_WINDOW_DAYS, type DateWindow } from "@/lib/matching"
-import { DATE_RANGE_PRESETS, resolveDateRange } from "@/lib/date-range"
+import { DATE_RANGE_PRESETS, resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import type { MatchInvoice, MatchResponse, MatchRow, ReconcileStatus } from "@/api-types/reconcile"
 import { z } from "zod"
 
@@ -90,7 +90,15 @@ export async function POST(request: Request) {
     return Response.json({ error: "Too many rows (max 10,000 per session)" }, { status: 400 })
   }
 
-  const range = resolveDateRange(dateRange, new Date())
+  let range
+  try {
+    range = resolveDateRange(dateRange, new Date())
+  } catch (e) {
+    if (e instanceof InvalidDateRangeError) {
+      return Response.json({ error: e.message }, { status: 400 })
+    }
+    throw e
+  }
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
     select: { settlementLagDays: true },

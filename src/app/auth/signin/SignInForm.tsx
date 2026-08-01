@@ -21,8 +21,13 @@ export function SignInForm() {
     resolver: zodResolver(schema),
   })
 
-  async function onSubmit(data: FormValues) {
-    await signIn("credentials", { email: data.email, password: data.password, callbackUrl: "/" })
+  async function onSubmit(_data: FormValues) {
+    // Credentials sign-in is not implemented — there is no Credentials provider
+    // (see src/lib/auth.ts), so calling signIn("credentials", …) would just error.
+    // Google OAuth is the only auth path. Do NOT log form values: they include
+    // the plaintext password. Before wiring a Credentials provider here, it MUST
+    // have password hashing (argon2/bcrypt), a constant-time compare, generic
+    // errors (no user enumeration), and rate limiting on the sign-in endpoint.
   }
 
   return (

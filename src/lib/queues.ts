@@ -6,10 +6,21 @@ import { Queue } from "bullmq"
 // 127.0.0.1:6379 and spam ECONNREFUSED. So each queue is built lazily on first
 // use (at runtime, when REDIS_URL is present), and we fail fast with a clear
 // message if it's missing rather than dialing localhost.
-function connection() {
+// Validate REDIS_URL once, at connection time. In production we require TLS
+// (rediss://) so job payloads (org/credential ids) and rate-limit state never
+// cross the network in cleartext — Upstash exposes a non-TLS port too, and a
+// bare redis:// URL would silently downgrade the whole queue channel.
+export function redisUrl(): string {
   const url = process.env.REDIS_URL
   if (!url) throw new Error("REDIS_URL is not set — cannot connect to the job queue")
-  return { url }
+  if (process.env.NODE_ENV === "production" && !url.startsWith("rediss://")) {
+    throw new Error("REDIS_URL must use TLS (rediss://) in production")
+  }
+  return url
+}
+
+function connection() {
+  return { url: redisUrl() }
 }
 
 const defaultJobOptions = {

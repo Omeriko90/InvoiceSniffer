@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth"
 import { loadInvoicesInRange } from "@/lib/export-data"
-import { resolveDateRange } from "@/lib/date-range"
+import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import { NextRequest, NextResponse } from "next/server"
 
 // GET /api/invoices/export-preview?from=<iso>&to=<iso>
@@ -17,7 +17,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "from and to are required" }, { status: 400 })
   }
 
-  const range = resolveDateRange({ from, to }, new Date())
+  let range
+  try {
+    range = resolveDateRange({ from, to }, new Date())
+  } catch (e) {
+    if (e instanceof InvalidDateRangeError) {
+      return NextResponse.json({ error: e.message }, { status: 400 })
+    }
+    throw e
+  }
   const invoices = await loadInvoicesInRange(session.user.organizationId, range)
 
   return NextResponse.json({

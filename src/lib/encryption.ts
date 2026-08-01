@@ -5,7 +5,13 @@ const ALGORITHM = "aes-256-gcm"
 function getKey(): Buffer {
   const key = process.env.TOKEN_ENCRYPTION_KEY
   if (!key) throw new Error("TOKEN_ENCRYPTION_KEY is not set")
-  return Buffer.from(key, "hex")
+  const buf = Buffer.from(key, "hex")
+  // aes-256-gcm requires exactly 32 bytes. Buffer.from silently truncates on
+  // invalid/short hex, which would encrypt under a weak key — assert instead.
+  if (buf.length !== 32) {
+    throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex chars)")
+  }
+  return buf
 }
 
 export function encrypt(plaintext: string): string {

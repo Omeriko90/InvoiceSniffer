@@ -1,6 +1,7 @@
 import IORedis from "ioredis"
 import { NextResponse } from "next/server"
 import { log } from "@/lib/posthog-server"
+import { redisUrl } from "@/lib/queues"
 
 // Per-org rate limiting for cost-incurring endpoints (Gmail sync, CSV import,
 // reconcile). Backed by the same Redis that BullMQ already uses — no extra
@@ -13,7 +14,7 @@ import { log } from "@/lib/posthog-server"
 let client: IORedis | null = null
 function redis(): IORedis {
   if (!client) {
-    client = new IORedis(process.env.REDIS_URL!, { maxRetriesPerRequest: null })
+    client = new IORedis(redisUrl(), { maxRetriesPerRequest: null })
     client.on("error", (err) => log.error("rate-limit redis error", { error: err.message }))
   }
   return client
