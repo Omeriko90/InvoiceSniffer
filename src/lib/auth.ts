@@ -1,13 +1,30 @@
 import NextAuth from "next-auth"
-import type { AdapterUser } from "next-auth/adapters"
+import type { AdapterAccount, AdapterUser } from "next-auth/adapters"
 import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
+
+// AUTH_SECRET signs the session cookie and CSRF token. Fail fast at boot rather
+// than silently degrading cookie integrity if it's missing/empty in an env.
+if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET is required in production")
+}
 
 function makeAdapter() {
   const base = PrismaAdapter(prisma)
   return {
     ...base,
+    // Session strategy is "database", so the provider's OAuth tokens on the
+    // Account row are never read after sign-in. Don't persist them in plaintext —
+    // the Gmail sync flow stores its own AES-256-GCM-encrypted tokens instead
+    // (see src/lib/encryption.ts / src/lib/gmail.ts).
+    async linkAccount(account: AdapterAccount): Promise<void> {
+      const { access_token, refresh_token, id_token, ...rest } = account
+      void access_token
+      void refresh_token
+      void id_token
+      await base.linkAccount?.(rest as AdapterAccount)
+    },
     async createUser(data: AdapterUser): Promise<AdapterUser> {
       const slug = data.email!
         .split("@")[0]

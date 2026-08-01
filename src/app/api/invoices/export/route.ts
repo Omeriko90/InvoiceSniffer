@@ -135,9 +135,19 @@ function cellValue(row: ExportInvoiceRow, col: ExportColumn): string | number | 
   }
 }
 
+// Neutralize spreadsheet formula injection. Invoice fields (vendor name, invoice
+// number, etc.) are attacker-controlled — they're transcribed verbatim from
+// emailed PDFs by the LLM extractor. A cell a spreadsheet app would evaluate as a
+// formula (leading =, +, -, @, or tab/CR) is prefixed with a single quote so it's
+// rendered as literal text instead of executing (DDE/HYPERLINK exfil) on open.
+function sanitizeFormula(value: string | number | null): string | number | null {
+  if (typeof value !== "string") return value
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+}
+
 // RFC 4180: quote fields containing comma/quote/newline; escape quotes by doubling.
 function csvEscape(value: string | number | null): string {
-  const s = value == null ? "" : String(value)
+  const s = value == null ? "" : String(sanitizeFormula(value))
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
@@ -160,7 +170,7 @@ async function buildXlsx(rows: ExportInvoiceRow[], fields: ExportColumn[]): Prom
   for (const r of rows) {
     const record: Record<string, string | number> = {}
     for (const f of fields) {
-      const v = cellValue(r, f)
+      const v = sanitizeFormula(cellValue(r, f))
       record[f] = v == null ? "" : v
     }
     ws.addRow(record)
