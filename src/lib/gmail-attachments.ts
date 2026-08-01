@@ -1,5 +1,6 @@
 import type { gmail_v1 } from "googleapis"
 import { extractAttachmentMeta, type AttachmentMeta, type GmailPart } from "@/workers/invoice-extract"
+import { log } from "@/lib/posthog-server"
 
 export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
 
@@ -37,7 +38,17 @@ export async function fetchAttachmentBytes(
       id: meta.attachmentId,
     })
     data = res.data.data
-  } catch {
+  } catch (err) {
+    // Don't swallow the underlying Gmail error — a stale id is expected and
+    // recovered below, but any OTHER failure (revoked scope, wrong message id
+    // for a forwarded attachment, 5xx) was previously invisible, which made
+    // "couldn't open attachment" impossible to diagnose.
+    log.warn("attachment: direct fetch failed, retrying by filename", {
+      gmailMessageId,
+      filename: meta.filename,
+      attachmentId: meta.attachmentId,
+      err: err instanceof Error ? err.message : String(err),
+    })
     const msg = await gmail.users.messages.get({
       userId: "me",
       id: gmailMessageId,

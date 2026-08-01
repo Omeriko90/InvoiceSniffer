@@ -6,7 +6,9 @@ import animate from "tailwindcss-animate"
 
 const palette = {
   // Brand
-  blue:   "#7AA7FF",
+  blue:         "#7AA7FF",
+  blueStrong:   "#3B6FE0", // darker action/active-nav & selected blue
+  blueSoft:     "#EEF3FF", // light selection / highlight tint
   purple: "#A78BFA",
   teal:   "#22D3EE",
   cyan:   "#88D0FF",
@@ -63,7 +65,9 @@ const config: Config = {
         border:     palette.border,
 
         // ── Brand ─────────────────────────────────────────────────
-        primary: palette.blue,
+        primary:          palette.blue,
+        "primary-strong": palette.blueStrong,
+        "primary-soft":   palette.blueSoft,
         purple:  palette.purple,
         teal:    palette.teal,
 

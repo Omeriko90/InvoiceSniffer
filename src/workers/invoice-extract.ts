@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
-import { getGmailClient } from "@/lib/gmail"
-import { redisUrl, type ExtractionJobData } from "@/lib/queues"
+import { getGmailClient, buildGmailMessageLink } from "@/lib/gmail"
+import { redisUrl,type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
@@ -88,7 +88,14 @@ async function extractInvoice(
   const { senderEmail, senderName } = parseFrom(fromHeader)
   const emailDate = new Date(dateHeader)
   const gmailThreadId = msg.data.threadId ?? ""
-  const gmailLink = `https://mail.google.com/mail/u/0/#inbox/${gmailThreadId}`
+  // Link to this message in the mailbox that holds it — `authuser=<email>` pins
+  // the account and `#all/<id>` targets the exact message even when a forwarded
+  // invoice was filtered out of the Inbox.
+  const mailbox = await prisma.gmailCredential.findUnique({
+    where: { id: gmailCredentialId },
+    select: { email: true },
+  })
+  const gmailLink = buildGmailMessageLink(mailbox?.email ?? "", gmailMessageId)
 
   const bodyText = extractBodyText(payload)
   const bodyHtml = extractBodyHtml(payload)

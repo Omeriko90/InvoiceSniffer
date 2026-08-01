@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { listGmailCredentialStatuses } from "@/lib/gmail"
+import { maxGmailAccounts } from "@/lib/plan-limits"
 import { MIN_SETTLEMENT_LAG_DAYS, MAX_SETTLEMENT_LAG_DAYS } from "@/lib/matching"
 import { NextResponse } from "next/server"
 
@@ -25,7 +26,7 @@ export async function GET() {
     }),
     prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { settlementLagDays: true },
+      select: { settlementLagDays: true, planTier: true },
     }),
   ])
 
@@ -40,6 +41,7 @@ export async function GET() {
     members,
     rules,
     settlementLagDays: org?.settlementLagDays ?? 30,
+    maxGmailAccounts: org ? maxGmailAccounts(org.planTier) : 0,
   })
 }
 
