@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
-import { gmailSyncQueue, extractionQueue, type GmailSyncJobData, type ExtractionJobData } from "@/lib/queues"
+import { gmailSyncQueue, extractionQueue, redisUrl, type GmailSyncJobData, type ExtractionJobData } from "@/lib/queues"
 import { detectInvoiceCandidate, CANDIDATE_THRESHOLD } from "@/lib/invoice-detection"
 import {
   classifyInvoiceEmail,
@@ -20,7 +20,6 @@ import { log } from "@/lib/posthog-server"
 import { parseFrom } from "./invoice-extract"
 import type { gmail_v1 } from "googleapis"
 
-const connection = { url: process.env.REDIS_URL! }
 const PAGE_SIZE = 50
 
 // Full sync only looks back 3 months; matches are then scored by
@@ -41,13 +40,34 @@ export function createGmailSyncWorker() {
 
       const { organizationId, credentialId, mode } = job.data
 
+      // The queue is a trust boundary — a job's payload is not authoritative.
+      // Derive the org from the credential record and refuse if it disagrees, so
+      // a mis-enqueued or tampered job can't write mailbox A's invoices under
+      // org B (cross-tenant leak). Everything downstream is scoped by this org.
+      const credential = await prisma.gmailCredential.findUnique({
+        where: { id: credentialId },
+        select: { organizationId: true },
+      })
+      if (!credential) {
+        log.error("gmail-sync: credential not found; skipping job", { credentialId })
+        return { skipped: "credential-not-found" }
+      }
+      if (credential.organizationId !== organizationId) {
+        log.error("gmail-sync: job organizationId does not match credential; refusing", {
+          credentialId,
+          jobOrganizationId: organizationId,
+          credentialOrganizationId: credential.organizationId,
+        })
+        throw new Error("gmail-sync: job organizationId does not match credential")
+      }
+
       if (mode === "full") {
-        await runFullSync(credentialId, organizationId, job)
+        await runFullSync(credentialId, credential.organizationId, job)
       } else {
-        await runIncrementalSync(credentialId, organizationId, job)
+        await runIncrementalSync(credentialId, credential.organizationId, job)
       }
     },
-    { connection, concurrency: 3 }
+    { connection: { url: redisUrl() }, concurrency: 3 }
   )
 }
 

@@ -1,14 +1,12 @@
 import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient } from "@/lib/gmail"
-import { type ExtractionJobData } from "@/lib/queues"
+import { redisUrl, type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
-
-const connection = { url: process.env.REDIS_URL! }
 
 export type GmailPart = {
   mimeType?: string | null
@@ -29,9 +27,30 @@ export function createInvoiceExtractWorker() {
     "extraction",
     async (job: Job<ExtractionJobData>) => {
       const { organizationId, gmailCredentialId, gmailMessageId } = job.data
-      return extractInvoice(organizationId, gmailCredentialId, gmailMessageId)
+
+      // Trust boundary: derive the org from the credential, not the job payload,
+      // so a tampered/mis-enqueued job can't file another mailbox's invoice under
+      // the wrong org. See the matching guard in the gmail-sync worker.
+      const credential = await prisma.gmailCredential.findUnique({
+        where: { id: gmailCredentialId },
+        select: { organizationId: true },
+      })
+      if (!credential) {
+        log.error("extract: credential not found; skipping job", { gmailCredentialId })
+        return { skipped: "credential-not-found" }
+      }
+      if (credential.organizationId !== organizationId) {
+        log.error("extract: job organizationId does not match credential; refusing", {
+          gmailCredentialId,
+          jobOrganizationId: organizationId,
+          credentialOrganizationId: credential.organizationId,
+        })
+        throw new Error("extract: job organizationId does not match credential")
+      }
+
+      return extractInvoice(credential.organizationId, gmailCredentialId, gmailMessageId)
     },
-    { connection, concurrency: 5 }
+    { connection: { url: redisUrl() }, concurrency: 5 }
   )
 }
 
