@@ -82,6 +82,9 @@ export async function loadInvoicesInRange(
       ],
     },
     orderBy: [{ invoiceDate: "desc" }, { emailDate: "desc" }],
+    // Hard cap: bounds memory/response size even if the range validation upstream
+    // is ever bypassed. 10k invoices is well beyond any real export selection.
+    take: 10_000,
     select: {
       id: true,
       vendorName: true,

@@ -15,6 +15,21 @@ export const PRESET_LABELS: Record<DateRangePreset, string> = {
   ytd: "Year to date",
 }
 
+// Thrown when a client-supplied custom {from,to} is unparseable, inverted, or
+// spans an unreasonable window. Callers catch this and return a 400 rather than
+// letting an `Invalid Date` reach Prisma (500) or a huge range drive a full scan.
+export class InvalidDateRangeError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "InvalidDateRangeError"
+  }
+}
+
+// Widest custom range we'll query. Generous (covers multi-year exports) but
+// bounded so a crafted `from=1900&to=3000` can't force an unbounded table scan.
+export const MAX_CUSTOM_RANGE_DAYS = 366 * 3
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
 // Resolve a preset (or a custom {from,to}) into a concrete range. `now` is
 // injected so this is deterministic and testable.
 export function resolveDateRange(
@@ -22,7 +37,18 @@ export function resolveDateRange(
   now: Date
 ): DateRange {
   if ("from" in scope) {
-    return { from: startOfDay(new Date(scope.from)), to: endOfDay(new Date(scope.to)) }
+    const from = startOfDay(new Date(scope.from))
+    const to = endOfDay(new Date(scope.to))
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+      throw new InvalidDateRangeError("from and to must be valid dates")
+    }
+    if (from.getTime() > to.getTime()) {
+      throw new InvalidDateRangeError("from must be on or before to")
+    }
+    if (to.getTime() - from.getTime() > MAX_CUSTOM_RANGE_DAYS * MS_PER_DAY) {
+      throw new InvalidDateRangeError(`date range too large (max ${MAX_CUSTOM_RANGE_DAYS} days)`)
+    }
+    return { from, to }
   }
   const to = endOfDay(now)
   switch (scope.preset) {

@@ -24,12 +24,26 @@ const INLINE_SAFE_TYPES = new Set([
 // This endpoint is opened in a new browser tab (target="_blank"), so a raw JSON
 // error would show as ugly, confusing text. Render a friendly fallback page
 // instead — and when Gmail needs re-authorizing, offer a Reconnect button.
+// heading/message are interpolated into HTML on the app's own origin, so escape
+// them. They're static literals today, but escaping keeps this safe if a caller
+// ever passes an attachment/vendor-derived string (→ reflected XSS otherwise).
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 function errorPage(
   status: number,
-  heading: string,
-  message: string,
+  headingRaw: string,
+  messageRaw: string,
   opts: { reconnect?: boolean } = {}
 ): NextResponse {
+  const heading = escapeHtml(headingRaw)
+  const message = escapeHtml(messageRaw)
   const action = opts.reconnect
     ? `<a class="btn" href="/api/gmail/connect">Reconnect Gmail</a>`
     : `<a class="btn" href="/settings">Go to settings</a>`
