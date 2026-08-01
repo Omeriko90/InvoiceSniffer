@@ -10,7 +10,7 @@ import { InvoicesTable } from "./InvoicesTable"
 import { InvoiceDetailDrawer } from "./InvoiceDetailDrawer"
 import { ExportDialog } from "./ExportDialog"
 import { DateRangeDialog } from "./DateRangeDialog"
-import { resolveInvoiceDateRange, type InvoiceDateScope } from "@/lib/invoice-date-filter"
+import { isPreset, resolveInvoiceDateRange, type InvoiceDateScope } from "@/lib/invoice-date-filter"
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
@@ -30,6 +30,21 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     }
     return Array.from(map, ([email, label]) => ({ email, label }))
   }, [invoices])
+
+  // The baseline (unfiltered) view: no search, all statuses/accounts, current
+  // month. "Clear all" resets to this and is disabled while already here.
+  const canClear =
+    search !== "" ||
+    statusFilter !== "all" ||
+    accountFilter !== "all" ||
+    !(isPreset(dateScope) && dateScope.preset === "thisMonth")
+
+  function clearAll() {
+    setSearch("")
+    setStatus("all")
+    setAccount("all")
+    setDateScope({ preset: "thisMonth" })
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -66,6 +81,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         dateScope={dateScope}
         onDateScopeChange={setDateScope}
         onOpenCustomDate={() => requestAnimationFrame(() => setCustomDateOpen(true))}
+        canClear={canClear}
+        onClearAll={clearAll}
         uiState={uiState}
         onUiStateChange={setUiState}
         count={filtered.length}

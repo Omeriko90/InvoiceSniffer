@@ -47,6 +47,8 @@ export function InvoicesToolbar({
   dateScope,
   onDateScopeChange,
   onOpenCustomDate,
+  canClear,
+  onClearAll,
   uiState,
   onUiStateChange,
   count,
@@ -62,6 +64,8 @@ export function InvoicesToolbar({
   dateScope: InvoiceDateScope
   onDateScopeChange: (scope: InvoiceDateScope) => void
   onOpenCustomDate: () => void
+  canClear: boolean
+  onClearAll: () => void
   uiState: UIState
   onUiStateChange: (value: UIState) => void
   count: number
@@ -150,6 +154,15 @@ export function InvoicesToolbar({
       <span className="text-[13px] font-[500] text-dim shrink-0">
         {count} detected
       </span>
+
+      <Button
+        variant="ghost"
+        onClick={onClearAll}
+        disabled={!canClear}
+        className="h-auto py-[8px] px-[10px] rounded-[10px] text-[13px] font-[600] text-text-secondary hover:bg-hover disabled:text-faint"
+      >
+        Clear all
+      </Button>
 
       <div className="ml-auto shrink-0">
         <DropdownMenu>
