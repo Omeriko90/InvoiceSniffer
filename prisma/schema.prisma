@@ -47,6 +47,15 @@ enum AliasType {
   IGNORE
 }
 
+// Why an invoice was removed from the user's list (soft-delete). The invoice's
+// own `status` is left untouched — a non-null `removedAt` is the removal signal.
+// NOT_AN_INVOICE is a human-labeled false positive (feeds classifier learning);
+// NOT_RELEVANT is a real invoice the user just doesn't want to see.
+enum RemovalReason {
+  NOT_RELEVANT
+  NOT_AN_INVOICE
+}
+
 enum AliasSource {
   USER
   SYSTEM_LEARNED
@@ -221,6 +230,10 @@ model Invoice {
   extractionConfidence Float            @default(0)
   status               InvoiceStatus    @default(DETECTED)
   anomalyFlag          Boolean          @default(false)
+  // Soft-delete: hidden from every list when removedAt is set. status is never
+  // changed on removal; removalReason records why (see RemovalReason). Cleared on undo.
+  removedAt            DateTime?
+  removalReason        RemovalReason?
   // Provenance from the reconcile session that matched this invoice: which CSV
   // it was reconciled against and when. Nullable — set on confirm/link, cleared
   // on undo. Powers the "reconciled against <file>" breadcrumb and collision
@@ -239,6 +252,7 @@ model Invoice {
   @@index([organizationId, emailDate])
   @@index([organizationId, vendorNormalized])
   @@index([organizationId, status])
+  @@index([organizationId, removedAt])
   @@index([gmailCredentialId])
 }
 

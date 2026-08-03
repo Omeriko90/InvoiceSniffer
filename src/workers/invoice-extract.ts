@@ -59,13 +59,14 @@ async function extractInvoice(
   gmailCredentialId: string,
   gmailMessageId: string
 ) {
-  // Never overwrite an invoice the user explicitly marked "not an invoice"
+  // Never resurrect or overwrite an invoice the user removed ("not an invoice" or
+  // "not relevant"). removedAt is the removal signal — status is left untouched.
   const existing = await prisma.invoice.findUnique({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
-    select: { id: true, status: true },
+    select: { id: true, removedAt: true },
   })
-  if (existing?.status === "IGNORED") {
-    return { invoiceId: existing.id, skipped: "ignored_by_user" }
+  if (existing?.removedAt) {
+    return { invoiceId: existing.id, skipped: "removed_by_user" }
   }
 
   log.info("extract: extracting invoice from email", { gmailMessageId })
