@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,6 +31,8 @@ import { fmtAmount, fmtSize, toDraft } from "./helpers"
 import type { InvoiceRow } from "./types"
 import { VendorCell } from "./VendorCell"
 import { StatusBadge } from "./StatusBadge"
+import { CategoryBadge } from "./CategoryBadge"
+import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
 
 export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   invoice: InvoiceRow
@@ -35,6 +44,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   const remove = useRemoveInvoice(() => router.refresh())
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
+  const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(invoice.category)
   // Which removal is awaiting confirmation (null = dialog closed), and whether
   // the user opted to also mute the sender (only offered for "not relevant").
   const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(null)
@@ -83,6 +93,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       totalAmount: draft.totalAmount.trim(),
       invoiceDate: draft.invoiceDate || null,
       dueDate: draft.dueDate || null,
+      category: categoryDraft,
     }
     update.mutate(
       { id: invoice.id, data },
@@ -96,6 +107,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             totalAmount: data.totalAmount,
             invoiceDate: data.invoiceDate ? new Date(data.invoiceDate).toISOString() : null,
             dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+            category: data.category,
           })
           router.refresh()
         },
@@ -130,6 +142,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             {fmtAmount(invoice.totalAmount, invoice.currency)}
           </span>
           <StatusBadge status={status} />
+          <CategoryBadge category={invoice.category} />
         </div>
         <p className="text-[12.5px] text-[#94A3B8] mb-6">
           Extraction confidence: {pct}%
@@ -166,6 +179,24 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               />
             </div>
           ))}
+          {/* Category */}
+          <div className="flex flex-col gap-[5px]">
+            <Label className="text-[12px] font-[600] text-[#64748B]">Category</Label>
+            <Select
+              items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+              value={categoryDraft}
+              onValueChange={(v) => setCategoryDraft(v as InvoiceCategory)}
+            >
+              <SelectTrigger className="h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_SELECTABLE.map((c) => (
+                  <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         ) : (
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
@@ -280,6 +311,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               disabled={update.isPending}
               onClick={() => {
                 setDraft(toDraft(invoice))
+                setCategoryDraft(invoice.category)
                 setEditing(false)
               }}
             >

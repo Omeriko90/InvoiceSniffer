@@ -1,9 +1,12 @@
+import type { InvoiceCategory } from "@/lib/invoice-categories"
+
 export type UpdateInvoicePayload = {
   vendorName?: string | null
   invoiceNumber?: string | null
   totalAmount?: string
   invoiceDate?: string | null
   dueDate?: string | null
+  category?: InvoiceCategory
 }
 
 export type RemovalReason = "NOT_RELEVANT" | "NOT_AN_INVOICE"

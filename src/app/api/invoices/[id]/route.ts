@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 import { z } from "zod"
+import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 
 const MAX_TEXT = 500
 const MAX_AMOUNT = 1e12 // generous per-invoice ceiling; blocks storage/overflow abuse
@@ -28,6 +29,7 @@ const patchSchema = z
       .refine((s) => Number(s) < MAX_AMOUNT, "Amount too large"),
     invoiceDate: dateField,
     dueDate: dateField,
+    category: z.enum(INVOICE_CATEGORIES),
   })
   .partial()
   .strict()
@@ -67,6 +69,9 @@ export async function PATCH(
   }
   if (p.dueDate !== undefined) {
     data.dueDate = p.dueDate === null ? null : new Date(p.dueDate)
+  }
+  if (p.category !== undefined) {
+    data.category = p.category
   }
 
   if (Object.keys(data).length === 0) {

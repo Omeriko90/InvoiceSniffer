@@ -5,9 +5,10 @@ import { useDashboard } from "@/hooks/useDashboard"
 import { StatRow } from "@/components/dashboard/StatRow"
 import { ReconciliationCard } from "@/components/dashboard/ReconciliationCard"
 import { RecentAlertsCard } from "@/components/dashboard/RecentAlertsCard"
+import { CategorySpend } from "@/components/dashboard/CategorySpend"
 
 export default function DashboardPage() {
-  const { data: dashboardData = { unmatched: 0, possible: 0, matched: 0, matchedDelta: 0, alerts: 0, criticalAlerts: 0, rec: { total: 0, matched: 0, possible: 0, missing: 0, noInvoice: 0 }, recentAlerts: [], monthLabel: "" }, isPending } = useDashboard()
+  const { data: dashboardData = { unmatched: 0, possible: 0, matched: 0, matchedDelta: 0, alerts: 0, criticalAlerts: 0, rec: { total: 0, matched: 0, possible: 0, missing: 0, noInvoice: 0 }, spendByCategory: [], recentAlerts: [], monthLabel: "" }, isPending } = useDashboard()
 
   if( isPending ) return <DashboardSkeleton />
   return (
@@ -31,6 +32,11 @@ export default function DashboardPage() {
         />
         <RecentAlertsCard alerts={dashboardData?.recentAlerts} />
       </div>
+
+      <CategorySpend
+        rows={dashboardData?.spendByCategory ?? []}
+        monthLabel={dashboardData?.monthLabel}
+      />
 
     </div>
   )
