@@ -47,6 +47,22 @@ enum AliasType {
   IGNORE
 }
 
+// Business expense categories. Fixed set (not user-editable) kept in lockstep
+// with src/lib/invoice-categories.ts, which is the source of truth for labels,
+// colors and validation. UNCATEGORIZED is the default and the fail-open value
+// when the LLM categorizer is disabled or unsure.
+enum InvoiceCategory {
+  MARKETING
+  EQUIPMENT
+  SOFTWARE
+  TRAVEL
+  OFFICE_SUPPLIES
+  PROFESSIONAL_SERVICES
+  UTILITIES
+  OTHER
+  UNCATEGORIZED
+}
+
 // Why an invoice was removed from the user's list (soft-delete). The invoice's
 // own `status` is left untouched — a non-null `removedAt` is the removal signal.
 // NOT_AN_INVOICE is a human-labeled false positive (feeds classifier learning);
@@ -229,6 +245,9 @@ model Invoice {
   extractionMethod     ExtractionMethod @default(HEURISTIC)
   extractionConfidence Float            @default(0)
   status               InvoiceStatus    @default(DETECTED)
+  // Business expense category. Auto-assigned at ingest by the LLM categorizer
+  // (llm-categorizer.ts) and overridable by the user; UNCATEGORIZED until set.
+  category             InvoiceCategory  @default(UNCATEGORIZED)
   anomalyFlag          Boolean          @default(false)
   // Soft-delete: hidden from every list when removedAt is set. status is never
   // changed on removal; removalReason records why (see RemovalReason). Cleared on undo.
@@ -253,6 +272,9 @@ model Invoice {
   @@index([organizationId, vendorNormalized])
   @@index([organizationId, status])
   @@index([organizationId, removedAt])
+  // Serves both the invoices-list category filter and the dashboard's
+  // date-scoped spend-by-category group-by.
+  @@index([organizationId, category, emailDate])
   @@index([gmailCredentialId])
 }
 

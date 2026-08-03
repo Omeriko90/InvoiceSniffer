@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { STATUS_OPTIONS } from "./constants"
+import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import type { UIState } from "./types"
 import type { ExportFormat } from "@/api/exports"
 import {
@@ -26,6 +27,11 @@ import {
   isPreset,
   type InvoiceDateScope,
 } from "@/lib/invoice-date-filter"
+
+const CATEGORY_OPTIONS = [
+  { value: "all", label: "All categories" },
+  ...INVOICE_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] })),
+]
 
 function dateScopeLabel(scope: InvoiceDateScope): string {
   if (isPreset(scope)) return INVOICE_DATE_PRESET_LABELS[scope.preset]
@@ -41,6 +47,8 @@ export function InvoicesToolbar({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  categoryFilter,
+  onCategoryChange,
   accountFilter,
   onAccountChange,
   accounts,
@@ -58,6 +66,8 @@ export function InvoicesToolbar({
   onSearchChange: (value: string) => void
   statusFilter: string
   onStatusChange: (value: string) => void
+  categoryFilter: string
+  onCategoryChange: (value: string) => void
   accountFilter: string
   onAccountChange: (value: string) => void
   accounts: { email: string; label: string }[]
@@ -102,6 +112,25 @@ export function InvoicesToolbar({
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      </div>
+
+      {/* Category filter */}
+      <div className="relative flex items-center gap-2">
+      <span className="text-sm font-medium text-text-primary">Category:</span>
+      <Select
+        items={CATEGORY_OPTIONS}
+        value={categoryFilter}
+        onValueChange={(v) => onCategoryChange(v as string)}
+      >
+        <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="w-fit min-w-(--anchor-width)">
+          {CATEGORY_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
           ))}
         </SelectContent>

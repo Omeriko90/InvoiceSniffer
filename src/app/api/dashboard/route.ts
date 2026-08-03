@@ -21,6 +21,7 @@ export async function GET() {
     alertCount,
     criticalAlertCount,
     invoicesByStatus,
+    invoicesByCategory,
     recentAlerts,
   ] = await Promise.all([
     prisma.invoice.count({ where: { organizationId, status: "UNMATCHED", emailDate: { gte: monthStart, lte: monthEnd } } }),
@@ -34,6 +35,20 @@ export async function GET() {
       where: { organizationId, status: { not: "IGNORED" }, emailDate: { gte: monthStart, lte: monthEnd } },
       _count: true,
     }),
+    // Spend by category for the current month. Grouped by category AND currency
+    // so mixed-currency orgs aren't summed into a meaningless total. Excludes
+    // soft-deleted and IGNORED invoices to match every other list/aggregate.
+    prisma.invoice.groupBy({
+      by: ["category", "currency"],
+      where: {
+        organizationId,
+        removedAt: null,
+        status: { not: "IGNORED" },
+        emailDate: { gte: monthStart, lte: monthEnd },
+      },
+      _sum: { totalAmount: true },
+      _count: true,
+    }),
     prisma.anomalyLog.findMany({
       where: { organizationId, acknowledged: false },
       orderBy: { createdAt: "desc" },
@@ -44,6 +59,19 @@ export async function GET() {
 
   const byStatus = Object.fromEntries(invoicesByStatus.map((r) => [r.status, r._count]))
   const total    = invoicesByStatus.reduce((s, r) => s + r._count, 0) || 1
+
+  // Flatten the (category, currency) groups into rows the dashboard renders
+  // directly. UNCATEGORIZED is dropped from the headline breakdown. Sorted by
+  // spend desc so the biggest expense types lead.
+  const spendByCategory = invoicesByCategory
+    .filter((r) => r.category !== "UNCATEGORIZED")
+    .map((r) => ({
+      category: r.category,
+      currency: r.currency,
+      total: Number(r._sum.totalAmount ?? 0),
+      count: r._count,
+    }))
+    .sort((a, b) => b.total - a.total)
 
   return Response.json({
     unmatched:      unmatchedCount,
@@ -59,6 +87,7 @@ export async function GET() {
       missing:   byStatus["UNMATCHED"] ?? 0,
       noInvoice: byStatus["REVIEWED"]  ?? 0,
     },
+    spendByCategory,
     recentAlerts: recentAlerts.map((a) => ({
       id:        a.id,
       type:      a.type,

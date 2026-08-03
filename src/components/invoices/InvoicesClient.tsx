@@ -15,6 +15,7 @@ import { isPreset, resolveInvoiceDateRange, type InvoiceDateScope } from "@/lib/
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
   const [statusFilter, setStatus]   = useState<string>("all")
+  const [categoryFilter, setCategory] = useState<string>("all")
   const [accountFilter, setAccount] = useState<string>("all")
   const [dateScope, setDateScope]   = useState<InvoiceDateScope>({ preset: "thisMonth" })
   const [customDateOpen, setCustomDateOpen] = useState(false)
@@ -36,12 +37,14 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const canClear =
     search !== "" ||
     statusFilter !== "all" ||
+    categoryFilter !== "all" ||
     accountFilter !== "all" ||
     !(isPreset(dateScope) && dateScope.preset === "thisMonth")
 
   function clearAll() {
     setSearch("")
     setStatus("all")
+    setCategory("all")
     setAccount("all")
     setDateScope({ preset: "thisMonth" })
   }
@@ -57,6 +60,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         inv.totalAmount.includes(q)
       const matchStatus =
         statusFilter === "all" || inv.status === statusFilter
+      const matchCategory =
+        categoryFilter === "all" || inv.category === categoryFilter
       const matchAccount =
         accountFilter === "all" || inv.sourceAccount?.email === accountFilter
       const matchDate = (() => {
@@ -64,9 +69,9 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         const d = new Date(inv.emailDate)
         return d >= range.from && d <= range.to
       })()
-      return matchSearch && matchStatus && matchAccount && matchDate
+      return matchSearch && matchStatus && matchCategory && matchAccount && matchDate
     })
-  }, [invoices, search, statusFilter, accountFilter, dateScope])
+  }, [invoices, search, statusFilter, categoryFilter, accountFilter, dateScope])
 
   return (
     <div className="flex flex-col gap-4">
@@ -75,6 +80,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusChange={setStatus}
+        categoryFilter={categoryFilter}
+        onCategoryChange={setCategory}
         accountFilter={accountFilter}
         onAccountChange={setAccount}
         accounts={accounts}

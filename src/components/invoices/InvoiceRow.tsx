@@ -6,6 +6,7 @@ import type { InvoiceRow as InvoiceRowType } from "./types"
 import { VendorCell } from "./VendorCell"
 import { ConfidenceCell } from "./ConfidenceCell"
 import { StatusBadge } from "./StatusBadge"
+import { CategoryBadge } from "./CategoryBadge"
 import { GmailLinkButton } from "./GmailLinkButton"
 
 export function InvoiceRow({ invoice, onSelect }: {
@@ -48,6 +49,11 @@ export function InvoiceRow({ invoice, onSelect }: {
       {/* Status */}
       <div>
         <StatusBadge status={status} />
+      </div>
+
+      {/* Category */}
+      <div className="min-w-0">
+        <CategoryBadge category={invoice.category} />
       </div>
 
       {/* Gmail link */}
