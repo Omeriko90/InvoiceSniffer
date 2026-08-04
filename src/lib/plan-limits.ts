@@ -12,3 +12,16 @@ export const MAX_GMAIL_ACCOUNTS: Record<PlanTier, number> = {
 export function maxGmailAccounts(tier: PlanTier): number {
   return MAX_GMAIL_ACCOUNTS[tier]
 }
+
+// Max number of *connected* accounting-platform integrations (Morning, Xero, …)
+// an org may have, by plan tier. Same soft-disconnect semantics as Gmail: a
+// disconnected credential does not count, so reconnecting never trips the limit.
+export const MAX_INTEGRATIONS: Record<PlanTier, number> = {
+  FREE: 1,
+  PRO: 5,
+  BUSINESS: 25,
+}
+
+export function maxIntegrations(tier: PlanTier): number {
+  return MAX_INTEGRATIONS[tier]
+}

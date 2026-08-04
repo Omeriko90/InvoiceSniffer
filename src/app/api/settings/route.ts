@@ -2,8 +2,9 @@ import { auth } from "@/lib/auth"
 import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { listGmailCredentialStatuses } from "@/lib/gmail"
-import { maxGmailAccounts } from "@/lib/plan-limits"
+import { maxGmailAccounts, maxIntegrations } from "@/lib/plan-limits"
 import { MIN_SETTLEMENT_LAG_DAYS, MAX_SETTLEMENT_LAG_DAYS } from "@/lib/matching"
+import { providerCatalog, providerCapabilities } from "@/lib/integrations/registry"
 import { NextResponse } from "next/server"
 
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
 
   const { organizationId } = session.user
 
-  const [credentials, members, rules, org] = await Promise.all([
+  const [credentials, members, rules, org, integrationCreds] = await Promise.all([
     listGmailCredentialStatuses(organizationId),
     prisma.user.findMany({
       where: { organizationId },
@@ -28,6 +29,18 @@ export async function GET() {
       where: { id: organizationId },
       select: { settlementLagDays: true, planTier: true },
     }),
+    prisma.integrationCredential.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        provider: true,
+        label: true,
+        connected: true,
+        direction: true,
+        lastPulledAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
   ])
 
   return Response.json({
@@ -42,6 +55,21 @@ export async function GET() {
     rules,
     settlementLagDays: org?.settlementLagDays ?? 30,
     maxGmailAccounts: org ? maxGmailAccounts(org.planTier) : 0,
+    // Accounting integrations: the connectable-provider catalog plus this org's
+    // connected accounts (with each connector's real Pull/Push capabilities).
+    integrations: {
+      catalog: providerCatalog(),
+      connected: integrationCreds.map((c) => ({
+        id: c.id,
+        provider: c.provider,
+        label: c.label,
+        connected: c.connected,
+        direction: c.direction,
+        lastPulledAt: c.lastPulledAt,
+        capabilities: providerCapabilities(c.provider),
+      })),
+      maxIntegrations: org ? maxIntegrations(org.planTier) : 0,
+    },
   })
 }
 
