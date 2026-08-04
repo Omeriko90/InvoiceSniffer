@@ -88,6 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = user.id
         session.user.organizationId = user.organizationId
         session.user.role = user.role
+        session.user.language = user.language
       }
       return session
     },
