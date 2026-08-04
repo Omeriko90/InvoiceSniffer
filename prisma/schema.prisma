@@ -24,6 +24,25 @@ enum ExtractionMethod {
   HEURISTIC
   AI
   MANUAL
+  // Structured data pulled directly from an accounting-platform API
+  // (src/lib/integrations) — no heuristic/vision extraction was needed.
+  API
+}
+
+// Where an invoice originated. GMAIL is the legacy default (every pre-migration
+// row); the rest are accounting-platform connectors (src/lib/integrations). Kept
+// in lockstep with the InvoiceSource used on IntegrationCredential.provider.
+enum InvoiceSource {
+  GMAIL
+  MORNING
+  XERO
+  ICOUNT
+  QUICKBOOKS
+  FRESHBOOKS
+  SUMIT
+  BIZIBOX
+  TAKZIVIT
+  PAPERLESS
 }
 
 enum DocumentType {
@@ -142,17 +161,18 @@ model Organization {
   settlementLagDays Int      @default(30)
   createdAt         DateTime @default(now())
 
-  users                 User[]
-  gmailCredentials      GmailCredential[]
-  invoices              Invoice[]
-  vendorAliases         VendorAlias[]
-  vendorStats           VendorStats[]
-  anomalyLogs           AnomalyLog[]
-  exportJobs            ExportJob[]
-  transactions          Transaction[]
-  csvMappings           CsvMapping[]
-  classificationBatches ClassificationBatch[]
-  fixedExpenses         FixedExpense[]
+  users                  User[]
+  gmailCredentials       GmailCredential[]
+  integrationCredentials IntegrationCredential[]
+  invoices               Invoice[]
+  vendorAliases          VendorAlias[]
+  vendorStats            VendorStats[]
+  anomalyLogs            AnomalyLog[]
+  exportJobs             ExportJob[]
+  transactions           Transaction[]
+  csvMappings            CsvMapping[]
+  classificationBatches  ClassificationBatch[]
+  fixedExpenses          FixedExpense[]
 }
 
 model User {
@@ -233,65 +253,153 @@ model GmailCredential {
   @@unique([organizationId, email])
 }
 
+// ─── Accounting-platform integrations ─────────────────────
+
+// A connected accounting/invoicing platform account (Morning, Xero, iCount, …).
+// The provider-agnostic analog of GmailCredential: one row per connected account,
+// with all secrets in a single AES-256-GCM encrypted blob. See src/lib/integrations.
+model IntegrationCredential {
+  id                String        @id @default(cuid())
+  organizationId    String
+  provider          InvoiceSource // never GMAIL here — that lives on GmailCredential
+  label             String? // user-facing display name; falls back to the provider name
+  // Provider account identity: Xero tenantId, Morning business id, etc. Part of
+  // the uniqueness key so the same org can connect two accounts of one provider.
+  externalAccountId String?
+  authKind          String // 'oauth2' | 'apiKey'
+  // AES-256-GCM encrypted JSON (src/lib/encryption). Shape depends on authKind:
+  //   oauth2 -> { accessToken, refreshToken, expiresAt }
+  //   apiKey -> { id, secret, jwt?, jwtExpires? }
+  secrets           String
+  config            Json          @default("{}") // non-secret provider config
+  connected         Boolean       @default(true) // false = soft-disconnected (history kept)
+  // What the user wants this account to do, clamped to the connector's
+  // capabilities: 'PULL' (import expenses), 'PUSH' (export bookkeeping), 'BOTH'.
+  direction         String        @default("BOTH")
+  pullCursor        String? // incremental sync cursor (provider-specific)
+  lastPulledAt      DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+  syncs        InvoiceSync[]
+  categoryMaps IntegrationCategoryMap[]
+
+  @@unique([organizationId, provider, externalAccountId])
+  @@index([organizationId])
+}
+
+// PUSH ledger: records which invoices were exported to which integration, so a
+// re-push is a no-op (idempotency) and failures are surfaced. One row per
+// (invoice, integration).
+model InvoiceSync {
+  id                      String    @id @default(cuid())
+  invoiceId               String
+  integrationCredentialId String
+  externalId              String? // id the provider returned when it created the record
+  status                  String    @default("PENDING") // PENDING | SYNCED | FAILED
+  lastError               String?
+  syncedAt                DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  invoice    Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  credential IntegrationCredential @relation(fields: [integrationCredentialId], references: [id], onDelete: Cascade)
+
+  @@unique([invoiceId, integrationCredentialId])
+  @@index([integrationCredentialId, status])
+}
+
+// Maps our fixed InvoiceCategory enum to a provider's own chart-of-accounts /
+// expense-category id, per connected account. Unmapped categories fall back to
+// the provider default on push (v1 — a mapping UI comes later).
+model IntegrationCategoryMap {
+  id                      String          @id @default(cuid())
+  integrationCredentialId String
+  invoiceCategory         InvoiceCategory
+  externalCategoryId      String
+
+  credential IntegrationCredential @relation(fields: [integrationCredentialId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationCredentialId, invoiceCategory])
+}
+
 // ─── Invoices ─────────────────────────────────────────────
 
 model Invoice {
-  id                   String           @id @default(cuid())
-  organizationId       String
-  gmailCredentialId    String? // source mailbox; nullable only for pre-migration orphans
-  gmailMessageId       String
-  gmailThreadId        String
-  gmailLink            String
-  senderEmail          String
-  senderName           String?
-  subject              String
-  emailDate            DateTime
-  vendorName           String?
-  vendorNormalized     String?
-  invoiceNumber        String?
-  allocationNumber     String? // Israeli Tax Authority clearance id (מספר הקצאה); LLM-only
-  vendorTaxId          String? // business id (ח.פ. / ע.מ. / VAT); LLM-only
-  documentType         DocumentType     @default(UNKNOWN)
-  invoiceDate          DateTime?
-  dueDate              DateTime?
-  totalAmount          Decimal          @db.Decimal(12, 2)
-  currency             String           @default("USD")
-  taxAmount            Decimal?         @db.Decimal(12, 2)
-  lineItems            Json             @default("[]")
-  attachmentMeta       Json             @default("[]")
-  receiptUrl           String?
-  extractionMethod     ExtractionMethod @default(HEURISTIC)
-  extractionConfidence Float            @default(0)
-  status               InvoiceStatus    @default(DETECTED)
+  id                      String           @id @default(cuid())
+  organizationId          String
+  // Where this invoice came from. Defaults to GMAIL so every pre-migration row
+  // is correct without a data change; accounting-platform pulls set MORNING/XERO/…
+  source                  InvoiceSource    @default(GMAIL)
+  // Set when the invoice was pulled from an accounting platform; null for Gmail
+  // and manual invoices. Cleared (SetNull) if the integration is deleted.
+  integrationCredentialId String?
+  // Provider's own document id + a deep link back to it. For GMAIL rows these are
+  // backfilled from gmailMessageId / gmailLink so the cross-source dedup key below
+  // is populated for every row.
+  externalId              String?
+  externalRef             String?
+  gmailCredentialId       String? // source mailbox; nullable only for pre-migration orphans
+  gmailMessageId          String? // Gmail-only; null for API/manual sources
+  gmailThreadId           String? // Gmail-only; null for API/manual sources
+  gmailLink               String? // Gmail-only; null for API/manual sources
+  senderEmail             String
+  senderName              String?
+  subject                 String
+  emailDate               DateTime
+  vendorName              String?
+  vendorNormalized        String?
+  invoiceNumber           String?
+  allocationNumber        String? // Israeli Tax Authority clearance id (מספר הקצאה); LLM-only
+  vendorTaxId             String? // business id (ח.פ. / ע.מ. / VAT); LLM-only
+  documentType            DocumentType     @default(UNKNOWN)
+  invoiceDate             DateTime?
+  dueDate                 DateTime?
+  totalAmount             Decimal          @db.Decimal(12, 2)
+  currency                String           @default("USD")
+  taxAmount               Decimal?         @db.Decimal(12, 2)
+  lineItems               Json             @default("[]")
+  attachmentMeta          Json             @default("[]")
+  receiptUrl              String?
+  extractionMethod        ExtractionMethod @default(HEURISTIC)
+  extractionConfidence    Float            @default(0)
+  status                  InvoiceStatus    @default(DETECTED)
   // Business expense category. Auto-assigned at ingest by the LLM categorizer
   // (llm-categorizer.ts) and overridable by the user; UNCATEGORIZED until set.
-  category             InvoiceCategory  @default(UNCATEGORIZED)
-  anomalyFlag          Boolean          @default(false)
+  category                InvoiceCategory  @default(UNCATEGORIZED)
+  anomalyFlag             Boolean          @default(false)
   // Soft-delete: hidden from every list when removedAt is set. status is never
   // changed on removal; removalReason records why (see RemovalReason). Cleared on undo.
-  removedAt            DateTime?
-  removalReason        RemovalReason?
+  removedAt               DateTime?
+  removalReason           RemovalReason?
   // Set when this invoice satisfies a fixed expense for its period — the single
   // source of truth for arrival tracking. Assigned inline by the ingest linker
   // (invoice-extract.ts) on vendor/sender match, or manually from the drawer.
   // Cleared automatically if the fixed expense is deleted (onDelete: SetNull).
-  fixedExpenseId       String?
+  fixedExpenseId          String?
   // Provenance from the reconcile session that matched this invoice: which CSV
   // it was reconciled against and when. Nullable — set on confirm/link, cleared
   // on undo. Powers the "reconciled against <file>" breadcrumb and collision
   // warnings when a later session re-matches an already-reconciled invoice.
-  reconciledSourceFile String?
-  reconciledAt         DateTime?
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  reconciledSourceFile    String?
+  reconciledAt            DateTime?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
 
-  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  gmailCredential GmailCredential? @relation(fields: [gmailCredentialId], references: [id], onDelete: SetNull)
-  fixedExpense    FixedExpense?    @relation(fields: [fixedExpenseId], references: [id], onDelete: SetNull)
-  anomalyLogs     AnomalyLog[]
-  transactions    Transaction[]
+  organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  gmailCredential       GmailCredential?       @relation(fields: [gmailCredentialId], references: [id], onDelete: SetNull)
+  integrationCredential IntegrationCredential? @relation(fields: [integrationCredentialId], references: [id], onDelete: SetNull)
+  fixedExpense          FixedExpense?          @relation(fields: [fixedExpenseId], references: [id], onDelete: SetNull)
+  anomalyLogs           AnomalyLog[]
+  transactions          Transaction[]
+  syncs                 InvoiceSync[]
 
   @@unique([organizationId, gmailMessageId])
+  // Cross-source dedup: one invoice per (org, source, provider document id).
+  // Populated for GMAIL rows via backfill (externalId = gmailMessageId).
+  @@unique([organizationId, source, externalId])
   @@index([organizationId, emailDate])
   @@index([organizationId, vendorNormalized])
   @@index([organizationId, status])
@@ -302,6 +410,7 @@ model Invoice {
   // Powers the fixed-expense detail drawer's per-period invoice lookup.
   @@index([organizationId, fixedExpenseId])
   @@index([gmailCredentialId])
+  @@index([integrationCredentialId])
 }
 
 // ─── Fixed expenses ───────────────────────────────────────

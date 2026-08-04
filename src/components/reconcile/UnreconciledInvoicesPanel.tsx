@@ -57,7 +57,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
             {format(new Date(inv.date), "MMM d, yyyy")}
           </span>
           <a
-            href={inv.gmailLink}
+            href={inv.gmailLink ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-[5px] text-[12.5px] font-[600] text-[#3B6FE0] hover:underline justify-end"

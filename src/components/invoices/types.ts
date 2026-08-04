@@ -22,7 +22,7 @@ export type InvoiceRow = {
   extractionConfidence: number
   status: InvoiceStatus
   category: InvoiceCategory
-  gmailLink: string
+  gmailLink: string | null // null for non-Gmail (API-sourced) invoices
   senderEmail: string
   senderName: string | null
   subject: string

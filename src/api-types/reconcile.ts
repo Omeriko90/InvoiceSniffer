@@ -14,7 +14,7 @@ export type MatchInvoice = {
   date: string
   dueDate: string | null
   senderEmail: string
-  gmailLink: string
+  gmailLink: string | null
   status: string
   reconciledSourceFile: string | null
   reconciledAt: string | null
@@ -90,7 +90,7 @@ export type CandidateResult = {
   date: string
   dueDate: string | null
   senderEmail: string
-  gmailLink: string
+  gmailLink: string | null
   status: string
   confidence: number | null
   reason: string

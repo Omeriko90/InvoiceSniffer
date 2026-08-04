@@ -41,6 +41,11 @@ export const gmailSyncQueue = lazyQueue("gmail-sync")
 export const extractionQueue = lazyQueue("extraction")
 export const anomalyQueue = lazyQueue("anomaly")
 export const exportQueue = lazyQueue("exports")
+// Accounting-platform integrations (src/lib/integrations): pull expenses in,
+// push reconciled invoices out. One credential per job; direction is enforced
+// by the worker against the credential + connector capabilities.
+export const integrationPullQueue = lazyQueue("integration-pull")
+export const integrationPushQueue = lazyQueue("integration-push")
 
 export type GmailSyncJobData = {
   organizationId: string
@@ -62,4 +67,16 @@ export type AnomalyJobData = {
 export type ExportJobData = {
   exportJobId: string
   organizationId: string
+}
+
+export type IntegrationPullJobData = {
+  organizationId: string
+  integrationCredentialId: string
+  mode: "full" | "incremental"
+}
+
+export type IntegrationPushJobData = {
+  organizationId: string
+  integrationCredentialId: string
+  invoiceIds: string[]
 }
