@@ -29,6 +29,9 @@ export type InvoiceRow = {
   attachmentMeta: AttachmentMeta[]
   receiptUrl: string | null
   sourceAccount: { email: string; label: string | null } | null
+  // Set when this invoice is linked to a fixed expense — drives the drawer's
+  // "Fixed expense · {name}" indication.
+  fixedExpense: { id: string; name: string } | null
 }
 
 export type StatusMeta = { label: string; bg: string; color: string }

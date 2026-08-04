@@ -6,6 +6,7 @@ import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-det
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
 import { categorizerEnabled, categorizeInvoice } from "@/lib/llm-categorizer"
 import type { InvoiceCategory } from "@/lib/invoice-categories"
+import { linkInvoiceToMatchingFixedExpense } from "@/lib/link-fixed-expense"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
@@ -236,6 +237,19 @@ async function extractInvoice(
       extractionConfidence: extracted.confidence,
     },
   })
+
+  // Link to a matching fixed expense (arrival tracking) inline, so "has this
+  // period's invoice arrived?" is answered as a natural consequence of ingestion
+  // rather than a separate job. Best-effort — a failure here must never fail the
+  // extraction. No-ops when the invoice is already linked or nothing matches.
+  try {
+    await linkInvoiceToMatchingFixedExpense(invoice)
+  } catch (err) {
+    log.warn("extract: fixed-expense link failed", {
+      gmailMessageId,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
 
   // NOTE: anomaly detection is not implemented yet — there is no detector and
   // no anomaly worker, so enqueuing `anomaly:check` here only piled unconsumed

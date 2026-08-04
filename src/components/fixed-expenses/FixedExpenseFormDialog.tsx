@@ -1,0 +1,301 @@
+// Client component by import — rendered from <FixedExpensesClient> and the
+// invoice drawer (both are client entries). Shared create/edit form for a fixed
+// expense; in the drawer flow it's pre-filled from an invoice and links it on save.
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { format } from "date-fns"
+import {
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useCreateFixedExpense } from "@/hooks/useCreateFixedExpense"
+import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
+import {
+  CATEGORY_LABELS,
+  CATEGORY_SELECTABLE,
+  INVOICE_CATEGORIES,
+  type InvoiceCategory,
+} from "@/lib/invoice-categories"
+import { FIXED_EXPENSE_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
+import type { FixedExpenseRow } from "./types"
+
+const schema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").max(200),
+    category: z.enum(INVOICE_CATEGORIES),
+    vendorName: z.string().trim().max(200),
+    senderEmail: z.string().trim().max(200),
+    gmailCredentialId: z.string(),
+    expectedAmount: z.string().trim(),
+    currency: z.string().trim().min(1).max(8),
+    frequency: z.enum(FIXED_EXPENSE_FREQUENCIES),
+    anchorDate: z.string().min(1, "Pick a start date"),
+    gracePeriodDays: z.string(),
+  })
+  .refine((v) => v.vendorName.trim() !== "" || v.senderEmail.trim() !== "", {
+    message: "Add a vendor name or a sender email so we can match invoices",
+    path: ["vendorName"],
+  })
+  .refine((v) => v.senderEmail.trim() === "" || z.string().email().safeParse(v.senderEmail).success, {
+    message: "Enter a valid email",
+    path: ["senderEmail"],
+  })
+  .refine((v) => v.expectedAmount.trim() === "" || /^\d+(\.\d{1,4})?$/.test(v.expectedAmount.trim()), {
+    message: "Enter a valid amount",
+    path: ["expectedAmount"],
+  })
+
+type FormValues = z.infer<typeof schema>
+
+const fieldLabel = "text-[12px] font-[600] text-text-secondary"
+const fieldInput =
+  "h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-border rounded-[9px]"
+const fieldTrigger = `${fieldInput} w-full justify-between`
+
+export function FixedExpenseFormDialog({
+  expense,
+  prefill,
+  linkInvoiceId,
+  mailboxes,
+  onClose,
+  onSaved,
+}: {
+  // Present → edit mode. Absent → create mode.
+  expense?: FixedExpenseRow
+  // Create-mode seed (e.g. from the invoice drawer).
+  prefill?: Partial<FormValues>
+  linkInvoiceId?: string
+  mailboxes: { id: string; label: string }[]
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const create = useCreateFixedExpense()
+  const update = useUpdateFixedExpense()
+  const isEdit = Boolean(expense)
+  const pending = create.isPending || update.isPending
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: expense
+      ? {
+          name: expense.name,
+          category: expense.category,
+          vendorName: expense.vendorName ?? "",
+          senderEmail: expense.senderEmail ?? "",
+          gmailCredentialId: expense.gmailCredentialId ?? "",
+          expectedAmount: expense.expectedAmount ?? "",
+          currency: expense.currency,
+          frequency: expense.frequency,
+          anchorDate: expense.anchorDate.slice(0, 10),
+          gracePeriodDays: String(expense.gracePeriodDays),
+        }
+      : {
+          name: prefill?.name ?? "",
+          category: prefill?.category ?? "UNCATEGORIZED",
+          vendorName: prefill?.vendorName ?? "",
+          senderEmail: prefill?.senderEmail ?? "",
+          gmailCredentialId: prefill?.gmailCredentialId ?? "",
+          expectedAmount: prefill?.expectedAmount ?? "",
+          currency: prefill?.currency ?? "USD",
+          frequency: prefill?.frequency ?? "MONTHLY",
+          anchorDate: prefill?.anchorDate ?? format(new Date(), "yyyy-MM-dd"),
+          gracePeriodDays: prefill?.gracePeriodDays ?? "5",
+        },
+  })
+
+  function onSubmit(v: FormValues) {
+    const base = {
+      name: v.name.trim(),
+      category: v.category,
+      vendorName: v.vendorName.trim() || null,
+      senderEmail: v.senderEmail.trim() || null,
+      gmailCredentialId: v.gmailCredentialId || null,
+      expectedAmount: v.expectedAmount.trim() || null,
+      currency: v.currency.trim(),
+      frequency: v.frequency,
+      anchorDate: v.anchorDate,
+      gracePeriodDays: Number(v.gracePeriodDays) || 0,
+    }
+
+    if (expense) {
+      update.mutate(
+        { id: expense.id, data: base },
+        { onSuccess: () => { onSaved(); onClose() } },
+      )
+    } else {
+      create.mutate(
+        { ...base, ...(linkInvoiceId ? { linkInvoiceId } : {}) },
+        { onSuccess: () => { onSaved(); onClose() } },
+      )
+    }
+  }
+
+  return (
+    <DialogContent className="sm:max-w-[460px] p-0 gap-0 bg-surface border-border rounded-[16px]">
+      <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-hover">
+        <DialogTitle className="text-[16px] font-[700] text-heading">
+          {isEdit ? "Edit fixed expense" : "New fixed expense"}
+        </DialogTitle>
+        <DialogDescription className="text-[12.5px] text-text-secondary">
+          Track whether the expected invoice arrives each period.
+        </DialogDescription>
+      </DialogHeader>
+
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="px-[22px] py-[18px] flex flex-col gap-[13px] max-h-[62vh] overflow-y-auto">
+          {/* Name */}
+          <div className="flex flex-col gap-[5px]">
+            <Label htmlFor="fx-name" className={fieldLabel}>Name</Label>
+            <Input id="fx-name" placeholder="e.g. AWS, Office rent" className={fieldInput} {...register("name")} />
+            {errors.name && <p className="text-[11.5px] text-danger">{errors.name.message}</p>}
+          </div>
+
+          {/* Category */}
+          <div className="flex flex-col gap-[5px]">
+            <Label className={fieldLabel}>Category</Label>
+            <Controller
+              control={control}
+              name="category"
+              render={({ field }) => (
+                <Select
+                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+                  value={field.value}
+                  onValueChange={(v) => field.onChange(v as InvoiceCategory)}
+                >
+                  <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_SELECTABLE.map((c) => (
+                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Source: vendor + sender */}
+          <div className="flex flex-col gap-[5px]">
+            <Label htmlFor="fx-vendor" className={fieldLabel}>Vendor name</Label>
+            <Input id="fx-vendor" placeholder="Who bills you" className={fieldInput} {...register("vendorName")} />
+            {errors.vendorName && <p className="text-[11.5px] text-danger">{errors.vendorName.message}</p>}
+          </div>
+          <div className="flex flex-col gap-[5px]">
+            <Label htmlFor="fx-sender" className={fieldLabel}>Sender email</Label>
+            <Input id="fx-sender" type="email" placeholder="billing@vendor.com" className={fieldInput} {...register("senderEmail")} />
+            {errors.senderEmail && <p className="text-[11.5px] text-danger">{errors.senderEmail.message}</p>}
+          </div>
+
+          {/* Mailbox pin (optional) */}
+          {mailboxes.length > 0 && (
+            <div className="flex flex-col gap-[5px]">
+              <Label className={fieldLabel}>Mailbox (optional)</Label>
+              <Controller
+                control={control}
+                name="gmailCredentialId"
+                render={({ field }) => (
+                  <Select
+                    items={[{ value: "", label: "Any mailbox" }, ...mailboxes.map((m) => ({ value: m.id, label: m.label }))]}
+                    value={field.value}
+                    onValueChange={(v) => field.onChange(v ?? "")}
+                  >
+                    <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any mailbox</SelectItem>
+                      {mailboxes.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          )}
+
+          {/* Expected amount + currency */}
+          <div className="flex gap-[10px]">
+            <div className="flex flex-col gap-[5px] flex-1">
+              <Label htmlFor="fx-amount" className={fieldLabel}>Expected amount</Label>
+              <Input id="fx-amount" inputMode="decimal" placeholder="0.00" className={fieldInput} {...register("expectedAmount")} />
+              {errors.expectedAmount && <p className="text-[11.5px] text-danger">{errors.expectedAmount.message}</p>}
+            </div>
+            <div className="flex flex-col gap-[5px] w-[90px]">
+              <Label htmlFor="fx-currency" className={fieldLabel}>Currency</Label>
+              <Input id="fx-currency" className={fieldInput} {...register("currency")} />
+            </div>
+          </div>
+
+          {/* Frequency + anchor date */}
+          <div className="flex gap-[10px]">
+            <div className="flex flex-col gap-[5px] flex-1">
+              <Label className={fieldLabel}>Frequency</Label>
+              <Controller
+                control={control}
+                name="frequency"
+                render={({ field }) => (
+                  <Select
+                    items={FIXED_EXPENSE_FREQUENCIES.map((f) => ({ value: f, label: FREQUENCY_LABELS[f] }))}
+                    value={field.value}
+                    onValueChange={(v) => v && field.onChange(v)}
+                  >
+                    <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {FIXED_EXPENSE_FREQUENCIES.map((f) => (
+                        <SelectItem key={f} value={f}>{FREQUENCY_LABELS[f]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className="flex flex-col gap-[5px] flex-1">
+              <Label htmlFor="fx-anchor" className={fieldLabel}>First expected on</Label>
+              <Input id="fx-anchor" type="date" className={fieldInput} {...register("anchorDate")} />
+              {errors.anchorDate && <p className="text-[11.5px] text-danger">{errors.anchorDate.message}</p>}
+            </div>
+          </div>
+
+          {/* Grace period */}
+          <div className="flex flex-col gap-[5px]">
+            <Label htmlFor="fx-grace" className={fieldLabel}>Grace period (days)</Label>
+            <Input id="fx-grace" type="number" min="0" max="60" className={`${fieldInput} w-[110px]`} {...register("gracePeriodDays")} />
+            <p className="text-[11px] text-dim">Days after the period ends before it counts as overdue.</p>
+          </div>
+        </div>
+
+        <DialogFooter className="px-[22px] py-[14px] border-t border-hover gap-[8px]">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={pending}
+            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
+            {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  )
+}

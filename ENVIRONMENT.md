@@ -39,7 +39,26 @@ All environment variables used by the project, grouped by function.
 | `GCP_PROJECT_ID` | Required when `WORKER_TRIGGER=cloudrun` |
 | `GCP_REGION` | Required when `WORKER_TRIGGER=cloudrun` |
 | `WORKER_JOB_NAME` | Cloud Run Job name to execute |
-| `MODE` | Set per Cloud Run Job execution (`daily` / `drain` / `export`), not on the web tier |
+| `MODE` | Set per Cloud Run Job execution (`daily` / `drain` / `export` / `classify-consume` / `fixed-expenses-check`), not on the web tier |
+
+### Fixed-expense missing-invoice alerts
+
+`MODE=fixed-expenses-check` is a DB-driven run (no Redis): it scans every `ACTIVE`
+fixed expense and writes a `MISSING_RECURRING` alert for any with no invoice in the
+current period. It's idempotent (one alert per expense+period). Schedule the worker
+Cloud Run Job to fire ~5 days before month end, the same way `MODE=daily` is
+scheduled:
+
+```
+gcloud scheduler jobs create http fixed-expenses-check \
+  --schedule '0 6 25 * *' \
+  --time-zone 'Asia/Jerusalem' \
+  --uri 'https://<region>-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/<project>/jobs/<WORKER_JOB_NAME>:run' \
+  --oauth-service-account-email '<runner-sa>' \
+  --message-body '{"overrides":{"containerOverrides":[{"env":[{"name":"MODE","value":"fixed-expenses-check"}]}]}}'
+```
+
+Local: `MODE=fixed-expenses-check npm run worker:batch`.
 
 ## Storage — Cloudflare R2 (required for PDF attachments/exports)
 
