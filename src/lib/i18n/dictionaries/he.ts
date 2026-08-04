@@ -11,6 +11,7 @@ export const he = {
     language: {
       title: "שפה",
       description: "בחר את שפת הממשק.",
+      saved: "השפה עודכנה",
     },
   },
 } satisfies Dictionary
