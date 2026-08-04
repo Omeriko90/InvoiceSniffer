@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import type { Prisma } from "@prisma/client"
 
 // Recent unlinked invoices that plausibly belong to this fixed expense (same
 // normalized vendor or sender), offered when the user links a "Missing" period
@@ -17,12 +18,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   })
   if (!expense) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  const or = [
-    expense.vendorNormalized ? { vendorNormalized: expense.vendorNormalized } : null,
-    expense.senderEmail
-      ? { senderEmail: { equals: expense.senderEmail, mode: "insensitive" as const } }
-      : null,
-  ].filter((c): c is NonNullable<typeof c> => c !== null)
+  const or: Prisma.InvoiceWhereInput[] = []
+  if (expense.vendorNormalized.length > 0) or.push({ vendorNormalized: { in: expense.vendorNormalized } })
+  for (const email of expense.senderEmail) or.push({ senderEmail: { equals: email, mode: "insensitive" } })
   if (or.length === 0) return NextResponse.json({ candidates: [] })
 
   const invoices = await prisma.invoice.findMany({

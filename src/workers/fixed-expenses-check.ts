@@ -78,7 +78,7 @@ export async function processFixedExpenseAlerts(now: Date = new Date()): Promise
     await prisma.anomalyLog.create({
       data: {
         organizationId: expense.organizationId,
-        vendorName: expense.vendorName ?? expense.name,
+        vendorName: expense.vendorName[0] ?? expense.name,
         type: "MISSING_RECURRING",
         severity: "MEDIUM",
         details: details as never,

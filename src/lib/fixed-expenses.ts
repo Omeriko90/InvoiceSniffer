@@ -139,11 +139,9 @@ export function matchesExpense(
 ): boolean {
   if (expense.gmailCredentialId && invoice.gmailCredentialId !== expense.gmailCredentialId) return false
   const vendorMatch =
-    !!expense.vendorNormalized && !!invoice.vendorNormalized && expense.vendorNormalized === invoice.vendorNormalized
-  const senderMatch =
-    !!expense.senderEmail &&
-    !!invoice.senderEmail &&
-    expense.senderEmail.toLowerCase() === invoice.senderEmail.toLowerCase()
+    !!invoice.vendorNormalized && expense.vendorNormalized.includes(invoice.vendorNormalized)
+  const sender = invoice.senderEmail?.toLowerCase()
+  const senderMatch = !!sender && expense.senderEmail.some((e) => e.toLowerCase() === sender)
   return vendorMatch || senderMatch
 }
 
@@ -154,8 +152,8 @@ export type FixedExpenseLike = {
   createdAt: Date
   frequency: FixedExpenseFrequency
   gracePeriodDays: number
-  vendorNormalized: string | null
-  senderEmail: string | null
+  vendorNormalized: string[]
+  senderEmail: string[]
   gmailCredentialId: string | null
 }
 

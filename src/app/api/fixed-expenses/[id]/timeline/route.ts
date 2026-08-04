@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     gmailCredentialId: null,
   }))
   const { entries, hasMore } = periodTimeline(
-    { ...expense, vendorNormalized: null, senderEmail: null, gmailCredentialId: null },
+    { ...expense, vendorNormalized: [], senderEmail: [], gmailCredentialId: null },
     linked,
     now,
     { limit, offset },

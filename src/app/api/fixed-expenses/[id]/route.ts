@@ -16,8 +16,8 @@ const patchSchema = z
   .object({
     name: z.string().trim().min(1).max(MAX_TEXT),
     category: z.enum(INVOICE_CATEGORIES),
-    vendorName: z.string().trim().max(MAX_TEXT).nullable(),
-    senderEmail: z.string().trim().toLowerCase().email().max(MAX_TEXT).nullable(),
+    vendorName: z.array(z.string().trim().min(1).max(MAX_TEXT)),
+    senderEmail: z.array(z.string().trim().toLowerCase().email().max(MAX_TEXT)),
     gmailCredentialId: z.string().max(MAX_TEXT).nullable(),
     expectedAmount: z
       .string()
@@ -52,11 +52,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (p.name !== undefined) data.name = p.name
   if (p.category !== undefined) data.category = p.category
   if (p.vendorName !== undefined) {
-    const name = p.vendorName || null
-    data.vendorName = name
-    data.vendorNormalized = name ? normalizeVendor(name) : null
+    const names = [...new Set(p.vendorName)]
+    data.vendorName = names
+    data.vendorNormalized = [...new Set(names.map(normalizeVendor))]
   }
-  if (p.senderEmail !== undefined) data.senderEmail = p.senderEmail || null
+  if (p.senderEmail !== undefined) data.senderEmail = [...new Set(p.senderEmail)]
   if (p.gmailCredentialId !== undefined) data.gmailCredentialId = p.gmailCredentialId || null
   if (p.expectedAmount !== undefined) data.expectedAmount = p.expectedAmount
   if (p.currency !== undefined) data.currency = p.currency

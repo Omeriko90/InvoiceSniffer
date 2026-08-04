@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import type { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES } from "@/lib/fixed-expense-meta"
@@ -17,8 +18,9 @@ const createSchema = z
   .object({
     name: z.string().trim().min(1).max(MAX_TEXT),
     category: z.enum(INVOICE_CATEGORIES).default("UNCATEGORIZED"),
-    vendorName: z.string().trim().max(MAX_TEXT).nullish(),
-    senderEmail: z.string().trim().toLowerCase().email().max(MAX_TEXT).nullish(),
+    // Arrays: an expense can match several vendor titles / sender emails.
+    vendorName: z.array(z.string().trim().min(1).max(MAX_TEXT)).default([]),
+    senderEmail: z.array(z.string().trim().toLowerCase().email().max(MAX_TEXT)).default([]),
     gmailCredentialId: z.string().max(MAX_TEXT).nullish(),
     expectedAmount: z
       .string()
@@ -32,10 +34,45 @@ const createSchema = z
     linkInvoiceId: z.string().max(MAX_TEXT).optional(),
   })
   .strict()
-  .refine((v) => Boolean(v.vendorName) || Boolean(v.senderEmail), {
+  .refine((v) => v.vendorName.length > 0 || v.senderEmail.length > 0, {
     message: "Provide a vendor name or a sender email to match invoices",
     path: ["vendorName"],
   })
+
+// Lightweight list of the org's fixed expenses — powers the invoice-drawer
+// "link to an existing expense" dropdown. Decimal/Date serialized to strings.
+export async function GET() {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { organizationId } = session.user
+
+  const rows = await prisma.fixedExpense.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      vendorName: true,
+      senderEmail: true,
+      gmailCredentialId: true,
+      expectedAmount: true,
+      currency: true,
+      frequency: true,
+      anchorDate: true,
+      gracePeriodDays: true,
+      status: true,
+    },
+  })
+
+  return NextResponse.json({
+    expenses: rows.map((e) => ({
+      ...e,
+      expectedAmount: e.expectedAmount?.toString() ?? null,
+      anchorDate: e.anchorDate.toISOString(),
+    })),
+  })
+}
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -50,7 +87,10 @@ export async function POST(request: Request) {
     )
   }
   const p = parsed.data
-  const vendorName = p.vendorName || null
+  // Dedup and derive normalized vendor keys from the vendor-title array.
+  const vendorNames = [...new Set(p.vendorName)]
+  const senderEmails = [...new Set(p.senderEmail)]
+  const vendorNormalized = [...new Set(vendorNames.map(normalizeVendor))]
 
   // Pinned mailbox must belong to this org (no cross-tenant reference).
   if (p.gmailCredentialId) {
@@ -67,9 +107,9 @@ export async function POST(request: Request) {
         organizationId,
         name: p.name,
         category: p.category,
-        vendorName,
-        vendorNormalized: vendorName ? normalizeVendor(vendorName) : null,
-        senderEmail: p.senderEmail || null,
+        vendorName: vendorNames,
+        vendorNormalized,
+        senderEmail: senderEmails,
         gmailCredentialId: p.gmailCredentialId || null,
         expectedAmount: p.expectedAmount ?? null,
         currency: p.currency,
@@ -86,10 +126,12 @@ export async function POST(request: Request) {
     // arrived would show every past period as "Missing" and could fire a false
     // alert for the current period. Matching mirrors matchesExpense() — vendor OR
     // sender, narrowed to the pinned mailbox — expressed as a single updateMany.
-    const matchOr = [
-      vendorName ? { vendorNormalized: normalizeVendor(vendorName) } : null,
-      p.senderEmail ? { senderEmail: { equals: p.senderEmail, mode: "insensitive" as const } } : null,
-    ].filter((c): c is NonNullable<typeof c> => c !== null)
+    const matchOr: Prisma.InvoiceWhereInput[] = []
+    if (vendorNormalized.length > 0) matchOr.push({ vendorNormalized: { in: vendorNormalized } })
+    // Sender match stays case-insensitive (one condition per address; `in` can't
+    // carry a mode). Invoice sender casing isn't guaranteed to match the stored
+    // lowercased signal.
+    for (const email of senderEmails) matchOr.push({ senderEmail: { equals: email, mode: "insensitive" } })
     if (matchOr.length > 0) {
       await tx.invoice.updateMany({
         where: {
