@@ -63,6 +63,18 @@ async function main() {
     process.exit(0)
   }
 
+  // Missing-invoice detector for fixed expenses. Also DB-driven (the FixedExpense
+  // rows are the work list) — no queue workers or Redis drain. Scheduled via Cloud
+  // Scheduler to fire ~5 days before month end.
+  if (mode === "fixed-expenses-check") {
+    const { processFixedExpenseAlerts } = await import("./fixed-expenses-check")
+    const count = await processFixedExpenseAlerts()
+    log.info(`fixed-expenses-check: wrote ${count} alert(s); shutting down`)
+    await prisma.$disconnect()
+    await shutdownPostHog()
+    process.exit(0)
+  }
+
   // Poll finished Gemini batch classifier jobs first (DB-driven, no Redis): this
   // enqueues extraction jobs for messages the batch judged to be invoices. Then
   // fall through to the standard worker boot + drain so those extractions run.
