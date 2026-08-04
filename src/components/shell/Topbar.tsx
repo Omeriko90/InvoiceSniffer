@@ -1,7 +1,6 @@
 "use client"
 
 import { GmailSyncPill } from "./GmailSyncPill"
-import { UploadCsvButton, NewExportButton } from "./TopbarActions"
 
 type TopbarProps = {
   title: string
@@ -15,9 +14,6 @@ export function Topbar({ title }: TopbarProps) {
       <div className="flex items-center gap-3">
         {/* Gmail sync status pill — self-fetches; shows out-of-sync + reconnect */}
         <GmailSyncPill />
-
-        <UploadCsvButton />
-        <NewExportButton />
       </div>
     </header>
   )
