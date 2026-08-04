@@ -9,10 +9,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { CategoryBadge } from "@/components/invoices/CategoryBadge"
 import { fmtAmount } from "@/components/invoices/helpers"
 import { FREQUENCY_LABELS, type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
@@ -222,33 +222,19 @@ export function FixedExpenseDetailDrawer({
       </div>
 
       {/* Delete confirmation */}
-      <Dialog open={confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete this fixed expense?</DialogTitle>
-            <DialogDescription>
-              Its arrival history is removed. The linked invoices themselves are kept — only the tracking is deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-[10px] text-[13.5px] font-[600]"
-              disabled={remove.isPending}
-              onClick={() => setConfirmDelete(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-danger hover:opacity-90"
-              disabled={remove.isPending}
-              onClick={handleDelete}
-            >
-              {remove.isPending ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {confirmDelete && (
+        <ConfirmationDialog
+          open={confirmDelete}
+          onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}
+          title="Delete this fixed expense?"
+          description="Its arrival history is removed. The linked invoices themselves are kept — only the tracking is deleted."
+          confirmLabel="Delete"
+          pendingLabel="Deleting…"
+          destructive
+          isPending={remove.isPending}
+          onConfirm={handleDelete}
+        />
+      )}
 
       {/* Manual link picker */}
       <Dialog open={linkingIndex !== null} onOpenChange={(open) => { if (!open) setLinkingIndex(null) }}>
