@@ -3,26 +3,13 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 import { z } from "zod"
+import { dedupeInsensitive } from "@/lib/fixed-expenses"
 
 // Absorb a source invoice into an existing fixed expense (the invoice-drawer
 // "link to an existing expense" flow). Unlike link-invoice (a pure single link),
 // this teaches the expense the invoice's vendor title + sender so ALL matching
 // invoices — past (swept here) and future (auto-linked at ingest) — belong to it.
 const bodySchema = z.object({ invoiceId: z.string().min(1).max(200) }).strict()
-
-// Case-insensitive dedup that keeps the first-seen spelling.
-function dedupeInsensitive(values: string[]): string[] {
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const v of values) {
-    const key = v.toLowerCase()
-    if (v && !seen.has(key)) {
-      seen.add(key)
-      out.push(v)
-    }
-  }
-  return out
-}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
