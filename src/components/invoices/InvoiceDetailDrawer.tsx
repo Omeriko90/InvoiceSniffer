@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock, Trash2 } from "lucide-react"
+import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,7 @@ import { VendorCell } from "./VendorCell"
 import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
 import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
+import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog"
 
 export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   invoice: InvoiceRow
@@ -49,6 +50,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   // the user opted to also mute the sender (only offered for "not relevant").
   const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(null)
   const [muteSender, setMuteSender] = useState(false)
+  const [markFixedOpen, setMarkFixedOpen] = useState(false)
 
   function openConfirm(reason: RemovalReason) {
     setMuteSender(false)
@@ -147,6 +149,16 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         <p className="text-[12.5px] text-[#94A3B8] mb-6">
           Extraction confidence: {pct}%
         </p>
+
+        {/* Fixed-expense link indication */}
+        {invoice.fixedExpense && (
+          <div className="flex items-center gap-[7px] -mt-4 mb-6 px-[11px] py-[8px] rounded-[10px] bg-info-bg">
+            <Repeat size={14} strokeWidth={1.8} className="text-primary shrink-0" />
+            <span className="text-[12.5px] font-[600] text-text-primary truncate">
+              Fixed expense · {invoice.fixedExpense.name}
+            </span>
+          </div>
+        )}
 
         {/* Extracted fields */}
         <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
@@ -347,6 +359,16 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </>
         )}
         </div>
+        {!editing && !invoice.fixedExpense && (
+          <Button
+            variant="ghost"
+            className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-primary hover:bg-info-bg"
+            onClick={() => setMarkFixedOpen(true)}
+          >
+            <Repeat size={14} strokeWidth={1.8} />
+            Mark as fixed expense
+          </Button>
+        )}
         {!editing && (
           <div className="flex gap-[10px]">
             <Button
@@ -420,6 +442,26 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             </Button>
           </DialogFooter>
         </DialogContent>
+      </Dialog>
+
+      {/* Mark as fixed expense — pre-filled from this invoice, links it on save */}
+      <Dialog open={markFixedOpen} onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
+        {markFixedOpen && (
+          <FixedExpenseFormDialog
+            prefill={{
+              name: invoice.vendorName ?? invoice.senderName ?? "",
+              category: invoice.category,
+              vendorName: invoice.vendorName ?? "",
+              senderEmail: invoice.senderEmail,
+              expectedAmount: invoice.totalAmount,
+              currency: invoice.currency,
+            }}
+            linkInvoiceId={invoice.id}
+            mailboxes={[]}
+            onClose={() => setMarkFixedOpen(false)}
+            onSaved={() => router.refresh()}
+          />
+        )}
       </Dialog>
     </SheetContent>
   )
