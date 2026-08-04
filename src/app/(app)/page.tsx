@@ -6,9 +6,10 @@ import { StatRow } from "@/components/dashboard/StatRow"
 import { ReconciliationCard } from "@/components/dashboard/ReconciliationCard"
 import { RecentAlertsCard } from "@/components/dashboard/RecentAlertsCard"
 import { CategorySpend } from "@/components/dashboard/CategorySpend"
+import { TaxPaidCard } from "@/components/dashboard/TaxPaidCard"
 
 export default function DashboardPage() {
-  const { data: dashboardData = { unmatched: 0, possible: 0, matched: 0, matchedDelta: 0, alerts: 0, criticalAlerts: 0, rec: { total: 0, matched: 0, possible: 0, missing: 0, noInvoice: 0 }, spendByCategory: [], recentAlerts: [], monthLabel: "" }, isPending } = useDashboard()
+  const { data: dashboardData = { unmatched: 0, possible: 0, matched: 0, matchedDelta: 0, alerts: 0, criticalAlerts: 0, rec: { total: 0, matched: 0, possible: 0, missing: 0, noInvoice: 0 }, spendByCategory: [], taxByMonth: [], recentAlerts: [], monthLabel: "" }, isPending } = useDashboard()
 
   if( isPending ) return <DashboardSkeleton />
   return (
@@ -33,10 +34,16 @@ export default function DashboardPage() {
         <RecentAlertsCard alerts={dashboardData?.recentAlerts} />
       </div>
 
-      <CategorySpend
-        rows={dashboardData?.spendByCategory ?? []}
-        monthLabel={dashboardData?.monthLabel}
-      />
+      <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+        <CategorySpend
+          rows={dashboardData?.spendByCategory ?? []}
+          monthLabel={dashboardData?.monthLabel}
+        />
+        <TaxPaidCard
+          rows={dashboardData?.taxByMonth ?? []}
+          monthLabel={dashboardData?.monthLabel}
+        />
+      </div>
 
     </div>
   )

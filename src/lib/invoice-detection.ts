@@ -129,6 +129,12 @@ const FLIPPED_AMOUNT_LABEL_RE = /(\d{1,2})[ \t]*\.[ \t]*(-?\d{1,3}(?:,\d{3})*)[ 
 // symbol on the next line (e.g. the year of a date above `₪100.00`)
 const ANY_AMOUNT_RE = /(?:[$£€₪]|ש"ח|ILS|NIS)[ \t]*([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{1,2})?)[ \t]*(?:[$£€₪]|ש"ח|ILS|NIS)/g
 const TAX_RE = /(?:tax|vat|gst|מע"מ)(?:\s*\(?\d{1,2}%?\)?)?[:\s]*(?:[$£€₪]|ש"ח)?\s*([\d,]+\.?\d{0,2})/i
+// VAT rendered BEFORE its label in RTL visual order: `₪17.00 מע"מ`. Mirrors
+// AMOUNT_BEFORE_LABEL_RE for the total.
+const TAX_BEFORE_LABEL_RE = /(?:[$£€₪]|ש"ח)?[ \t]*([\d,]+\.\d{1,2})[ \t]*(?:[$£€₪]|ש"ח)?[ \t]*:?[ \t]*מע"מ/
+// Worst-case RTL mangling: digits flip around the decimal and ₪ renders as '{' —
+// 17.71 becomes `71 . 17 { מע"מ`. Mirrors FLIPPED_AMOUNT_LABEL_RE.
+const FLIPPED_TAX_RE = /(\d{1,2})[ \t]*\.[ \t]*(-?\d{1,3}(?:,\d{3})*)[ \t]*\{[ \t]*מע"מ/
 // captured number must contain at least one digit — otherwise the prefix
 // words match inside URLs/sentences and capture letter junk
 const INV_NUM_RE = /(?:invoice|inv|order|חשבונית|קבלה|הזמנה)(?:\s*(?:מס'?|מספר))?[#\s:no.]*((?=[A-Z0-9-]*\d)[A-Z0-9-]{3,20})/i
@@ -174,9 +180,22 @@ export function extractInvoiceMetadata(
   // where ₪ was mangled into '{', so it implies ILS
   const currency = flipped ? "ILS" : detectCurrency(text)
 
-  // Tax
-  const taxMatch = TAX_RE.exec(text)
-  const taxAmount = taxMatch ? parseFloat(taxMatch[1].replace(/,/g, "")) : null
+  // Tax: labeled VAT (most common) > amount-before-label (RTL visual order) >
+  // flipped-RTL mangling. Mirrors the totalAmount cascade above.
+  let taxAmount: number | null = null
+  const taxMatch = TAX_RE.exec(text) ?? TAX_BEFORE_LABEL_RE.exec(text)
+  if (taxMatch) {
+    taxAmount = parseFloat(taxMatch[1].replace(/,/g, ""))
+  } else {
+    const flippedTax = FLIPPED_TAX_RE.exec(text)
+    if (flippedTax) {
+      taxAmount = parseFloat(`${flippedTax[2].replace(/,/g, "")}.${flippedTax[1]}`)
+    }
+  }
+  // Clamp: a VAT line larger than the total is a mis-grab, not real tax.
+  if (taxAmount != null && totalAmount != null && taxAmount > totalAmount) {
+    taxAmount = null
+  }
 
   // Dates
   const dateMatch = DATE_RE.exec(text)

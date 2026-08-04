@@ -94,6 +94,8 @@ Guardrails:
 - allocationNumber is the Israeli Tax Authority clearance id (מספר הקצאה / "מספר הקצאה"). Only set it if the document actually shows one.
 - vendorTaxId is the business id (ח.פ. / ע.מ. / VAT number).
 - documentType: TAX_INVOICE (חשבונית מס), RECEIPT (קבלה), CREDIT_INVOICE (חשבונית זיכוי), else UNKNOWN.
+- When the document shows subtotal, VAT and total, they must satisfy subtotalAmount + vatAmount = totalAmount; re-read the figures if they do not.
+- Return at most 20 line items.
 - Return null for any field not present. Do not guess.`
 
 export function extractorEnabled(): boolean {
@@ -129,7 +131,10 @@ export async function extractInvoiceFromPdf(input: {
       ],
       config: {
         systemInstruction: INSTRUCTIONS,
-        maxOutputTokens: 2048,
+        // Headroom so a long line-item list can't truncate the JSON — a
+        // truncated response fails safeParse and drops the WHOLE extraction to
+        // null, losing the amounts we'd otherwise have.
+        maxOutputTokens: 4096,
         // Disable "thinking" (Gemini 2.5 flash): it spends maxOutputTokens on
         // reasoning that this transcription task doesn't need, and can starve
         // the actual JSON output. Cheaper and faster too.
