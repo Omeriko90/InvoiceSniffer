@@ -52,7 +52,7 @@ export function ConfirmationDialog({
 
         {children}
 
-        <DialogFooter>
+        <DialogFooter className="border-t-0 bg-transparent p-0">
           <Button
             variant="outline"
             className="rounded-[10px] text-[13.5px] font-[600]"
