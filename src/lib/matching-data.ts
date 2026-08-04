@@ -22,7 +22,7 @@ export type SessionInvoice = InvoiceCandidate & {
   reconciledAt: Date | null
   dueDate: Date | null
   senderEmail: string
-  gmailLink: string
+  gmailLink: string | null
 }
 
 export type DateRange = { from: Date; to: Date }

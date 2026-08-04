@@ -20,6 +20,7 @@ async function main() {
 
   let updated = 0
   for (const r of rows) {
+    if (!r.gmailMessageId) continue // non-Gmail (API-sourced) invoice — no Gmail link
     const next = buildGmailMessageLink(r.gmailCredential?.email ?? "", r.gmailMessageId)
     if (next === r.gmailLink) continue // already current
     await prisma.invoice.update({ where: { id: r.id }, data: { gmailLink: next } })

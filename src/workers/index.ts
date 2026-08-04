@@ -1,11 +1,15 @@
 import "dotenv/config"
 import { createGmailSyncWorker, registerDailySyncScheduler } from "./gmail-sync"
 import { createInvoiceExtractWorker } from "./invoice-extract"
+import { createIntegrationPullWorker, registerIntegrationPullScheduler } from "./integration-pull"
+import { createIntegrationPushWorker } from "./integration-push"
 import { captureServerException, shutdownPostHog, log } from "@/lib/posthog-server"
 
 const workers = [
   createGmailSyncWorker(),
   createInvoiceExtractWorker(),
+  createIntegrationPullWorker(),
+  createIntegrationPushWorker(),
 ]
 
 log.info(`✓ ${workers.length} workers started`)
@@ -13,6 +17,10 @@ log.info(`✓ ${workers.length} workers started`)
 registerDailySyncScheduler()
   .then(() => log.info("✓ daily Gmail sync scheduled (06:00 Asia/Jerusalem)"))
   .catch((err) => log.error("Failed to register daily sync scheduler", { error: err.message }))
+
+registerIntegrationPullScheduler()
+  .then(() => log.info("✓ daily integration pull scheduled (07:00 Asia/Jerusalem)"))
+  .catch((err) => log.error("Failed to register integration pull scheduler", { error: err.message }))
 
 for (const worker of workers) {
   worker.on("completed", (job) => {

@@ -4,10 +4,12 @@ import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSettings } from "@/hooks/useSettings"
 import { GmailConnectResult } from "@/components/settings/GmailConnectResult"
+import { IntegrationConnectResult } from "@/components/settings/IntegrationConnectResult"
 import { GmailConnectionCard } from "@/components/settings/GmailConnectionCard"
 import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard"
 import { LearnedRulesCard } from "@/components/settings/LearnedRulesCard"
 import { ReconcileSettingsCard } from "@/components/settings/ReconcileSettingsCard"
+import { IntegrationsSection } from "@/components/settings/IntegrationsSection"
 
 export default function SettingsPage() {
   const { data, isPending } = useSettings()
@@ -18,11 +20,13 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-[14px]">
       <Suspense fallback={null}>
         <GmailConnectResult />
+        <IntegrationConnectResult />
       </Suspense>
       <div className="grid grid-cols-2 gap-[14px]">
         <GmailConnectionCard gmails={data.gmails} maxGmailAccounts={data.maxGmailAccounts} />
         <WorkspaceMembersCard members={data.members} />
       </div>
+      <IntegrationsSection integrations={data.integrations} />
       <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
       <LearnedRulesCard rules={data.rules} />
     </div>

@@ -98,7 +98,7 @@ export async function GET(
 
   // Attribution is required to know which mailbox holds this message. Orphaned
   // rows (pre-migration, or whose mailbox was hard-removed) can't be fetched.
-  if (!invoice.gmailCredentialId) {
+  if (!invoice.gmailCredentialId || !invoice.gmailMessageId) {
     return errorPage(
       400,
       "Gmail not connected",

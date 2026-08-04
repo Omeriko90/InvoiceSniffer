@@ -1,8 +1,9 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2 } from "lucide-react"
+import { ArrowUpFromLine, Ban, ExternalLink, FileText, Lock, Repeat, Trash2 } from "lucide-react"
 import { format } from "date-fns"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +26,7 @@ import {
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
+import { usePushToIntegration, usePushableIntegrations } from "@/hooks/useIntegrations"
 import type { RemovalReason } from "@/api/invoices"
 import { STATUS_META } from "./constants"
 import { fmtAmount, fmtSize, toDraft } from "./helpers"
@@ -43,6 +45,18 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   const router = useRouter()
   const update = useUpdateInvoice()
   const remove = useRemoveInvoice(() => router.refresh())
+  const pushable = usePushableIntegrations()
+  const push = usePushToIntegration()
+
+  function handleSync(provider: (typeof pushable)[number]["provider"], name: string) {
+    push.mutate(
+      { provider, invoiceIds: [invoice.id] },
+      {
+        onSuccess: () => toast.success(`Syncing to ${name}…`),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Sync failed"),
+      }
+    )
+  }
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
   const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(invoice.category)
@@ -344,7 +358,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               variant="outline"
               className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
               nativeButton={false}
-              render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
+              render={<a href={invoice.gmailLink ?? undefined} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLink size={15} strokeWidth={1.5} />
               Open in Gmail
@@ -369,6 +383,19 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             Mark as fixed expense
           </Button>
         )}
+        {!editing &&
+          pushable.map((intg) => (
+            <Button
+              key={intg.id}
+              variant="ghost"
+              className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-primary hover:bg-info-bg"
+              disabled={push.isPending}
+              onClick={() => handleSync(intg.provider, intg.label ?? intg.provider)}
+            >
+              <ArrowUpFromLine size={14} strokeWidth={1.8} />
+              Sync to {intg.label ?? intg.provider}
+            </Button>
+          ))}
         {!editing && (
           <div className="flex gap-[10px]">
             <Button

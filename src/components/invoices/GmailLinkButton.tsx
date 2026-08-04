@@ -2,7 +2,9 @@
 import { ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function GmailLinkButton({ gmailLink }: { gmailLink: string }) {
+export function GmailLinkButton({ gmailLink }: { gmailLink: string | null }) {
+  // API-sourced (non-Gmail) invoices have no Gmail link — render nothing.
+  if (!gmailLink) return null
   return (
     <Button
       variant="ghost"

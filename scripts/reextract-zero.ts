@@ -13,7 +13,7 @@ async function main() {
 
   let queued = 0
   for (const r of rows) {
-    if (!r.gmailCredentialId) continue // can't route an orphaned invoice
+    if (!r.gmailCredentialId || !r.gmailMessageId) continue // Gmail-only re-extract path
     await extractionQueue().add(
       "invoice:extract",
       {

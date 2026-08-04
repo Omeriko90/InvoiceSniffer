@@ -67,7 +67,7 @@ async function buildOne(job: {
 
   for (const inv of invoices) {
     const pdfMeta = inv.attachmentMeta.find(isPdfAttachment)
-    if (!pdfMeta || !inv.gmailCredentialId) {
+    if (!pdfMeta || !inv.gmailCredentialId || !inv.gmailMessageId) {
       skipped.push({ invoiceId: inv.id, vendorName: inv.vendorName, reason: "no_pdf_attachment" })
       continue
     }

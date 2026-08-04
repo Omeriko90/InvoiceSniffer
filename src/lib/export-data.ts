@@ -29,7 +29,7 @@ export type ExportInvoiceRow = {
 
 // Extra fields the PDF runner needs on top of the exportable columns.
 export type PdfExportInvoice = ExportInvoiceRow & {
-  gmailMessageId: string
+  gmailMessageId: string | null // null for non-Gmail (API-sourced) invoices
   gmailCredentialId: string | null
   attachmentMeta: AttachmentMeta[]
 }
@@ -130,7 +130,7 @@ function toPdfExportInvoice(r: {
   totalAmount: { toString(): string }
   currency: string
   taxAmount: { toString(): string } | null
-  gmailMessageId: string
+  gmailMessageId: string | null
   gmailCredentialId: string | null
   attachmentMeta: unknown
 }): PdfExportInvoice {

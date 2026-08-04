@@ -143,7 +143,7 @@ export function MatchDrawerBody({
         {/* Gmail link */}
         {invoice && (
           <a
-            href={invoice.gmailLink}
+            href={invoice.gmailLink ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-[7px] text-[12.5px] font-[600] text-[#3B6FE0] hover:underline w-fit"

@@ -30,6 +30,21 @@ All environment variables used by the project, grouped by function.
 | `GOOGLE_CLIENT_ID` | Gmail OAuth client |
 | `GOOGLE_CLIENT_SECRET` | Gmail OAuth secret |
 
+## Accounting integrations (optional)
+
+Per-org **API-key** providers (Morning/Green Invoice, iCount, Sumit, …) need no
+global config — each org pastes its own key in Settings → Accounting integrations.
+**OAuth** providers need a shared app registered once:
+
+| Var | Purpose |
+|---|---|
+| `XERO_CLIENT_ID` | Xero OAuth2 app client id (required to connect Xero) |
+| `XERO_CLIENT_SECRET` | Xero OAuth2 app secret |
+
+The Xero app's redirect URI must be `<NEXTAUTH_URL>/api/integrations/xero/callback`.
+The daily integration pull runs at 07:00 Asia/Jerusalem (one hour after Gmail sync)
+via the same worker process; no extra config.
+
 ## Queue / Worker (required for sync + exports to process)
 
 | Var | Purpose |
