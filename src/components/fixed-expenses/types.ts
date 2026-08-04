@@ -8,8 +8,10 @@ export type FixedExpenseRow = {
   id: string
   name: string
   category: InvoiceCategory
-  vendorName: string | null
-  senderEmail: string | null
+  // Match signals — arrays now (an expense can absorb several vendor titles /
+  // sender emails; see the invoice-drawer "link to existing" flow).
+  vendorName: string[]
+  senderEmail: string[]
   gmailCredentialId: string | null
   expectedAmount: string | null
   currency: string
@@ -23,6 +25,10 @@ export type FixedExpenseRow = {
   // Mailbox the expense is pinned to, if any.
   sourceAccount: { email: string; label: string | null } | null
 }
+
+// Lightweight fixed expense as returned by GET /api/fixed-expenses — powers the
+// invoice-drawer "link to an existing expense" dropdown (no computed status).
+export type FixedExpenseListItem = Omit<FixedExpenseRow, "currentStatus" | "createdAt" | "sourceAccount">
 
 // One entry in the detail-drawer timeline: a period + whether its invoice arrived.
 export type FixedExpenseTimelineEntry = {

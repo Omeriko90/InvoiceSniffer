@@ -1,12 +1,16 @@
 import type { InvoiceCategory } from "@/lib/invoice-categories"
 import type { FixedExpenseFrequency, FixedExpenseStatus } from "@/lib/fixed-expense-meta"
-import type { FixedExpenseCandidate, FixedExpenseTimelineResponse } from "@/components/fixed-expenses/types"
+import type {
+  FixedExpenseCandidate,
+  FixedExpenseListItem,
+  FixedExpenseTimelineResponse,
+} from "@/components/fixed-expenses/types"
 
 export type CreateFixedExpensePayload = {
   name: string
   category: InvoiceCategory
-  vendorName?: string | null
-  senderEmail?: string | null
+  vendorName?: string[]
+  senderEmail?: string[]
   gmailCredentialId?: string | null
   expectedAmount?: string | null
   currency: string
@@ -78,6 +82,33 @@ async function linkInvoiceToFixedExpense({
   }
 }
 
+// List the org's fixed expenses for the invoice-drawer "link to existing" dropdown.
+async function fetchFixedExpenses(): Promise<{ expenses: FixedExpenseListItem[] }> {
+  const res = await fetch("/api/fixed-expenses")
+  if (!res.ok) throw new Error("Failed to load fixed expenses")
+  return res.json()
+}
+
+// Absorb an invoice into an existing expense: teaches the expense this invoice's
+// vendor title + sender and links all matching invoices (past + future).
+async function absorbInvoiceIntoFixedExpense({
+  id,
+  invoiceId,
+}: {
+  id: string
+  invoiceId: string
+}): Promise<void> {
+  const res = await fetch(`/api/fixed-expenses/${id}/absorb-invoice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ invoiceId }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to link invoice")
+  }
+}
+
 async function fetchFixedExpenseTimeline({
   id,
   offset,
@@ -105,6 +136,8 @@ export {
   updateFixedExpense,
   deleteFixedExpense,
   linkInvoiceToFixedExpense,
+  absorbInvoiceIntoFixedExpense,
+  fetchFixedExpenses,
   fetchFixedExpenseTimeline,
   fetchFixedExpenseCandidates,
 }

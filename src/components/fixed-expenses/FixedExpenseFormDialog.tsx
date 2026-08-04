@@ -1,11 +1,13 @@
 // Client component by import — rendered from <FixedExpensesClient> and the
 // invoice drawer (both are client entries). Shared create/edit form for a fixed
 // expense; in the drawer flow it's pre-filled from an invoice and links it on save.
+import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { format } from "date-fns"
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -24,6 +26,8 @@ import {
 } from "@/components/ui/select"
 import { useCreateFixedExpense } from "@/hooks/useCreateFixedExpense"
 import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
+import { useFixedExpensesList } from "@/hooks/useFixedExpensesList"
+import { useAbsorbInvoice } from "@/hooks/useAbsorbInvoice"
 import {
   CATEGORY_LABELS,
   CATEGORY_SELECTABLE,
@@ -32,6 +36,12 @@ import {
 } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
 import type { FixedExpenseRow } from "./types"
+
+// Vendor titles / sender emails are entered comma-separated (the columns are
+// arrays). Split, trim, drop blanks, and dedup.
+function parseList(raw: string): string[] {
+  return [...new Set(raw.split(",").map((s) => s.trim()).filter(Boolean))]
+}
 
 const schema = z
   .object({
@@ -50,10 +60,12 @@ const schema = z
     message: "Add a vendor name or a sender email so we can match invoices",
     path: ["vendorName"],
   })
-  .refine((v) => v.senderEmail.trim() === "" || z.string().email().safeParse(v.senderEmail).success, {
-    message: "Enter a valid email",
-    path: ["senderEmail"],
-  })
+  .refine(
+    (v) =>
+      v.senderEmail.trim() === "" ||
+      parseList(v.senderEmail).every((e) => z.string().email().safeParse(e).success),
+    { message: "Enter valid email(s), comma-separated", path: ["senderEmail"] },
+  )
   .refine((v) => v.expectedAmount.trim() === "" || /^\d+(\.\d{1,4})?$/.test(v.expectedAmount.trim()), {
     message: "Enter a valid amount",
     path: ["expectedAmount"],
@@ -85,13 +97,38 @@ export function FixedExpenseFormDialog({
 }) {
   const create = useCreateFixedExpense()
   const update = useUpdateFixedExpense()
+  const absorb = useAbsorbInvoice()
   const isEdit = Boolean(expense)
   const pending = create.isPending || update.isPending
+
+  // Drawer flow only: offer linking this invoice to an existing expense.
+  const canLinkExisting = Boolean(linkInvoiceId) && !isEdit
+  const existingList = useFixedExpensesList(canLinkExisting)
+  const existing = existingList.data?.expenses ?? []
+  // Which existing expense is selected ("" = none, i.e. create a new one).
+  const [selectedId, setSelectedId] = useState("")
+  const selected = existing.find((e) => e.id === selectedId) ?? null
+  const locked = Boolean(selected)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const createDefaults: FormValues = {
+    name: prefill?.name ?? "",
+    category: prefill?.category ?? "UNCATEGORIZED",
+    vendorName: prefill?.vendorName ?? "",
+    senderEmail: prefill?.senderEmail ?? "",
+    gmailCredentialId: prefill?.gmailCredentialId ?? "",
+    expectedAmount: prefill?.expectedAmount ?? "",
+    currency: prefill?.currency ?? "USD",
+    frequency: prefill?.frequency ?? "MONTHLY",
+    anchorDate: prefill?.anchorDate ?? format(new Date(), "yyyy-MM-dd"),
+    gracePeriodDays: prefill?.gracePeriodDays ?? "5",
+  }
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -99,8 +136,8 @@ export function FixedExpenseFormDialog({
       ? {
           name: expense.name,
           category: expense.category,
-          vendorName: expense.vendorName ?? "",
-          senderEmail: expense.senderEmail ?? "",
+          vendorName: expense.vendorName.join(", "),
+          senderEmail: expense.senderEmail.join(", "),
           gmailCredentialId: expense.gmailCredentialId ?? "",
           expectedAmount: expense.expectedAmount ?? "",
           currency: expense.currency,
@@ -108,26 +145,39 @@ export function FixedExpenseFormDialog({
           anchorDate: expense.anchorDate.slice(0, 10),
           gracePeriodDays: String(expense.gracePeriodDays),
         }
-      : {
-          name: prefill?.name ?? "",
-          category: prefill?.category ?? "UNCATEGORIZED",
-          vendorName: prefill?.vendorName ?? "",
-          senderEmail: prefill?.senderEmail ?? "",
-          gmailCredentialId: prefill?.gmailCredentialId ?? "",
-          expectedAmount: prefill?.expectedAmount ?? "",
-          currency: prefill?.currency ?? "USD",
-          frequency: prefill?.frequency ?? "MONTHLY",
-          anchorDate: prefill?.anchorDate ?? format(new Date(), "yyyy-MM-dd"),
-          gracePeriodDays: prefill?.gracePeriodDays ?? "5",
-        },
+      : createDefaults,
   })
+
+  // Selecting an existing expense fills + locks the form (preview only — on save
+  // we link rather than create). "" returns to the create defaults.
+  function onSelectExisting(value: string | null) {
+    const id = value ?? ""
+    setSelectedId(id)
+    const e = existing.find((x) => x.id === id)
+    reset(
+      e
+        ? {
+            name: e.name,
+            category: e.category,
+            vendorName: e.vendorName.join(", "),
+            senderEmail: e.senderEmail.join(", "),
+            gmailCredentialId: e.gmailCredentialId ?? "",
+            expectedAmount: e.expectedAmount ?? "",
+            currency: e.currency,
+            frequency: e.frequency,
+            anchorDate: e.anchorDate.slice(0, 10),
+            gracePeriodDays: String(e.gracePeriodDays),
+          }
+        : createDefaults,
+    )
+  }
 
   function onSubmit(v: FormValues) {
     const base = {
       name: v.name.trim(),
       category: v.category,
-      vendorName: v.vendorName.trim() || null,
-      senderEmail: v.senderEmail.trim() || null,
+      vendorName: parseList(v.vendorName),
+      senderEmail: parseList(v.senderEmail),
       gmailCredentialId: v.gmailCredentialId || null,
       expectedAmount: v.expectedAmount.trim() || null,
       currency: v.currency.trim(),
@@ -149,7 +199,17 @@ export function FixedExpenseFormDialog({
     }
   }
 
+  // Confirmed "Link": absorb this invoice into the selected existing expense.
+  function confirmLink() {
+    if (!selected || !linkInvoiceId) return
+    absorb.mutate(
+      { id: selected.id, invoiceId: linkInvoiceId },
+      { onSuccess: () => { setConfirmOpen(false); onSaved(); onClose() } },
+    )
+  }
+
   return (
+    <>
     <DialogContent className="sm:max-w-[460px] p-0 gap-0 bg-surface border-border rounded-[16px]">
       <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-hover">
         <DialogTitle className="text-[16px] font-[700] text-heading">
@@ -162,6 +222,36 @@ export function FixedExpenseFormDialog({
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="px-[22px] py-[18px] flex flex-col gap-[13px] max-h-[62vh] overflow-y-auto">
+          {/* Link to an existing expense (drawer flow, only when some exist) */}
+          {canLinkExisting && existing.length > 0 && (
+            <div className="flex flex-col gap-[5px]">
+              <Label className={fieldLabel}>Link to an existing fixed expense</Label>
+              <Select
+                items={[
+                  { value: "", label: "— Create a new one —" },
+                  ...existing.map((e) => ({ value: e.id, label: e.name })),
+                ]}
+                value={selectedId}
+                onValueChange={onSelectExisting}
+              >
+                <SelectTrigger className={fieldTrigger}>
+                  <SelectValue placeholder="Create a new one" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— Create a new one —</SelectItem>
+                  {existing.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-dim">
+                Pick one to attach this invoice to it instead of creating a new expense.
+              </p>
+            </div>
+          )}
+
+          {/* Fields lock when an existing expense is selected (preview only). */}
+          <fieldset disabled={locked} className="contents">
           {/* Name */}
           <div className="flex flex-col gap-[5px]">
             <Label htmlFor="fx-name" className={fieldLabel}>Name</Label>
@@ -195,12 +285,12 @@ export function FixedExpenseFormDialog({
           {/* Source: vendor + sender */}
           <div className="flex flex-col gap-[5px]">
             <Label htmlFor="fx-vendor" className={fieldLabel}>Vendor name</Label>
-            <Input id="fx-vendor" placeholder="Who bills you" className={fieldInput} {...register("vendorName")} />
+            <Input id="fx-vendor" placeholder="Who bills you (comma-separate several)" className={fieldInput} {...register("vendorName")} />
             {errors.vendorName && <p className="text-[11.5px] text-danger">{errors.vendorName.message}</p>}
           </div>
           <div className="flex flex-col gap-[5px]">
             <Label htmlFor="fx-sender" className={fieldLabel}>Sender email</Label>
-            <Input id="fx-sender" type="email" placeholder="billing@vendor.com" className={fieldInput} {...register("senderEmail")} />
+            <Input id="fx-sender" placeholder="billing@vendor.com (comma-separate several)" className={fieldInput} {...register("senderEmail")} />
             {errors.senderEmail && <p className="text-[11.5px] text-danger">{errors.senderEmail.message}</p>}
           </div>
 
@@ -279,6 +369,7 @@ export function FixedExpenseFormDialog({
             <Input id="fx-grace" type="number" min="0" max="60" className={`${fieldInput} w-[110px]`} {...register("gracePeriodDays")} />
             <p className="text-[11px] text-dim">Days after the period ends before it counts as overdue.</p>
           </div>
+          </fieldset>
         </div>
 
         <DialogFooter className="px-[22px] py-[14px] border-t border-hover gap-[8px]">
@@ -286,16 +377,62 @@ export function FixedExpenseFormDialog({
             type="button"
             variant="outline"
             onClick={onClose}
-            disabled={pending}
+            disabled={pending || absorb.isPending}
             className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
-            {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
-          </Button>
+          {locked ? (
+            <Button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={absorb.isPending}
+              className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
+            >
+              Link
+            </Button>
+          ) : (
+            <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
+              {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+            </Button>
+          )}
         </DialogFooter>
       </form>
-    </DialogContent>
+      </DialogContent>
+
+      {/* Confirm absorbing this invoice into the selected existing expense. */}
+      <Dialog open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Link to “{selected?.name}”?</DialogTitle>
+            <DialogDescription>
+              This adds the sender{prefill?.senderEmail ? ` ${prefill.senderEmail}` : ""}
+              {(prefill?.vendorName || prefill?.name) ? ` and title “${prefill?.vendorName || prefill?.name}”` : ""}{" "}
+              to “{selected?.name}”, and marks past and future invoices from that sender as this
+              fixed expense.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={absorb.isPending}
+              className="rounded-[10px] text-[13.5px] font-[600]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmLink}
+              disabled={absorb.isPending}
+              className="rounded-[10px] text-[13.5px] font-[700]"
+            >
+              {absorb.isPending ? "Linking…" : "Link invoice"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

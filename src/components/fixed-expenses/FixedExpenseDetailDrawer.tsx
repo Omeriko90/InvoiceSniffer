@@ -56,7 +56,10 @@ export function FixedExpenseDetailDrawer({
   const candidates = useFixedExpenseCandidates(expense.id, linkingIndex !== null)
 
   const paused = expense.status === "PAUSED"
-  const source = expense.vendorName ?? expense.senderEmail ?? "—"
+  // Arrays now — join all vendor titles / senders for display.
+  const vendorLabel = expense.vendorName.join(", ")
+  const senderLabel = expense.senderEmail.join(", ")
+  const source = vendorLabel || senderLabel || "—"
 
   function togglePause() {
     update.mutate(
@@ -113,8 +116,8 @@ export function FixedExpenseDetailDrawer({
         <div className="border border-border rounded-[11px] overflow-hidden mb-[22px]">
           {[
             { label: "Source", value: source },
-            ...(expense.senderEmail && expense.vendorName
-              ? [{ label: "Sender", value: expense.senderEmail }]
+            ...(senderLabel && vendorLabel
+              ? [{ label: "Sender", value: senderLabel }]
               : []),
             { label: "Frequency", value: FREQUENCY_LABELS[expense.frequency] },
             {

@@ -50,8 +50,8 @@ export function FixedExpensesClient({
       const matchSearch =
         !q ||
         e.name.toLowerCase().includes(q) ||
-        (e.vendorName ?? "").toLowerCase().includes(q) ||
-        (e.senderEmail ?? "").toLowerCase().includes(q)
+        e.vendorName.some((v) => v.toLowerCase().includes(q)) ||
+        e.senderEmail.some((s) => s.toLowerCase().includes(q))
       const matchStatus = statusFilter === "all" || e.status === statusFilter
       return matchSearch && matchStatus
     })
