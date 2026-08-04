@@ -319,11 +319,11 @@ model FixedExpense {
   category          InvoiceCategory       @default(UNCATEGORIZED)
   // Match signals — "from where it should be coming". vendorNormalized is the
   // primary key (normalizeVendor(vendorName)); senderEmail is the secondary.
-  // Arrays: an expense can absorb several vendor titles / sender addresses (see
-  // the invoice-drawer "link to existing" / absorb flow).
-  vendorName        String[]
-  vendorNormalized  String[]
-  senderEmail       String[]
+  // Arrays: one expense can absorb invoices from several vendor titles / senders
+  // (see the invoice-drawer "link to existing" flow). Empty array = no signal.
+  vendorName        String[]              @default([])
+  vendorNormalized  String[]              @default([])
+  senderEmail       String[]              @default([])
   // Optional: pin matching to a single connected mailbox.
   gmailCredentialId String?
   // Expected amount is a soft signal only (shown, not enforced when matching).
@@ -343,6 +343,8 @@ model FixedExpense {
   invoices     Invoice[]
 
   @@index([organizationId, status])
+  // GIN index for array containment on the match signal (btree can't index arrays).
+  @@index([vendorNormalized], type: Gin)
 }
 
 // ─── Learning ─────────────────────────────────────────────
