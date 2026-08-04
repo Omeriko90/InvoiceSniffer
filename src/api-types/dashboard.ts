@@ -8,6 +8,12 @@ export interface CategorySpend {
     count:    number
 }
 
+export interface TaxByCurrency {
+    currency: string
+    total:    number
+    count:    number
+}
+
 export interface DashboardData {
     unmatched:      number
     possible:       number
@@ -23,6 +29,7 @@ export interface DashboardData {
       noInvoice: number
     }
     spendByCategory: CategorySpend[]
+    taxByMonth:   TaxByCurrency[]
     recentAlerts: AlertItem[]
     monthLabel:   string
   }

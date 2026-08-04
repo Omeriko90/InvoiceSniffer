@@ -156,8 +156,13 @@ async function extractInvoice(
   const docBytes = pdfBytes ?? remotePdfBytes
   let extractionMethod: "HEURISTIC" | "AI" = "HEURISTIC"
   if (extractorEnabled() && docBytes) {
+    // Run the vision extractor when the cheap signals left a gap it can close:
+    // no amount at all, or an Israeli document still missing its Tax Authority
+    // allocation number OR its VAT (both of which the LLM reads reliably and the
+    // regex heuristics routinely miss on RTL-mangled PDFs).
     const needsLlm =
-      !extracted.totalAmount || (isIsraeli() && !extracted.allocationNumber)
+      !extracted.totalAmount ||
+      (isIsraeli() && (!extracted.allocationNumber || !extracted.taxAmount))
     if (needsLlm) {
       const source = pdfBytes ? "attachment" : "link"
       console.log(`[invoice-extract] Tier 2 LLM on ${source} PDF for ${gmailMessageId}`)
@@ -334,6 +339,32 @@ function applyLlmExtraction(base: ExtractedInvoice, llm: LlmExtraction): Extract
     const d = new Date(raw)
     return isNaN(d.getTime()) ? null : d
   }
+
+  // The LLM read the rendered page, so its money figures beat the regex's
+  // guesses at mojibake/RTL text — prefer them, falling back to the heuristic
+  // only when the LLM returned null.
+  const totalAmount = llm.totalAmount ?? base.totalAmount
+  let taxAmount = llm.vatAmount ?? base.taxAmount
+
+  // Reconcile subtotal + VAT = total while all three LLM numbers are still in
+  // scope (subtotalAmount is never persisted). Derive a missing VAT from the
+  // subtotal, and reject a VAT that neither matches nor can be reconciled.
+  const sub = llm.subtotalAmount
+  if (totalAmount != null) {
+    const tol = Math.max(0.02, totalAmount * 0.01)
+    if (sub != null && taxAmount != null) {
+      if (Math.abs(sub + taxAmount - totalAmount) > tol) {
+        const derived = totalAmount - sub
+        taxAmount = derived >= 0 && derived < totalAmount ? derived : null
+      }
+    } else if (sub != null && taxAmount == null) {
+      const derived = totalAmount - sub
+      if (derived >= 0) taxAmount = derived
+    }
+    // Clamp: VAT can never exceed the total.
+    if (taxAmount != null && taxAmount > totalAmount) taxAmount = null
+  }
+
   return {
     vendorName: base.vendorName ?? llm.vendorName,
     vendorNormalized: base.vendorNormalized,
@@ -343,9 +374,9 @@ function applyLlmExtraction(base: ExtractedInvoice, llm: LlmExtraction): Extract
     documentType: llm.documentType !== "UNKNOWN" ? llm.documentType : base.documentType,
     invoiceDate: base.invoiceDate ?? llmDate(llm.invoiceDate),
     dueDate: base.dueDate ?? llmDate(llm.dueDate),
-    totalAmount: base.totalAmount ?? llm.totalAmount,
-    currency: base.totalAmount ? base.currency : llm.currency ?? base.currency,
-    taxAmount: base.taxAmount ?? llm.vatAmount,
+    totalAmount,
+    currency: llm.totalAmount ? (llm.currency ?? base.currency) : base.currency,
+    taxAmount,
     lineItems: llm.lineItems.length > 0 ? llm.lineItems : base.lineItems,
     confidence: Math.max(base.confidence, 0.95),
   }
