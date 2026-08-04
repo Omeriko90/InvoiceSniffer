@@ -18,13 +18,14 @@ export const STATUS_META: Record<string, StatusMeta> = {
   IGNORED:   { label: "Ignored",    bg: "#F1F3F8", color: "#94A3B8" },
 }
 
+// No "Ignored" option: removed invoices (marked "not an invoice" / "not relevant")
+// are filtered out of the list entirely, so the status is never shown here.
 export const STATUS_OPTIONS = [
   { value: "all",      label: "All" },
   { value: "DETECTED", label: "Detected" },
   { value: "MATCHED",  label: "Confirmed" },
   { value: "UNMATCHED",label: "Review" },
   { value: "REVIEWED", label: "Reviewed" },
-  { value: "IGNORED",  label: "Ignored" },
 ]
 
-export const TABLE_GRID_COLUMNS = "1.6fr 1fr 0.8fr 0.7fr 1.1fr 0.9fr 40px"
+export const TABLE_GRID_COLUMNS = "1.6fr 1fr 0.8fr 0.7fr 1.1fr 0.9fr 1fr 40px"

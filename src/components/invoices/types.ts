@@ -1,3 +1,5 @@
+import type { InvoiceCategory } from "@/lib/invoice-categories"
+
 export type InvoiceStatus = "DETECTED" | "MATCHED" | "UNMATCHED" | "REVIEWED" | "IGNORED"
 
 export type UIState = "data" | "loading" | "empty"
@@ -19,6 +21,7 @@ export type InvoiceRow = {
   dueDate: string | null
   extractionConfidence: number
   status: InvoiceStatus
+  category: InvoiceCategory
   gmailLink: string
   senderEmail: string
   senderName: string | null

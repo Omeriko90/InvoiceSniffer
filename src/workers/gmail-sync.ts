@@ -310,26 +310,33 @@ type SyncContext = {
 
 // Loaded once per sync run, not per message
 async function loadSyncContext(organizationId: string): Promise<SyncContext> {
-  const [ignoreRules, feedbackCounts, negatives, positives] = await Promise.all([
+  const [ignoreRules, ignoredCounts, confirmedCounts, negatives, positives] = await Promise.all([
     prisma.vendorAlias.findMany({
       where: { organizationId, type: "IGNORE", active: true, senderEmail: { not: null } },
       select: { senderEmail: true },
     }),
-    // Per-sender feedback tallies: IGNORED marks raise the penalty,
-    // confirmed invoices (MATCHED/REVIEWED) lower it
+    // Per-sender feedback tallies. "not an invoice" marks (removalReason
+    // NOT_AN_INVOICE — the human-labeled false positives) raise the penalty;
+    // confirmed, non-removed invoices (MATCHED/REVIEWED) lower it. Keyed off
+    // removalReason, not status: removal no longer touches status.
     prisma.invoice.groupBy({
-      by: ["senderEmail", "status"],
-      where: { organizationId, status: { in: ["IGNORED", "MATCHED", "REVIEWED"] } },
+      by: ["senderEmail"],
+      where: { organizationId, removalReason: "NOT_AN_INVOICE" },
+      _count: true,
+    }),
+    prisma.invoice.groupBy({
+      by: ["senderEmail"],
+      where: { organizationId, status: { in: ["MATCHED", "REVIEWED"] }, removedAt: null },
       _count: true,
     }),
     prisma.invoice.findMany({
-      where: { organizationId, status: "IGNORED" },
+      where: { organizationId, removalReason: "NOT_AN_INVOICE" },
       orderBy: { updatedAt: "desc" },
       take: 5,
       select: { subject: true, senderEmail: true },
     }),
     prisma.invoice.findMany({
-      where: { organizationId, status: { in: ["MATCHED", "REVIEWED"] } },
+      where: { organizationId, status: { in: ["MATCHED", "REVIEWED"] }, removedAt: null },
       orderBy: { updatedAt: "desc" },
       take: 5,
       select: { subject: true, senderEmail: true },
@@ -337,11 +344,16 @@ async function loadSyncContext(organizationId: string): Promise<SyncContext> {
   ])
 
   const marks = new Map<string, { ignored: number; confirmed: number }>()
-  for (const row of feedbackCounts) {
+  for (const row of ignoredCounts) {
     const sender = row.senderEmail.toLowerCase()
     const entry = marks.get(sender) ?? { ignored: 0, confirmed: 0 }
-    if (row.status === "IGNORED") entry.ignored += row._count
-    else entry.confirmed += row._count
+    entry.ignored += row._count
+    marks.set(sender, entry)
+  }
+  for (const row of confirmedCounts) {
+    const sender = row.senderEmail.toLowerCase()
+    const entry = marks.get(sender) ?? { ignored: 0, confirmed: 0 }
+    entry.confirmed += row._count
     marks.set(sender, entry)
   }
 

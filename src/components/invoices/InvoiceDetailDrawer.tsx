@@ -1,19 +1,38 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock } from "lucide-react"
+import { Ban, ExternalLink, FileText, Lock, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
-import { useMarkNotInvoice } from "@/hooks/useMarkNotInvoice"
+import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
+import type { RemovalReason } from "@/api/invoices"
 import { STATUS_META } from "./constants"
 import { fmtAmount, fmtSize, toDraft } from "./helpers"
 import type { InvoiceRow } from "./types"
 import { VendorCell } from "./VendorCell"
 import { StatusBadge } from "./StatusBadge"
+import { CategoryBadge } from "./CategoryBadge"
+import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
 
 export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   invoice: InvoiceRow
@@ -22,9 +41,37 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 }) {
   const router = useRouter()
   const update = useUpdateInvoice()
-  const notInvoice = useMarkNotInvoice()
+  const remove = useRemoveInvoice(() => router.refresh())
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
+  const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(invoice.category)
+  // Which removal is awaiting confirmation (null = dialog closed), and whether
+  // the user opted to also mute the sender (only offered for "not relevant").
+  const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(null)
+  const [muteSender, setMuteSender] = useState(false)
+
+  function openConfirm(reason: RemovalReason) {
+    setMuteSender(false)
+    setConfirmReason(reason)
+  }
+
+  function handleRemove() {
+    if (!confirmReason) return
+    remove.mutate(
+      {
+        id: invoice.id,
+        reason: confirmReason,
+        muteSender: confirmReason === "NOT_RELEVANT" ? muteSender : undefined,
+      },
+      {
+        onSuccess: () => {
+          setConfirmReason(null)
+          onDismiss()
+          router.refresh()
+        },
+      }
+    )
+  }
 
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
   const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
@@ -46,6 +93,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       totalAmount: draft.totalAmount.trim(),
       invoiceDate: draft.invoiceDate || null,
       dueDate: draft.dueDate || null,
+      category: categoryDraft,
     }
     update.mutate(
       { id: invoice.id, data },
@@ -59,6 +107,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             totalAmount: data.totalAmount,
             invoiceDate: data.invoiceDate ? new Date(data.invoiceDate).toISOString() : null,
             dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+            category: data.category,
           })
           router.refresh()
         },
@@ -93,6 +142,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             {fmtAmount(invoice.totalAmount, invoice.currency)}
           </span>
           <StatusBadge status={status} />
+          <CategoryBadge category={invoice.category} />
         </div>
         <p className="text-[12.5px] text-[#94A3B8] mb-6">
           Extraction confidence: {pct}%
@@ -129,6 +179,24 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               />
             </div>
           ))}
+          {/* Category */}
+          <div className="flex flex-col gap-[5px]">
+            <Label className="text-[12px] font-[600] text-[#64748B]">Category</Label>
+            <Select
+              items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+              value={categoryDraft}
+              onValueChange={(v) => setCategoryDraft(v as InvoiceCategory)}
+            >
+              <SelectTrigger className="h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="bottom" align="start" className="w-fit">
+                {CATEGORY_SELECTABLE.map((c) => (
+                  <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         ) : (
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
@@ -243,6 +311,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               disabled={update.isPending}
               onClick={() => {
                 setDraft(toDraft(invoice))
+                setCategoryDraft(invoice.category)
                 setEditing(false)
               }}
             >
@@ -278,25 +347,80 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </>
         )}
         </div>
-        {!editing && invoice.status !== "IGNORED" && (
-          <Button
-            variant="ghost"
-            className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
-            disabled={notInvoice.isPending}
-            onClick={() =>
-              notInvoice.mutate(invoice.id, {
-                onSuccess: () => {
-                  onDismiss()
-                  router.refresh()
-                },
-              })
-            }
-          >
-            <Ban size={14} strokeWidth={1.8} />
-            {notInvoice.isPending ? "Marking…" : "This isn't an invoice"}
-          </Button>
+        {!editing && (
+          <div className="flex gap-[10px]">
+            <Button
+              variant="ghost"
+              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_RELEVANT")}
+            >
+              <Trash2 size={14} strokeWidth={1.8} />
+              Not relevant
+            </Button>
+            <Button
+              variant="ghost"
+              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_AN_INVOICE")}
+            >
+              <Ban size={14} strokeWidth={1.8} />
+              This isn&apos;t an invoice
+            </Button>
+          </div>
         )}
       </div>
+
+      {/* Removal confirmation */}
+      <Dialog
+        open={confirmReason !== null}
+        onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmReason === "NOT_AN_INVOICE" ? "Mark as not an invoice?" : "Remove this invoice?"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmReason === "NOT_AN_INVOICE"
+                ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
+                : "It genuinely is an invoice but won't appear in your list. You can undo this."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {confirmReason === "NOT_RELEVANT" && (
+            <Label
+              htmlFor="mute-sender"
+              className="flex items-center gap-[9px] text-[13px] font-[500] text-[#334155] cursor-pointer"
+            >
+              <Checkbox
+                id="mute-sender"
+                checked={muteSender}
+                onCheckedChange={(checked) => setMuteSender(checked === true)}
+              />
+              Also stop showing invoices from this sender
+            </Label>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="rounded-[10px] text-[13.5px] font-[600]"
+              disabled={remove.isPending}
+              onClick={() => setConfirmReason(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
+              disabled={remove.isPending}
+              onClick={handleRemove}
+            >
+              {remove.isPending ? "Removing…" : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SheetContent>
   )
 }

@@ -4,6 +4,8 @@ import { getGmailClient, buildGmailMessageLink } from "@/lib/gmail"
 import { redisUrl,type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
 import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
+import { categorizerEnabled, categorizeInvoice } from "@/lib/llm-categorizer"
+import type { InvoiceCategory } from "@/lib/invoice-categories"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
@@ -59,13 +61,14 @@ async function extractInvoice(
   gmailCredentialId: string,
   gmailMessageId: string
 ) {
-  // Never overwrite an invoice the user explicitly marked "not an invoice"
+  // Never resurrect or overwrite an invoice the user removed ("not an invoice" or
+  // "not relevant"). removedAt is the removal signal — status is left untouched.
   const existing = await prisma.invoice.findUnique({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
-    select: { id: true, status: true },
+    select: { id: true, removedAt: true },
   })
-  if (existing?.status === "IGNORED") {
-    return { invoiceId: existing.id, skipped: "ignored_by_user" }
+  if (existing?.removedAt) {
+    return { invoiceId: existing.id, skipped: "removed_by_user" }
   }
 
   log.info("extract: extracting invoice from email", { gmailMessageId })
@@ -166,6 +169,21 @@ async function extractInvoice(
     }
   }
 
+  // Auto-categorize every invoice with a cheap text-only LLM call (vendor +
+  // subject + line items — no PDF image). Fail-open to the DB default. Only ever
+  // applied on create below, never on update, so it can't clobber a user's
+  // manual category (or the original auto-category) when a message re-extracts.
+  let category: InvoiceCategory | undefined
+  if (categorizerEnabled()) {
+    category =
+      (await categorizeInvoice({
+        vendorName: extracted.vendorName,
+        subject,
+        senderEmail,
+        lineItems: extracted.lineItems,
+      })) ?? undefined
+  }
+
   const invoice = await prisma.invoice.upsert({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
     create: {
@@ -196,6 +214,8 @@ async function extractInvoice(
       receiptUrl,
       extractionMethod,
       extractionConfidence: extracted.confidence,
+      // create-only: never overwrite a user's manual category on re-extraction.
+      ...(category ? { category } : {}),
     },
     update: {
       vendorName: extracted.vendorName,

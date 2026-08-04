@@ -109,6 +109,27 @@ found no amount, or an Israeli document is missing the allocation number.
 > does not use your data to train Google's models. Add a line to the privacy
 > note before the app has real users.
 
+## LLM expense categorizer — auto-category at ingest (optional)
+
+Assigns every invoice a business expense category (Marketing, Software, Travel,
+…) at ingest. Unlike the PDF extractor, this runs for **every** invoice — but
+it's a cheap **text-only** call (vendor + subject + line items, no PDF image),
+so full coverage stays affordable. Categories power the invoices-page filter and
+the dashboard's spend-by-category breakdown, and the user can override any
+invoice's category by hand.
+
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `CATEGORIZATION_MODEL` (e.g. `gemini-2.5-flash`).
+- `CATEGORIZATION_MODEL` unset (or non-`gemini-*`) → categorizer disabled; every invoice stays `UNCATEGORIZED` until set by hand.
+- Any error (or genuine uncertainty) leaves the invoice `UNCATEGORIZED` (fail-open).
+- Applied only when an invoice is first created — re-extraction never overwrites a category (auto or manual).
+
+| Var | Purpose |
+|---|---|
+| `CATEGORIZATION_MODEL` | Which Gemini model to use for expense categorization (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
+
+> Privacy: enabling this sends invoice metadata (vendor, subject, line-item text)
+> to Google Vertex AI, which does not use your data to train Google's models.
+
 ## LLM reconcile arbitrator — Tier 3 match fallback (optional)
 
 The deterministic matcher refuses to match a charge on amount + date alone; it

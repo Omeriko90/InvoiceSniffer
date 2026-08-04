@@ -5,7 +5,9 @@ import type { InvoiceRow } from "@/components/invoices/types"
 
 async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
   const invoices = await prisma.invoice.findMany({
-    where: { organizationId },
+    // removedAt: null hides soft-deleted invoices (marked "not relevant" / "not an
+    // invoice") from every list, filter, search and export fed by this page.
+    where: { organizationId, removedAt: null },
     orderBy: { emailDate: "desc" },
     take: 200,
     select: {
@@ -19,6 +21,7 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
       dueDate: true,
       extractionConfidence: true,
       status: true,
+      category: true,
       gmailLink: true,
       senderEmail: true,
       senderName: true,
@@ -40,6 +43,7 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
     dueDate: inv.dueDate?.toISOString() ?? null,
     extractionConfidence: inv.extractionConfidence,
     status: inv.status as InvoiceRow["status"],
+    category: inv.category,
     gmailLink: inv.gmailLink,
     senderEmail: inv.senderEmail,
     senderName: inv.senderName,

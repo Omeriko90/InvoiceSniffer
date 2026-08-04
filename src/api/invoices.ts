@@ -1,10 +1,15 @@
+import type { InvoiceCategory } from "@/lib/invoice-categories"
+
 export type UpdateInvoicePayload = {
   vendorName?: string | null
   invoiceNumber?: string | null
   totalAmount?: string
   invoiceDate?: string | null
   dueDate?: string | null
+  category?: InvoiceCategory
 }
+
+export type RemovalReason = "NOT_RELEVANT" | "NOT_AN_INVOICE"
 
 async function updateInvoice({ id, data }: { id: string; data: UpdateInvoicePayload }): Promise<void> {
   const res = await fetch(`/api/invoices/${id}`, {
@@ -18,12 +23,32 @@ async function updateInvoice({ id, data }: { id: string; data: UpdateInvoicePayl
   }
 }
 
-async function markNotInvoice(id: string): Promise<void> {
-  const res = await fetch(`/api/invoices/${id}/not-invoice`, { method: "POST" })
+async function removeInvoice({
+  id,
+  reason,
+  muteSender,
+}: {
+  id: string
+  reason: RemovalReason
+  muteSender?: boolean
+}): Promise<void> {
+  const res = await fetch(`/api/invoices/${id}/remove`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(muteSender ? { reason, muteSender } : { reason }),
+  })
   if (!res.ok) {
     const body = await res.json().catch(() => null)
-    throw new Error(body?.error ?? "Failed to mark as not an invoice")
+    throw new Error(body?.error ?? "Failed to remove invoice")
   }
 }
 
-export { updateInvoice, markNotInvoice }
+async function restoreInvoice(id: string): Promise<void> {
+  const res = await fetch(`/api/invoices/${id}/restore`, { method: "POST" })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to restore invoice")
+  }
+}
+
+export { updateInvoice, removeInvoice, restoreInvoice }
