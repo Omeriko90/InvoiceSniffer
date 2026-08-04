@@ -8,6 +8,7 @@ import { GmailConnectionCard } from "@/components/settings/GmailConnectionCard"
 import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard"
 import { LearnedRulesCard } from "@/components/settings/LearnedRulesCard"
 import { ReconcileSettingsCard } from "@/components/settings/ReconcileSettingsCard"
+import { LanguagePreferenceCard } from "@/components/settings/LanguagePreferenceCard"
 
 export default function SettingsPage() {
   const { data, isPending } = useSettings()
@@ -24,6 +25,7 @@ export default function SettingsPage() {
         <WorkspaceMembersCard members={data.members} />
       </div>
       <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
+      <LanguagePreferenceCard />
       <LearnedRulesCard rules={data.rules} />
     </div>
   )

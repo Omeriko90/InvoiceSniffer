@@ -13,6 +13,7 @@ export const en = {
     language: {
       title: "Language",
       description: "Choose the language for the interface.",
+      saved: "Language updated",
     },
   },
 }
