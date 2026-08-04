@@ -55,7 +55,7 @@ export function ConfirmationDialog({
         <DialogFooter className="border-t-0 bg-transparent p-0">
           <Button
             variant="outline"
-            className="rounded-[10px] text-[13.5px] font-[600]"
+            className="rounded-lg text-sm font-semibold"
             disabled={isPending}
             onClick={() => onOpenChange(false)}
           >
@@ -64,7 +64,7 @@ export function ConfirmationDialog({
           <Button
             variant={destructive ? undefined : "default"}
             className={cn(
-              "rounded-[10px] text-[13.5px] font-[700]",
+              "rounded-lg text-sm font-bold",
               destructive && "border-0 bg-danger text-white hover:opacity-90"
             )}
             disabled={isPending}
