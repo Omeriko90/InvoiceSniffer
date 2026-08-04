@@ -6,6 +6,7 @@ import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES, FIXED_EXPENSE_STATUSES } from "@/lib/fixed-expense-meta"
 import { normalizeVendor } from "@/lib/invoice-detection"
+import { dedupeInsensitive } from "@/lib/fixed-expenses"
 
 const MAX_TEXT = 200
 const MAX_AMOUNT = 1e12
@@ -52,11 +53,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (p.name !== undefined) data.name = p.name
   if (p.category !== undefined) data.category = p.category
   if (p.vendorName !== undefined) {
-    const names = [...new Set(p.vendorName)]
+    // Case-insensitive dedup so a title can't be stored twice.
+    const names = dedupeInsensitive(p.vendorName)
     data.vendorName = names
-    data.vendorNormalized = [...new Set(names.map(normalizeVendor))]
+    data.vendorNormalized = dedupeInsensitive(names.map(normalizeVendor))
   }
-  if (p.senderEmail !== undefined) data.senderEmail = [...new Set(p.senderEmail)]
+  if (p.senderEmail !== undefined) data.senderEmail = dedupeInsensitive(p.senderEmail)
   if (p.gmailCredentialId !== undefined) data.gmailCredentialId = p.gmailCredentialId || null
   if (p.expectedAmount !== undefined) data.expectedAmount = p.expectedAmount
   if (p.currency !== undefined) data.currency = p.currency
