@@ -14,14 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog } from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
@@ -43,9 +37,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   onDismiss: () => void
 }) {
   const router = useRouter()
-  const update = useUpdateInvoice()
-  const remove = useRemoveInvoice(() => router.refresh())
-  const unlink = useUnlinkFixedExpense(() => router.refresh())
   const [unlinkOpen, setUnlinkOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
@@ -55,6 +46,12 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(null)
   const [muteSender, setMuteSender] = useState(false)
   const [markFixedOpen, setMarkFixedOpen] = useState(false)
+  const update = useUpdateInvoice()
+  const remove = useRemoveInvoice(() => router.refresh())
+  const {mutate: unlink, isPending: unlinkPending} = useUnlinkFixedExpense(() => {
+    track("invoice_unlinked", { invoiceId: invoice.id })
+      setUnlinkOpen(false)
+    router.refresh()})
 
   function openConfirm(reason: RemovalReason) {
     setMuteSender(false)
@@ -89,6 +86,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
   function setField(field: keyof ReturnType<typeof toDraft>, value: string) {
     setDraft((d) => ({ ...d, [field]: value }))
+  }
+
+  function handleUnlink() {
+    unlink(invoice.id)
   }
 
   function handleSave() {
@@ -160,7 +161,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             <button
               type="button"
               onClick={() => setUnlinkOpen(true)}
-              disabled={unlink.isPending}
+              disabled={unlinkPending}
               className="ml-auto shrink-0 text-[#94A3B8] hover:text-[#DC2626] disabled:opacity-50"
               aria-label="Remove from fixed expense"
             >
@@ -427,23 +428,22 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </div>
 
       {/* Removal confirmation */}
-      {confirmReason !== null && <Dialog
-        name="invoice_remove_confirm"
-        open
-        onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmReason === "NOT_AN_INVOICE" ? "Mark as not an invoice?" : "Remove this invoice?"}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmReason === "NOT_AN_INVOICE"
-                ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
-                : "It genuinely is an invoice but won't appear in your list. You can undo this."}
-            </DialogDescription>
-          </DialogHeader>
-
+      {confirmReason !== null && (
+        <ConfirmationDialog
+          open
+          onOpenChange={() =>setConfirmReason(null) }
+          title={confirmReason === "NOT_AN_INVOICE" ? "Mark as not an invoice?" : "Remove this invoice?"}
+          description={
+            confirmReason === "NOT_AN_INVOICE"
+              ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
+              : "It genuinely is an invoice but won't appear in your list. You can undo this."
+          }
+          confirmLabel="Remove"
+          pendingLabel="Removing…"
+          destructive
+          isPending={remove.isPending}
+          onConfirm={handleRemove}
+        >
           {confirmReason === "NOT_RELEVANT" && (
             <Label
               htmlFor="mute-sender"
@@ -457,26 +457,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Also stop showing invoices from this sender
             </Label>
           )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-[10px] text-[13.5px] font-[600]"
-              disabled={remove.isPending}
-              onClick={() => setConfirmReason(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
-              disabled={remove.isPending}
-              onClick={handleRemove}
-            >
-              {remove.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>}
+        </ConfirmationDialog>
+      )}
 
       {/* Mark as fixed expense — pre-filled from this invoice, links it on save */}
       {markFixedOpen && <Dialog name="invoice_mark_fixed" open onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
@@ -501,39 +483,37 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         )}
       </Dialog>}
 
-      {/* Remove this invoice from its fixed expense */}
-      {unlinkOpen && <Dialog name="invoice_unlink" open onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove from fixed expense?</DialogTitle>
-            <DialogDescription>
-              This invoice will no longer count toward
-              {invoice.fixedExpense ? ` “${invoice.fixedExpense.name}”` : " this fixed expense"}.
-              The fixed expense keeps its match rules, so a matching invoice can re-link later.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-[10px] text-[13.5px] font-[600]"
-              disabled={unlink.isPending}
-              onClick={() => setUnlinkOpen(false)}
+      {unlinkOpen && (
+        <ConfirmationDialog
+          open
+          onOpenChange={() => setUnlinkOpen(false)}
+          title={"Remove from fixed expense?"}
+          description={
+            `This invoice will no longer count toward
+              ${invoice.fixedExpense ? invoice.fixedExpense.name : " this fixed expense"}.
+              The fixed expense keeps its match rules, so a matching invoice can re-link later.`
+          }
+          confirmLabel="Remove"
+          pendingLabel="Removing…"
+          destructive
+          isPending={remove.isPending}
+          onConfirm={handleUnlink}
+        >
+          {confirmReason === "NOT_RELEVANT" && (
+            <Label
+              htmlFor="mute-sender"
+              className="flex items-center gap-[9px] text-[13px] font-[500] text-[#334155] cursor-pointer"
             >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
-              disabled={unlink.isPending}
-              onClick={() => unlink.mutate(invoice.id, { onSuccess: () => {
-                track("invoice_unlinked", { invoiceId: invoice.id })
-                setUnlinkOpen(false)
-              } })}
-            >
-              {unlink.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>}
+              <Checkbox
+                id="mute-sender"
+                checked={muteSender}
+                onCheckedChange={(checked) => setMuteSender(checked === true)}
+              />
+              Also stop showing invoices from this sender
+            </Label>
+          )}
+        </ConfirmationDialog>
+      )}
     </SheetContent>
   )
 }
