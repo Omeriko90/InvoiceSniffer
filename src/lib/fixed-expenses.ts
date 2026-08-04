@@ -133,6 +133,23 @@ export function periodTimeline(
  * sender email (either is enough); if the expense pins a mailbox, the invoice
  * must also come from it. Used by the ingest linker — see invoice-extract.ts.
  */
+// Case-insensitive dedup that keeps each value's first-seen spelling. Used to
+// keep a fixed expense's vendor-title / sender-email arrays free of duplicates
+// (e.g. "Billing@X.com" and "billing@x.com" collapse to one) on create, update,
+// and absorb. Blank entries are dropped.
+export function dedupeInsensitive(values: string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const v of values) {
+    const key = v.toLowerCase()
+    if (v && !seen.has(key)) {
+      seen.add(key)
+      out.push(v)
+    }
+  }
+  return out
+}
+
 export function matchesExpense(
   invoice: Pick<InvoiceMatchLike, "vendorNormalized" | "senderEmail" | "gmailCredentialId">,
   expense: Pick<FixedExpenseLike, "vendorNormalized" | "senderEmail" | "gmailCredentialId">,

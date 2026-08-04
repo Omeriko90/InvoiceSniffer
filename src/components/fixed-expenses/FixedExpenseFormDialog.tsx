@@ -38,9 +38,19 @@ import { FIXED_EXPENSE_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/fixed-expense
 import type { FixedExpenseRow } from "./types"
 
 // Vendor titles / sender emails are entered comma-separated (the columns are
-// arrays). Split, trim, drop blanks, and dedup.
+// arrays). Split, trim, drop blanks, and dedup case-insensitively (keeping the
+// first-seen spelling) so the same value can't be entered twice.
 function parseList(raw: string): string[] {
-  return [...new Set(raw.split(",").map((s) => s.trim()).filter(Boolean))]
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const value of raw.split(",").map((s) => s.trim())) {
+    const key = value.toLowerCase()
+    if (value && !seen.has(key)) {
+      seen.add(key)
+      out.push(value)
+    }
+  }
+  return out
 }
 
 const schema = z
