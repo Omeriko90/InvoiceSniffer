@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   INVOICE_DATE_PRESETS,
-  INVOICE_DATE_PRESET_LABELS,
   resolveInvoiceDateRange,
   type InvoiceDatePreset,
 } from "@/lib/invoice-date-filter"
@@ -22,6 +21,7 @@ import {
 } from "@/api/exports"
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
+import { DateRangePreset, PRESET_LABELS } from "@/lib/date-range"
 
 type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
 
@@ -159,8 +159,8 @@ export function ExportDialog({
 
   return (
     <FormDialog
-      className="sm:max-w-[620px]"
-      footerClassName="rounded-b-[16px] bg-surface flex items-center justify-end gap-[10px]"
+      className="sm:max-w-155"
+      footerClassName="rounded-b-lg bg-surface flex items-center justify-end gap-2.5"
       title={`Export invoices as ${FORMAT_LABELS[format]}`}
       description={
         format === "pdf"
@@ -181,52 +181,54 @@ export function ExportDialog({
         </>
       }
     >
-      <div className="px-[22px] py-[16px] flex flex-col gap-[16px] max-h-[60vh] overflow-y-auto">
+      <div className="px-5.5 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
         {/* Date range */}
-        <div className="flex flex-col gap-[10px]">
-          <p className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+        <div className="flex flex-col gap-2.5">
+          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
             Date range
           </p>
-          <div className="flex flex-wrap items-center gap-[6px]">
+          <div className="flex flex-wrap items-center gap-1.5">
             {EXPORT_PRESETS.map((p) => {
               const on = isPreset(scope) && scope.preset === p
               return (
-                <button
+                <Button
                   key={p}
+                  variant="ghost"
                   onClick={() => setScope({ preset: p })}
-                  className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+                  className="h-auto px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer"
                   style={{ background: on ? "#EEF3FF" : "#F1F3F8", color: on ? "#3B6FE0" : "#64748B" }}
                 >
-                  {INVOICE_DATE_PRESET_LABELS[p]}
-                </button>
+                  {PRESET_LABELS[p as DateRangePreset]}
+                </Button>
               )
             })}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setScope(custom ? scope : { from: "", to: "" })}
-              className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+              className="h-auto px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer"
               style={{ background: custom ? "#EEF3FF" : "#F1F3F8", color: custom ? "#3B6FE0" : "#64748B" }}
             >
               Custom
-            </button>
+            </Button>
           </div>
           {custom && (
-            <div className="flex flex-wrap items-center gap-[10px]">
-              <label className="flex items-center gap-[8px] text-[13px] text-text-secondary">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
                 From
                 <Input
                   type="date"
                   value={scope.from}
                   onChange={(e) => setScope({ from: e.target.value, to: scope.to })}
-                  className="h-auto py-[7px] px-[10px] text-[13px] w-[160px] border-border rounded"
+                  className="h-auto py-2 px-2.5 text-sm w-40 border-border rounded"
                 />
               </label>
-              <label className="flex items-center gap-[8px] text-[13px] text-text-secondary">
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
                 To
                 <Input
                   type="date"
                   value={scope.to}
                   onChange={(e) => setScope({ from: scope.from, to: e.target.value })}
-                  className="h-auto py-[7px] px-[10px] text-[13px] w-[160px] border-border rounded"
+                  className="h-auto py-2 px-2.5 text-sm w-40 border-border rounded"
                 />
               </label>
             </div>
@@ -235,13 +237,13 @@ export function ExportDialog({
 
         {/* Columns (spreadsheet only) */}
         {isSpreadsheet && (
-          <div className="flex flex-col gap-[10px]">
-            <p className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+          <div className="flex flex-col gap-2.5">
+            <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
               Columns
             </p>
-            <div className="flex flex-wrap gap-x-[18px] gap-y-[8px]">
+            <div className="flex flex-wrap gap-x-4.5 gap-y-2">
               {EXPORT_COLUMNS.map((col) => (
-                <label key={col} className="flex items-center gap-[8px] text-[13px] text-text-primary cursor-pointer">
+                <label key={col} className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
                   <Checkbox checked={columns.has(col)} onCheckedChange={() => toggleColumn(col)} />
                   {EXPORT_COLUMN_LABELS[col]}
                 </label>
@@ -251,50 +253,51 @@ export function ExportDialog({
         )}
 
         {/* Invoice list */}
-        <div className="flex flex-col gap-[8px]">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <p className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+            <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
               Invoices
             </p>
             {invoices.length > 0 && (
-              <button
+              <Button
+                variant="link"
                 onClick={toggleAll}
-                className="text-[12.5px] font-[600] text-[#3B6FE0] cursor-pointer"
+                className="h-auto p-0 rounded-none text-sm font-semibold text-primary cursor-pointer hover:no-underline"
               >
                 {allSelected ? "Deselect all" : "Select all"}
-              </button>
+              </Button>
             )}
           </div>
 
-          <div className="border border-[#E8EDFA] rounded-[10px] overflow-hidden">
+          <div className="border border-border rounded-lg overflow-hidden">
             {preview.isLoading ? (
-              <div className="px-[14px] py-[24px] text-center text-[13px] text-text-secondary">Loading…</div>
+              <div className="px-3.5 py-6 text-center text-sm text-text-secondary">Loading…</div>
             ) : preview.isError ? (
-              <div className="px-[14px] py-[24px] text-center text-[13px] text-destructive">
+              <div className="px-3.5 py-6 text-center text-sm text-destructive">
                 Failed to load invoices.
               </div>
             ) : invoices.length === 0 ? (
-              <div className="px-[14px] py-[24px] text-center text-[13px] text-text-secondary">
+              <div className="px-3.5 py-6 text-center text-sm text-text-secondary">
                 No invoices in this range.
               </div>
             ) : (
-              <ul className="divide-y divide-[#F1F3F8] max-h-[240px] overflow-y-auto">
+              <ul className="divide-y divide-border max-h-60 overflow-y-auto">
                 {invoices.map((inv) => {
                   const date = inv.invoiceDate ?? inv.dueDate
                   return (
                     <li key={inv.id}>
-                      <label className="flex items-center gap-[10px] px-[12px] py-[9px] cursor-pointer hover:bg-[#FAFBFF]">
+                      <label className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-surface">
                         <Checkbox
                           checked={selectedIds.has(inv.id)}
                           onCheckedChange={() => toggleRow(inv.id)}
                         />
-                        <span className="flex-1 min-w-0 truncate text-[13px] font-[600] text-text-primary">
+                        <span className="flex-1 min-w-0 truncate text-sm font-semibold text-text-primary">
                           {inv.vendorName ?? "Unknown vendor"}
                         </span>
-                        <span className="text-[12px] text-text-secondary shrink-0">
+                        <span className="text-sm text-text-secondary shrink-0">
                           {date ? formatDate(new Date(date), "dd MMM yyyy") : "—"}
                         </span>
-                        <span className="text-[12.5px] font-[600] text-text-primary shrink-0 w-[92px] text-right">
+                        <span className="text-sm font-semibold text-text-primary shrink-0 w-23 text-right">
                           {inv.currency} {inv.totalAmount.toFixed(2)}
                         </span>
                       </label>

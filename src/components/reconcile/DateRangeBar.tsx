@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { DATE_RANGE_PRESETS, PRESET_LABELS, type DateRangePreset } from "@/lib/date-range"
 import type { DateRangeScope } from "@/api-types/reconcile"
 
@@ -28,29 +29,31 @@ export function DateRangeBar({
         {DATE_RANGE_PRESETS.map((p: DateRangePreset) => {
           const on = activePreset === p
           return (
-            <button
+            <Button
               key={p}
+              variant="ghost"
               onClick={() => onChange({ preset: p })}
-              className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+              className="h-auto px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
               style={{
                 background: on ? "#EEF3FF" : "#F1F3F8",
                 color: on ? "#3B6FE0" : "#64748B",
               }}
             >
               {PRESET_LABELS[p]}
-            </button>
+            </Button>
           )
         })}
-        <button
+        <Button
+          variant="ghost"
           onClick={() => onChange(custom ? scope : { from: "", to: "" })}
-          className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+          className="h-auto px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
           style={{
             background: custom ? "#EEF3FF" : "#F1F3F8",
             color: custom ? "#3B6FE0" : "#64748B",
           }}
         >
           Custom
-        </button>
+        </Button>
       </div>
 
       {custom && (
