@@ -4,16 +4,12 @@ import { GoogleLogo } from "./GoogleLogo"
 
 export function OnboardingCard() {
   return (
-    <div
-      className="w-full text-center flex flex-col items-center"
-      style={{ maxWidth: "440px", background: "white", border: "1px solid #E8EDFA", borderRadius: "18px", boxShadow: "0 12px 40px rgba(80,110,180,.10)", padding: "36px 34px" }}
-    >
+    <div className="w-full text-center flex flex-col items-center max-w-110 bg-surface border border-border rounded-lg shadow-card py-9 px-8.5">
       {/* Logo */}
       <div
-        className="w-13.5 h-13.5 rounded-lg flex items-center justify-center mb-4.5"
-        style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)", boxShadow: "0 6px 18px rgba(122,167,255,.4)" }}
+        className="w-13.5 h-13.5 rounded-[14px] flex items-center justify-center mb-4.5 bg-gradient-logo shadow-logo"
       >
-        <Mail size={26} strokeWidth={2} color="#fff" />
+        <Mail size={26} strokeWidth={2} className="text-white" />
       </div>
 
       <p className="text-sm font-bold text-primary uppercase tracking-wide mb-2">
@@ -32,7 +28,6 @@ export function OnboardingCard() {
       <Link
         href="/api/gmail/connect"
         className="w-full h-11.5 gap-2.5 text-base font-bold rounded-lg flex items-center justify-center text-white"
-        style={{ background: "linear-gradient(135deg,#7AA7FF,#88D0FF)", boxShadow: "0 6px 16px rgba(122,167,255,.35)" }}
       >
         <GoogleLogo />
         Connect Gmail
