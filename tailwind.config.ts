@@ -39,10 +39,12 @@ const palette = {
   infoBorder:    "#BFDBFF",
 
   // Surfaces
-  background: "#FAFBFF",
-  surface:    "#FFFFFF",
-  hover:      "#F1F3F8",
-  border:     "#E8EDFA",
+  background:   "#FAFBFF",
+  surface:      "#FFFFFF",
+  raised:       "#F8FAFF", // faint raised fill: table headers, subtle panels
+  hover:        "#F1F3F8",
+  mutedStrong:  "#EEF1F8", // skeleton fills / zebra rows (a step past hover)
+  border:       "#E8EDFA",
 
   // Text
   heading:   "#1E293B",
@@ -71,10 +73,12 @@ const config: Config = {
 
       colors: {
         // ── Surfaces ──────────────────────────────────────────────
-        background: palette.background,
-        surface:    palette.surface,
-        hover:      palette.hover,
-        border:     palette.border,
+        background:     palette.background,
+        surface:        palette.surface,
+        raised:         palette.raised,
+        hover:          palette.hover,
+        "muted-strong": palette.mutedStrong,
+        border:         palette.border,
 
         // ── Brand ─────────────────────────────────────────────────
         primary:          palette.blue,

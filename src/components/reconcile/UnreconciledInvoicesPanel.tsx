@@ -24,7 +24,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div
-        className="grid px-[18px] py-3 bg-[#F8FAFF] border-b border-border"
+        className="grid px-[18px] py-3 bg-raised border-b border-border"
         style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
       >
         {["Vendor", "Invoice #", "Amount", "Date", ""].map((h, i) => (
