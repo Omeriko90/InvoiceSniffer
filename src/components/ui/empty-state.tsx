@@ -24,10 +24,10 @@ export function EmptyState({
       <div className="w-14 h-14 rounded-xl bg-hover flex items-center justify-center mb-4">
         <Icon size={26} strokeWidth={1.5} className="text-dim" />
       </div>
-      <p className="text-[16px] font-[700] text-heading mb-2">{title}</p>
+      <p className="text-base font-bold text-heading mb-2">{title}</p>
       <p
         className={cn(
-          "text-[13.5px] text-text-secondary text-center max-w-[340px] leading-[1.6]",
+          "text-sm text-text-secondary text-center max-w-[340px] leading-[1.6]",
           action && "mb-6"
         )}
       >

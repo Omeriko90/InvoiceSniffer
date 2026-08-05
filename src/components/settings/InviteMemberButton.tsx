@@ -7,7 +7,7 @@ export function InviteMemberButton() {
       variant="outline"
       disabled
       title="Member invites are coming soon"
-      className="w-full h-auto text-[13.5px] font-[600] text-text-secondary border-dashed border-faint rounded-[11px] py-[11px] bg-transparent hover:bg-hover"
+      className="w-full h-auto text-sm font-semibold text-text-secondary border-dashed border-faint rounded-[11px] py-[11px] bg-transparent hover:bg-hover"
     >
       + Invite member
     </Button>

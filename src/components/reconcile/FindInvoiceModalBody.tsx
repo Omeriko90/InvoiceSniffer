@@ -27,12 +27,12 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
   return (
     <DialogContent className="sm:max-w-[540px] p-0 gap-0 bg-white border-border rounded-[16px]">
           <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-hover">
-            <DialogTitle className="text-[16px] font-[700] text-heading">
+            <DialogTitle className="text-base font-bold text-heading">
               Find invoice
             </DialogTitle>
-            <DialogDescription className="text-[12.5px] text-text-secondary">
+            <DialogDescription className="text-xs text-text-secondary">
               Matching{" "}
-              <span className="font-mono font-[600] text-foreground">{transaction.merchant}</span>
+              <span className="font-mono font-semibold text-foreground">{transaction.merchant}</span>
               {" · "}{fmtMoney(transaction.amount, transaction.currency)}
               {" · "}{fmtDate(transaction.date)}
             </DialogDescription>
@@ -45,11 +45,11 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search vendor or invoice #…"
-                className="h-auto pl-[34px] pr-3 py-[9px] text-[13.5px] text-text-primary border-border rounded-[10px] bg-background"
+                className="h-auto pl-[34px] pr-3 py-[9px] text-sm text-text-primary border-border rounded-[10px] bg-background"
               />
             </div>
 
-            <p className="text-[11px] font-[700] text-text-secondary uppercase tracking-[0.05em]">
+            <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.05em]">
               Suggested matches
             </p>
 
@@ -61,7 +61,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
               onLink={onLink}
             />
 
-            <div className="flex items-center gap-[7px] text-[11.5px] text-dim border-t border-hover pt-[13px]">
+            <div className="flex items-center gap-[7px] text-xs text-dim border-t border-hover pt-[13px]">
               <Lightbulb size={13} strokeWidth={1.5} className="shrink-0" />
               <span>Linking teaches a vendor alias, so future charges from this merchant match automatically.</span>
             </div>

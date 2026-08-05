@@ -4,10 +4,10 @@ import type { MatchSummary } from "@/api-types/reconcile"
 function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
   return (
     <div className="flex-1 min-w-[130px] bg-card border border-border rounded-lg px-[16px] py-[13px]">
-      <p className="text-[24px] font-[800] leading-none" style={{ color: tone }}>
+      <p className="text-2xl font-extrabold leading-none" style={{ color: tone }}>
         {value}
       </p>
-      <p className="text-[12px] text-text-secondary mt-[6px]">{label}</p>
+      <p className="text-xs text-text-secondary mt-[6px]">{label}</p>
     </div>
   )
 }

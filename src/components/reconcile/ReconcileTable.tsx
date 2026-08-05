@@ -26,7 +26,7 @@ export function ReconcileTable({
         {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
           <span
             key={h}
-            className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary"
+            className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
             style={i === 2 || i === 5 ? { textAlign: "right" } : undefined}
           >
             {h}
@@ -37,7 +37,7 @@ export function ReconcileTable({
       {transactions.length === 0 && <EmptyState />}
 
       {transactions.length > 0 && filtered.length === 0 && (
-        <div className="py-12 text-center text-[13.5px] text-dim">
+        <div className="py-12 text-center text-sm text-dim">
           No transactions in this view
         </div>
       )}

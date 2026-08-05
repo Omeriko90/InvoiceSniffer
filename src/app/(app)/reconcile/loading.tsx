@@ -11,7 +11,7 @@ export default function Loading() {
           {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
             <span
               key={h}
-              className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary"
+              className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
               style={i === 2 || i === 5 ? { textAlign: "right" } : undefined}
             >
               {h}

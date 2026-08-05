@@ -72,7 +72,7 @@ export function SignUpForm() {
         {isSubmitting ? "Creating account…" : "Create account"}
       </AuthSubmitButton>
 
-      <p className="text-[11.5px] text-dim text-center leading-[1.5] mt-[14px]">
+      <p className="text-xs text-dim text-center leading-[1.5] mt-[14px]">
         By creating an account you agree to our <strong className="text-subtle">Terms &amp; Privacy Policy</strong>.
       </p>
     </form>

@@ -1,10 +1,10 @@
 // Client component by import — only ever rendered from <Sidebar>.
 export function Logo({ orgName }: { orgName: string }) {
   return (
-    <div className="px-[18px] pt-6 pb-5">
+    <div className="px-4.5 pt-6 pb-5">
       <div className="flex items-center gap-3">
         <div
-          className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shadow-logo shrink-0"
+          className="w-8.5 h-8.5 rounded-lg flex items-center justify-center shadow-logo shrink-0"
           style={{ background: "linear-gradient(135deg, #7AA7FF, #A78BFA)" }}
         >
           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
@@ -12,7 +12,7 @@ export function Logo({ orgName }: { orgName: string }) {
           </svg>
         </div>
         <div>
-          <p className="text-[15px] font-[800] text-heading leading-none">InvoiceSniffer</p>
+          <p className="text-base font-bold text-heading leading-none">InvoiceSniffer</p>
           <p className="text-[11px] text-dim mt-0.5 leading-none">{orgName}</p>
         </div>
       </div>

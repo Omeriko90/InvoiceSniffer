@@ -17,18 +17,18 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4 mb-[16px]">
           <div>
-            <h2 className="text-[16px] font-[700] text-heading leading-none">Learned rules &amp; aliases</h2>
-            <p className="text-[13px] text-text-secondary mt-[7px]">
+            <h2 className="text-base font-bold text-heading leading-none">Learned rules &amp; aliases</h2>
+            <p className="text-sm text-text-secondary mt-[7px]">
               These power smarter matching over time. Remove any that look wrong.
             </p>
           </div>
-          <p className="text-[13px] text-dim shrink-0">
+          <p className="text-sm text-dim shrink-0">
             Built from your corrections · {rules.length} {rules.length === 1 ? "rule" : "rules"}
           </p>
         </div>
 
         {rules.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-[13px] text-text-secondary">
+          <div className="flex items-center justify-center py-8 text-sm text-text-secondary">
             No rules yet — they appear as you confirm and correct matches.
           </div>
         ) : (

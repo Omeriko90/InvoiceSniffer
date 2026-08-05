@@ -19,7 +19,7 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         months: "flex flex-col sm:flex-row gap-4",
         month: "flex flex-col gap-3",
         month_caption: "flex justify-center items-center h-8",
-        caption_label: "text-[13.5px] font-[700] text-heading",
+        caption_label: "text-sm font-bold text-heading",
         nav: "flex items-center absolute inset-x-0 top-[14px] justify-between",
         button_previous:
           "inline-flex items-center justify-center h-7 w-7 rounded bg-transparent text-text-secondary hover:bg-hover transition-colors cursor-pointer z-10",
@@ -27,11 +27,11 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
           "inline-flex items-center justify-center h-7 w-7 rounded bg-transparent text-text-secondary hover:bg-hover transition-colors cursor-pointer z-10",
         month_grid: "w-full border-collapse",
         weekdays: "flex",
-        weekday: "text-dim w-9 text-[11.5px] font-[600] uppercase tracking-[0.03em]",
+        weekday: "text-dim w-9 text-xs font-semibold uppercase tracking-[0.03em]",
         week: "flex w-full mt-1",
-        day: "h-9 w-9 p-0 text-center text-[13px]",
+        day: "h-9 w-9 p-0 text-center text-sm",
         day_button:
-          "h-9 w-9 rounded-full font-[500] text-text-primary hover:bg-hover transition-colors cursor-pointer inline-flex items-center justify-center",
+          "h-9 w-9 rounded-full font-medium text-text-primary hover:bg-hover transition-colors cursor-pointer inline-flex items-center justify-center",
         // Range modifiers are applied to the day *cell*; the light-blue bar lives
         // on the cell, the solid endpoints on the button inside it.
         range_start:
@@ -44,7 +44,7 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         range_middle:
           "bg-primary-soft [&>button]:!bg-transparent [&>button]:text-primary [&>button]:rounded-none [&>button]:hover:!bg-transparent",
         selected: "[&>button]:bg-primary-strong",
-        today: "[&>button]:font-[800] [&>button]:text-primary-strong",
+        today: "[&>button]:font-extrabold [&>button]:text-primary-strong",
         outside: "text-faint [&>button]:text-faint",
         disabled: "text-faint opacity-50",
         hidden: "invisible",

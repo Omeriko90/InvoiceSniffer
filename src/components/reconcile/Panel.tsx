@@ -22,8 +22,8 @@ export function Panel({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[13px] font-[700] text-heading truncate">{title}</p>
-          <p className="text-[11px] text-dim truncate">{subtitle}</p>
+          <p className="text-sm font-bold text-heading truncate">{title}</p>
+          <p className="text-xs text-dim truncate">{subtitle}</p>
         </div>
       </div>
       <div className="grid grid-cols-2 flex-1 gap-px bg-hover">{children}</div>

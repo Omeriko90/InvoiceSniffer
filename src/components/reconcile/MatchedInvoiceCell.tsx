@@ -8,13 +8,13 @@ export function MatchedInvoiceCell({ txn }: { txn: TransactionRow }) {
   return (
     <div className="min-w-0">
       <div
-        className="text-[13px] font-[600] truncate"
+        className="text-sm font-semibold truncate"
         style={{ color: inv.muted ? "#94A3B8" : "#334155" }}
       >
         {inv.text}
       </div>
       {txn.matchReason && (
-        <div className="text-[11.5px] text-dim truncate">{txn.matchReason}</div>
+        <div className="text-xs text-dim truncate">{txn.matchReason}</div>
       )}
     </div>
   )

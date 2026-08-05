@@ -44,7 +44,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         <SheetTitle className="text-lg font-bold text-heading">
           {invoice ? "Confirm this match" : "Transaction detail"}
         </SheetTitle>
-        <SheetDescription className="text-[12.5px] text-text-secondary">
+        <SheetDescription className="text-xs text-text-secondary">
           {invoice
             ? "Check that the invoice matches this charge before confirming."
             : "No invoice is linked to this charge yet."}
@@ -108,6 +108,33 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center">
             <ArrowDown size={15} className="text-primary" />
           </div>
+
+          {invoice ? (
+            <Panel
+              icon={<FileText size={16} className="text-white" />}
+              title={invoice.vendorName ?? "Unknown vendor"}
+              subtitle={invoice.senderEmail}
+              accent="#34D399"
+            >
+              <Field
+                label="Invoice #"
+                value={invoice.invoiceNumber ?? "—"}
+                muted={!invoice.invoiceNumber}
+              />
+              <Field label="Amount" value={fmtMoney(invoice.amount, invoice.currency)} />
+              <Field label="Invoice date" value={fmtDate(invoice.date)} />
+              <Field
+                label="Due date"
+                value={invoice.dueDate ? fmtDate(invoice.dueDate) : "—"}
+                muted={!invoice.dueDate}
+              />
+            </Panel>
+          ) : (
+            <div className="flex-1 border border-dashed border-border rounded-[13px] flex flex-col items-center justify-center py-[28px] px-[16px] text-center">
+              <FileText size={22} strokeWidth={1.5} className="text-faint mb-[8px]" />
+              <p className="text-sm font-semibold text-dim">No invoice linked</p>
+            </div>
+          )}
         </div>
 
         {invoice ? (

@@ -39,7 +39,7 @@ export function ActionButton({
       size={size === "lg" ? "lg" : "sm"}
       onClick={onClick}
       disabled={disabled}
-      className={cn("font-[600]", size === "lg" && "flex-1", mapped.className, className)}
+      className={cn("font-semibold", size === "lg" && "flex-1", mapped.className, className)}
     >
       {children}
     </Button>

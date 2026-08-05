@@ -12,7 +12,7 @@ export function TabBar({
   onSelect: (id: TabId) => void
 }) {
   return (
-    <div className="flex items-center gap-[6px] mb-4 bg-card border border-border rounded-[12px] p-[5px] w-fit">
+    <div className="flex items-center gap-1.5 mb-4 bg-card border border-border rounded-lg p-1.25 w-fit">
       {tabs.map((t) => {
         const on = tab === t.id
         return (
@@ -20,12 +20,12 @@ export function TabBar({
             key={t.id}
             variant="ghost"
             onClick={() => onSelect(t.id)}
-            className="h-auto flex items-center gap-[7px] px-[14px] py-[7px] rounded-[9px] cursor-pointer text-[13.5px] font-[600] transition-colors"
+            className="h-auto flex items-center gap-1.75 px-3.5 py-1.75 rounded-lg cursor-pointer text-sm font-semibold transition-colors"
             style={{ background: on ? "#EEF3FF" : "transparent", color: on ? "#3B6FE0" : "#64748B" }}
           >
             {t.label}
             <span
-              className="text-[11px] font-[700] px-[7px] rounded-full"
+              className="text-xs font-bold px-1.75 rounded-full"
               style={{
                 background: on ? "#7AA7FF" : "#F1F3F8",
                 color: on ? "#fff" : "#94A3B8",

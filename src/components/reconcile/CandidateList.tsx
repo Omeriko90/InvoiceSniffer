@@ -40,10 +40,10 @@ export function CandidateList({
   return (
     <div className="flex flex-col gap-[8px] max-h-[320px] overflow-y-auto">
       {candidates.isLoading && (
-        <p className="text-[13px] text-dim py-6 text-center">Searching…</p>
+        <p className="text-sm text-dim py-6 text-center">Searching…</p>
       )}
       {candidates.data?.length === 0 && (
-        <p className="text-[13px] text-dim py-6 text-center">
+        <p className="text-sm text-dim py-6 text-center">
           No invoices match — try a different search.
         </p>
       )}

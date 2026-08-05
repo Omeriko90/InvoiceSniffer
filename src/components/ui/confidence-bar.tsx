@@ -48,8 +48,8 @@ export function ConfidenceBar({
         <span
           className={
             size === "md"
-              ? "text-[12px] font-[700] text-heading"
-              : "text-[11px] font-[600] text-dim"
+              ? "text-xs font-bold text-heading"
+              : "text-xs font-semibold text-dim"
           }
         >
           {pct}%

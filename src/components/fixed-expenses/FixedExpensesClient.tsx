@@ -78,7 +78,7 @@ export function FixedExpensesClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search fixed expenses…"
-            className="h-auto pl-[32px] pr-[11px] py-[8px] text-[13px] border-border rounded-[10px] bg-surface"
+            className="h-auto pl-[32px] pr-[11px] py-[8px] text-sm border-border rounded-[10px] bg-surface"
           />
         </div>
         <Select
@@ -86,7 +86,7 @@ export function FixedExpensesClient({
           value={statusFilter}
           onValueChange={(v) => v && setStatusFilter(v)}
         >
-          <SelectTrigger className="h-auto py-[8px] px-[11px] text-[13px] border-border rounded-[10px] bg-surface w-[120px]">
+          <SelectTrigger className="h-auto py-[8px] px-[11px] text-sm border-border rounded-[10px] bg-surface w-[120px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -96,7 +96,7 @@ export function FixedExpensesClient({
           </SelectContent>
         </Select>
         <div className="flex-1" />
-        <Button onClick={openCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-[13px] font-[600]">
+        <Button onClick={openCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-sm font-semibold">
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>
@@ -109,7 +109,7 @@ export function FixedExpensesClient({
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
           {["Name", "Source", "Category", "Frequency", "Expected", "This period"].map((h) => (
-            <span key={h} className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+            <span key={h} className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
               {h}
             </span>
           ))}
@@ -128,17 +128,17 @@ export function FixedExpensesClient({
               style={{ gridTemplateColumns: GRID, gap: "12px" }}
             >
               <span className="min-w-0">
-                <span className="block text-[13.5px] font-[600] text-heading truncate">{expense.name}</span>
+                <span className="block text-sm font-semibold text-heading truncate">{expense.name}</span>
                 {expense.status === "PAUSED" && (
-                  <span className="text-[11px] font-[700] text-dim uppercase tracking-[0.04em]">Paused</span>
+                  <span className="text-xs font-bold text-dim uppercase tracking-[0.04em]">Paused</span>
                 )}
               </span>
-              <span className="text-[13px] text-text-secondary truncate">
+              <span className="text-sm text-text-secondary truncate">
                 {expense.vendorName ?? expense.senderEmail ?? "—"}
               </span>
               <span className="min-w-0"><CategoryBadge category={expense.category} /></span>
-              <span className="text-[13px] text-text-secondary">{FREQUENCY_LABELS[expense.frequency]}</span>
-              <span className="text-[13px] text-text-primary font-[600]">
+              <span className="text-sm text-text-secondary">{FREQUENCY_LABELS[expense.frequency]}</span>
+              <span className="text-sm text-text-primary font-semibold">
                 {expense.expectedAmount ? fmtAmount(expense.expectedAmount, expense.currency) : "—"}
               </span>
               <span className="min-w-0"><FixedExpenseStatusBadge status={expense.currentStatus} /></span>
@@ -181,16 +181,16 @@ function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolea
       <div className="w-[46px] h-[46px] rounded-[14px] bg-info-bg flex items-center justify-center mb-[14px]">
         <Repeat size={20} strokeWidth={1.8} className="text-primary" />
       </div>
-      <p className="text-[15px] font-[700] text-heading mb-[4px]">
+      <p className="text-base font-bold text-heading mb-[4px]">
         {hasAny ? "No matching fixed expenses" : "Track your recurring bills"}
       </p>
-      <p className="text-[13px] text-text-secondary max-w-[340px] mb-[16px]">
+      <p className="text-sm text-text-secondary max-w-[340px] mb-[16px]">
         {hasAny
           ? "Try a different search or filter."
           : "Add a fixed expense and we'll tell you each period whether its invoice has arrived."}
       </p>
       {!hasAny && (
-        <Button onClick={onCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-[13px] font-[600]">
+        <Button onClick={onCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-sm font-semibold">
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>

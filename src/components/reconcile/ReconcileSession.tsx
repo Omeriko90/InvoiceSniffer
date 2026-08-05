@@ -229,7 +229,7 @@ export function ReconcileSession() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5 text-[13px]"
+          className="gap-1.5 text-sm"
           onClick={() => setResult(null)}
         >
           <ArrowLeft size={14} />
@@ -237,7 +237,7 @@ export function ReconcileSession() {
         </Button>
         <Button
           size="sm"
-          className="text-[13px]"
+          className="text-sm"
           variant="outline"
           disabled={reconciling}
           onClick={runMatch}

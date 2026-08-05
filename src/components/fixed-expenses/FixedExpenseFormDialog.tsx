@@ -85,9 +85,9 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>
 
-const fieldLabel = "text-[12px] font-[600] text-text-secondary"
+const fieldLabel = "text-xs font-semibold text-text-secondary"
 const fieldInput =
-  "h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-border rounded-[9px]"
+  "h-auto px-[11px] py-[7px] text-sm text-text-primary border-border rounded-[9px]"
 const fieldTrigger = `${fieldInput} w-full justify-between`
 
 export function FixedExpenseFormDialog({
@@ -223,7 +223,7 @@ export function FixedExpenseFormDialog({
   return (
     <>
     <FormDialog
-      className="sm:max-w-[460px]"
+      className="sm:max-w-115"
       footerClassName="gap-[8px]"
       title={isEdit ? "Edit fixed expense" : "New fixed expense"}
       description="Track whether the expected invoice arrives each period."
@@ -235,7 +235,7 @@ export function FixedExpenseFormDialog({
             variant="outline"
             onClick={onClose}
             disabled={pending || absorb.isPending}
-            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
+            className="h-auto py-2 rounded-lg border-border bg-surface text-sm font-semibold text-text-primary"
           >
             Cancel
           </Button>
@@ -244,22 +244,22 @@ export function FixedExpenseFormDialog({
               type="button"
               onClick={() => setConfirmOpen(true)}
               disabled={absorb.isPending}
-              className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
+              className="h-auto py-2 rounded-lg text-sm font-semibold"
             >
               Link
             </Button>
           ) : (
-            <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
+            <Button type="submit" disabled={pending} className="h-auto py-2 rounded-lg text-sm font-semibold">
               {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
             </Button>
           )}
         </>
       }
     >
-        <div className="px-[22px] py-[18px] flex flex-col gap-[13px] max-h-[62vh] overflow-y-auto">
+        <div className="px-5.5 py-4.5 flex flex-col gap-3.25 max-h-[62vh] overflow-y-auto">
           {/* Link to an existing expense (drawer flow, only when some exist) */}
           {canLinkExisting && existing.length > 0 && (
-            <div className="flex flex-col gap-[5px]">
+            <div className="flex flex-col gap-1.25">
               <Label className={fieldLabel}>Link to an existing fixed expense</Label>
               <Select
                 items={[
@@ -279,7 +279,7 @@ export function FixedExpenseFormDialog({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-dim">
+              <p className="text-xs text-dim">
                 Pick one to attach this invoice to it instead of creating a new expense.
               </p>
             </div>
@@ -288,14 +288,14 @@ export function FixedExpenseFormDialog({
           {/* Fields lock when an existing expense is selected (preview only). */}
           <fieldset disabled={locked} className="contents">
           {/* Name */}
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             <Label htmlFor="fx-name" className={fieldLabel}>Name</Label>
             <Input id="fx-name" placeholder="e.g. AWS, Office rent" className={fieldInput} {...register("name")} />
-            {errors.name && <p className="text-[11.5px] text-danger">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
           </div>
 
           {/* Category */}
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             <Label className={fieldLabel}>Category</Label>
             <Controller
               control={control}
@@ -318,20 +318,20 @@ export function FixedExpenseFormDialog({
           </div>
 
           {/* Source: vendor + sender */}
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             <Label htmlFor="fx-vendor" className={fieldLabel}>Vendor name</Label>
             <Input id="fx-vendor" placeholder="Who bills you (comma-separate several)" className={fieldInput} {...register("vendorName")} />
-            {errors.vendorName && <p className="text-[11.5px] text-danger">{errors.vendorName.message}</p>}
+            {errors.vendorName && <p className="text-xs text-danger">{errors.vendorName.message}</p>}
           </div>
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             <Label htmlFor="fx-sender" className={fieldLabel}>Sender email</Label>
             <Input id="fx-sender" placeholder="billing@vendor.com (comma-separate several)" className={fieldInput} {...register("senderEmail")} />
-            {errors.senderEmail && <p className="text-[11.5px] text-danger">{errors.senderEmail.message}</p>}
+            {errors.senderEmail && <p className="text-xs text-danger">{errors.senderEmail.message}</p>}
           </div>
 
           {/* Mailbox pin (optional) */}
           {mailboxes.length > 0 && (
-            <div className="flex flex-col gap-[5px]">
+            <div className="flex flex-col gap-1.25">
               <Label className={fieldLabel}>Mailbox (optional)</Label>
               <Controller
                 control={control}
@@ -356,21 +356,21 @@ export function FixedExpenseFormDialog({
           )}
 
           {/* Expected amount + currency */}
-          <div className="flex gap-[10px]">
-            <div className="flex flex-col gap-[5px] flex-1">
+          <div className="flex gap-2.5">
+            <div className="flex flex-col gap-1.25 flex-1">
               <Label htmlFor="fx-amount" className={fieldLabel}>Expected amount</Label>
               <Input id="fx-amount" inputMode="decimal" placeholder="0.00" className={fieldInput} {...register("expectedAmount")} />
-              {errors.expectedAmount && <p className="text-[11.5px] text-danger">{errors.expectedAmount.message}</p>}
+              {errors.expectedAmount && <p className="text-xs text-danger">{errors.expectedAmount.message}</p>}
             </div>
-            <div className="flex flex-col gap-[5px] w-[90px]">
+            <div className="flex flex-col gap-1.25 w-22.5">
               <Label htmlFor="fx-currency" className={fieldLabel}>Currency</Label>
               <Input id="fx-currency" className={fieldInput} {...register("currency")} />
             </div>
           </div>
 
           {/* Frequency + anchor date */}
-          <div className="flex gap-[10px]">
-            <div className="flex flex-col gap-[5px] flex-1">
+          <div className="flex gap-2.5">
+            <div className="flex flex-col gap-1.25 flex-1">
               <Label className={fieldLabel}>Frequency</Label>
               <Controller
                 control={control}
@@ -391,18 +391,18 @@ export function FixedExpenseFormDialog({
                 )}
               />
             </div>
-            <div className="flex flex-col gap-[5px] flex-1">
+            <div className="flex flex-col gap-1.25 flex-1">
               <Label htmlFor="fx-anchor" className={fieldLabel}>First expected on</Label>
               <Input id="fx-anchor" type="date" className={fieldInput} {...register("anchorDate")} />
-              {errors.anchorDate && <p className="text-[11.5px] text-danger">{errors.anchorDate.message}</p>}
+              {errors.anchorDate && <p className="text-xs text-danger">{errors.anchorDate.message}</p>}
             </div>
           </div>
 
           {/* Grace period */}
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             <Label htmlFor="fx-grace" className={fieldLabel}>Grace period (days)</Label>
-            <Input id="fx-grace" type="number" min="0" max="60" className={`${fieldInput} w-[110px]`} {...register("gracePeriodDays")} />
-            <p className="text-[11px] text-dim">Days after the period ends before it counts as overdue.</p>
+            <Input id="fx-grace" type="number" min="0" max="60" className={`${fieldInput} w-27.5`} {...register("gracePeriodDays")} />
+            <p className="text-xs text-dim">Days after the period ends before it counts as overdue.</p>
           </div>
           </fieldset>
         </div>
@@ -410,7 +410,7 @@ export function FixedExpenseFormDialog({
 
       {/* Confirm absorbing this invoice into the selected existing expense. */}
       <Dialog name="fixed_expense_link_existing_confirm" open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
-        <DialogContent className="sm:max-w-[440px]">
+        <DialogContent className="sm:max-w-110">
           <DialogHeader>
             <DialogTitle>Link to “{selected?.name}”?</DialogTitle>
             <DialogDescription>
@@ -426,7 +426,7 @@ export function FixedExpenseFormDialog({
               variant="outline"
               onClick={() => setConfirmOpen(false)}
               disabled={absorb.isPending}
-              className="rounded-[10px] text-[13.5px] font-[600]"
+              className="rounded-lg text-sm font-semibold"
             >
               Cancel
             </Button>
@@ -434,7 +434,7 @@ export function FixedExpenseFormDialog({
               type="button"
               onClick={confirmLink}
               disabled={absorb.isPending}
-              className="rounded-[10px] text-[13.5px] font-[700]"
+              className="rounded-[10px] text-sm font-bold"
             >
               {absorb.isPending ? "Linking…" : "Link invoice"}
             </Button>

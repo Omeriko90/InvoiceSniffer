@@ -13,14 +13,14 @@ export function RecentAlertsCard({ alerts }: RecentAlertsCardProps) {
       <CardContent className="p-5">
 
         <div className="flex items-center justify-between mb-[14px]">
-          <h2 className="text-[16px] font-[700] text-heading leading-none">Recent alerts</h2>
-          <Link href="/alerts" className="text-[13px] font-[600] text-primary hover:opacity-75 transition-opacity">
+          <h2 className="text-base font-bold text-heading leading-none">Recent alerts</h2>
+          <Link href="/alerts" className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity">
             All →
           </Link>
         </div>
 
         {alerts.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-[13px] text-text-secondary">
+          <div className="flex items-center justify-center py-8 text-sm text-text-secondary">
             No active alerts
           </div>
         ) : (
