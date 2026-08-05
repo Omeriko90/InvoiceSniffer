@@ -17,12 +17,12 @@ export function PreviewTable({ rows, mapping }: PreviewTableProps) {
         Preview (first 3 rows)
       </p>
       <div className="border border-border rounded-[10px] overflow-hidden">
-        <Table className="text-left">
+        <Table className="text-start">
           <TableHeader>
             <TableRow className="border-border bg-background hover:bg-background">
               <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim uppercase tracking-[0.05em]">Date</TableHead>
               <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim uppercase tracking-[0.05em]">Merchant</TableHead>
-              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim uppercase tracking-[0.05em] text-right">Amount</TableHead>
+              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim uppercase tracking-[0.05em] text-end">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -34,7 +34,7 @@ export function PreviewTable({ rows, mapping }: PreviewTableProps) {
                 <TableCell className="px-4 py-2.5 text-sm font-mono text-text-primary uppercase whitespace-normal">
                   {mapping.merchant ? row[mapping.merchant] : "—"}
                 </TableCell>
-                <TableCell className="px-4 py-2.5 text-sm font-bold text-heading text-right">
+                <TableCell className="px-4 py-2.5 text-sm font-bold text-heading text-end">
                   {mapping.amount ? formatAmount(row[mapping.amount]) : "—"}
                 </TableCell>
               </TableRow>

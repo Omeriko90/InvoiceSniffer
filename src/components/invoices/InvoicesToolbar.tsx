@@ -90,12 +90,12 @@ export function InvoicesToolbar({
     <div className="flex items-center gap-3 flex-wrap">
       {/* Search */}
       <div className="relative" style={{ maxWidth: "340px", flex: "1 1 220px" }}>
-        <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-dim" />
+        <Search size={14} className="absolute start-[11px] top-1/2 -translate-y-1/2 text-dim" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search vendor, amount, invoice #…"
-          className="h-auto pl-[34px] pr-3 py-[8px] text-sm text-text-primary border-border rounded-[10px] bg-surface"
+          className="h-auto ps-[34px] pe-3 py-[8px] text-sm text-text-primary border-border rounded-[10px] bg-surface"
         />
       </div>
 
@@ -193,7 +193,7 @@ export function InvoicesToolbar({
         Clear all
       </Button>
 
-      <div className="ml-auto shrink-0">
+      <div className="ms-auto shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={

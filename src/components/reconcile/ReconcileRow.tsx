@@ -55,7 +55,7 @@ export function ReconcileRow({
       </div>
 
       {/* Amount */}
-      <span className="text-sm font-bold text-heading text-right">
+      <span className="text-sm font-bold text-heading text-end">
         {fmtMoney(txn.amount, txn.currency)}
       </span>
 

@@ -35,9 +35,9 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         // Range modifiers are applied to the day *cell*; the light-blue bar lives
         // on the cell, the solid endpoints on the button inside it.
         range_start:
-          "bg-primary-soft rounded-l-full [&>button]:bg-primary-strong [&>button]:text-surface [&>button]:hover:bg-primary-strong",
+          "bg-primary-soft rounded-s-full [&>button]:bg-primary-strong [&>button]:text-surface [&>button]:hover:bg-primary-strong",
         range_end:
-          "bg-primary-soft rounded-r-full [&>button]:bg-primary-strong [&>button]:text-surface [&>button]:hover:bg-primary-strong",
+          "bg-primary-soft rounded-e-full [&>button]:bg-primary-strong [&>button]:text-surface [&>button]:hover:bg-primary-strong",
         // In range mode every in-range day also carries the `selected` modifier,
         // so override its white text/blue fill here with `!` to keep the middle
         // days looking like normal (unselected) days on the soft-blue bar.

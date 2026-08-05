@@ -40,12 +40,12 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
 
           <div className="p-[22px] flex flex-col gap-[14px]">
             <div className="relative">
-              <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-dim" />
+              <Search size={14} className="absolute start-[11px] top-1/2 -translate-y-1/2 text-dim" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search vendor or invoice #…"
-                className="h-auto pl-[34px] pr-3 py-[9px] text-sm text-text-primary border-border rounded-[10px] bg-background"
+                className="h-auto ps-[34px] pe-3 py-[9px] text-sm text-text-primary border-border rounded-[10px] bg-background"
               />
             </div>
 

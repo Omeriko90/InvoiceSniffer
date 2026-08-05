@@ -153,7 +153,7 @@ export function FixedExpenseDetailDrawer({
               style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--color-hover)" : undefined }}
             >
               <span className="text-text-secondary">{row.label}</span>
-              <span className="font-semibold text-text-primary text-right truncate ml-3">{row.value}</span>
+              <span className="font-semibold text-text-primary text-end truncate ms-3">{row.value}</span>
             </div>
           ))}
         </div>

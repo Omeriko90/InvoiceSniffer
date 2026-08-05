@@ -71,14 +71,14 @@ export function FixedExpensesClient({
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <div className="flex items-center gap-[10px]">
+      <div className="flex items-center gap-2.5">
         <div className="relative flex-1 max-w-[320px]">
-          <Search size={15} strokeWidth={1.8} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-dim" />
+          <Search size={15} strokeWidth={1.8} className="absolute start-2.75 top-1/2 -translate-y-1/2 text-dim" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search fixed expenses…"
-            className="h-auto pl-[32px] pr-[11px] py-[8px] text-sm border-border rounded-[10px] bg-surface"
+            className="h-auto ps-8.5 pe-2.75 py-2 text-sm border-border rounded-lg bg-surface"
           />
         </div>
         <Select
@@ -86,7 +86,7 @@ export function FixedExpensesClient({
           value={statusFilter}
           onValueChange={(v) => v && setStatusFilter(v)}
         >
-          <SelectTrigger className="h-auto py-[8px] px-[11px] text-sm border-border rounded-[10px] bg-surface w-[120px]">
+          <SelectTrigger className="h-auto py-2 px-2.75 text-sm border-border rounded-[10px] bg-surface w-30">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -96,7 +96,7 @@ export function FixedExpensesClient({
           </SelectContent>
         </Select>
         <div className="flex-1" />
-        <Button onClick={openCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-sm font-semibold">
+        <Button onClick={openCreate} className="h-auto py-2 px-3.5 rounded-lg text-sm font-semibold">
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>
@@ -105,7 +105,7 @@ export function FixedExpensesClient({
       {/* Table */}
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div
-          className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-border"
+          className="grid px-4.5 py-3 bg-background border-b border-border"
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
           {["Name", "Source", "Category", "Frequency", "Expected", "This period"].map((h) => (
@@ -124,7 +124,7 @@ export function FixedExpensesClient({
               type="button"
               variant="ghost"
               onClick={() => setSelected(expense)}
-              className="grid w-full h-auto justify-normal rounded-none items-center px-[18px] py-[13px] border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
+              className="grid w-full h-auto justify-normal rounded-none items-center px-4.5 py-3 border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
               style={{ gridTemplateColumns: GRID, gap: "12px" }}
             >
               <span className="min-w-0">
@@ -177,20 +177,20 @@ export function FixedExpensesClient({
 // Client component by import — only ever rendered from <FixedExpensesClient>.
 function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-[56px] px-6">
-      <div className="w-[46px] h-[46px] rounded-[14px] bg-info-bg flex items-center justify-center mb-[14px]">
+    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+      <div className="w-11.5 h-11.5 rounded-lg bg-info-bg flex items-center justify-center mb-3.5">
         <Repeat size={20} strokeWidth={1.8} className="text-primary" />
       </div>
-      <p className="text-base font-bold text-heading mb-[4px]">
+      <p className="text-base font-bold text-heading mb-1">
         {hasAny ? "No matching fixed expenses" : "Track your recurring bills"}
       </p>
-      <p className="text-sm text-text-secondary max-w-[340px] mb-[16px]">
+      <p className="text-sm text-text-secondary max-w-85 mb-4">
         {hasAny
           ? "Try a different search or filter."
           : "Add a fixed expense and we'll tell you each period whether its invoice has arrived."}
       </p>
       {!hasAny && (
-        <Button onClick={onCreate} className="h-auto py-[8px] px-[14px] rounded-[10px] text-sm font-semibold">
+        <Button onClick={onCreate} className="h-auto py-2 px-3.5 rounded-lg text-sm font-semibold">
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>

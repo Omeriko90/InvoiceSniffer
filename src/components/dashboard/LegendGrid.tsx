@@ -11,7 +11,7 @@ export function LegendGrid({ rec }: { rec: RecStats }) {
             <span className="w-[9px] h-[9px] rounded-full shrink-0" style={{ background: item.color }} />
             <span className="text-xs text-text-secondary">{item.label}</span>
           </div>
-          <span className="text-xl font-bold text-heading leading-none pl-[17px]">{rec[item.key]}</span>
+          <span className="text-xl font-bold text-heading leading-none ps-[17px]">{rec[item.key]}</span>
         </div>
       ))}
     </div>
