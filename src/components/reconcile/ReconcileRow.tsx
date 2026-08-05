@@ -1,11 +1,11 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
-import { format } from "date-fns"
 import { TriangleAlert } from "lucide-react"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { StatusCell } from "@/components/reconcile/StatusCell"
 import { MatchedInvoiceCell } from "@/components/reconcile/MatchedInvoiceCell"
 import { GRID } from "@/components/reconcile/constants"
 import { fmtMoney } from "@/lib/money"
+import { fmtDateShort } from "@/lib/date"
 import type { RunAction, TransactionRow } from "@/components/reconcile/types"
 
 export function ReconcileRow({
@@ -38,7 +38,7 @@ export function ReconcileRow({
     >
       {/* Date */}
       <span className="text-[13px] text-text-secondary">
-        {format(new Date(txn.date), "MMM d")}
+        {fmtDateShort(txn.date)}
       </span>
 
       {/* Merchant */}

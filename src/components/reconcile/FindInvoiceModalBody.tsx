@@ -1,6 +1,5 @@
 // Client component by import — only ever rendered from <FindInvoiceModal>.
 import { useState } from "react"
-import { format } from "date-fns"
 import { Lightbulb, Search } from "lucide-react"
 import {
   DialogContent,
@@ -12,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { CandidateList } from "@/components/reconcile/CandidateList"
 import { normalizeMerchant } from "@/lib/matching"
 import { fmtMoney } from "@/lib/money"
+import { fmtDate } from "@/lib/date"
 import type { CandidateResult } from "@/api-types/reconcile"
 import type { TransactionRow } from "@/components/reconcile/types"
 
@@ -34,7 +34,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
               Matching{" "}
               <span className="font-mono font-[600] text-[#334155]">{transaction.merchant}</span>
               {" · "}{fmtMoney(transaction.amount, transaction.currency)}
-              {" · "}{format(new Date(transaction.date), "MMM d, yyyy")}
+              {" · "}{fmtDate(transaction.date)}
             </DialogDescription>
           </DialogHeader>
 
