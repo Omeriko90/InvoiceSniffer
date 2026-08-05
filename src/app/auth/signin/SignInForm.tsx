@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
 import { GoogleButton } from "@/components/auth/GoogleButton"
 import { OrDivider } from "@/components/auth/OrDivider"
 import { AuthTextField } from "@/components/auth/AuthTextField"
@@ -59,7 +60,13 @@ export function SignInForm() {
         registration={register("password")}
         wrapperClassName="mb-5"
         labelAccessory={
-          <button type="button" className="text-[12px] font-[600] text-primary hover:opacity-80">Forgot?</button>
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0 border-0 text-[12px] font-[600] text-primary hover:opacity-80 hover:no-underline"
+          >
+            Forgot?
+          </Button>
         }
       />
 
