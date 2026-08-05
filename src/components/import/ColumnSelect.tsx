@@ -20,7 +20,7 @@ export function ColumnSelect({ headers, value, onChange }: ColumnSelectProps) {
         className={cn(
           "w-full h-10 ps-3.5 pe-3 rounded-[9px] text-sm",
           value
-            ? "text-heading font-medium border-[#D1FAE5] bg-[#F0FDF4]"
+            ? "text-heading font-medium border-success-border bg-success-bg"
             : "text-dim border-border bg-surface"
         )}
       >

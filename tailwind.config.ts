@@ -38,6 +38,7 @@ const palette = {
   warningBorder: "#FDE68A",
   dangerBorder:  "#FECACA",
   infoBorder:    "#BFDBFF",
+  purpleBorder:  "#DDD6FE",
 
   // Surfaces
   background:   "#FAFBFF",
@@ -113,6 +114,7 @@ const config: Config = {
         "warning-border": palette.warningBorder,
         "danger-border":  palette.dangerBorder,
         "info-border":    palette.infoBorder,
+        "purple-border":  palette.purpleBorder,
 
         // ── Text ──────────────────────────────────────────────────
         heading:          palette.heading,

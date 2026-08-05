@@ -11,10 +11,10 @@ import { cn } from "@/lib/utils"
 
 const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; className: string }> = {
   QUEUED: { label: "Queued", className: "bg-hover text-text-secondary" },
-  BUILDING: { label: "Building…", className: "bg-[#FEF6E7] text-[#B7791F]" },
-  READY: { label: "Ready", className: "bg-[#E7F6EC] text-[#1A9C4E]" },
+  BUILDING: { label: "Building…", className: "bg-warning-bg text-warning-fg" },
+  READY: { label: "Ready", className: "bg-success-bg text-success-fg" },
   EXPIRED: { label: "Expired", className: "bg-hover text-dim" },
-  FAILED: { label: "Failed", className: "bg-[#FDECEC] text-[#D64545]" },
+  FAILED: { label: "Failed", className: "bg-danger-bg text-danger-fg" },
 }
 
 // Machine skip reasons (from the PDF build worker) → human copy.

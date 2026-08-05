@@ -12,7 +12,7 @@ export function UploadStep({ onFile, error }: UploadStepProps) {
       {error && (
         <Alert className="mt-4 px-3 py-[11px] rounded-[10px] bg-danger-bg border-danger-border">
           <AlertCircle size={18} strokeWidth={2} className="shrink-0 text-danger-fg" />
-          <AlertTitle className="font-normal text-sm text-[#7F1D1D]">{error}</AlertTitle>
+          <AlertTitle className="font-normal text-sm text-danger-fg">{error}</AlertTitle>
         </Alert>
       )}
     </div>

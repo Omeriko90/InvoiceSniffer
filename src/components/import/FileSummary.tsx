@@ -18,10 +18,10 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
 
       {savedMappingLabel && (
         <Alert
-          className="px-3 py-[11px] rounded-[10px] bg-info-bg border-[#BFDBFE]"
+          className="px-3 py-[11px] rounded-[10px] bg-info-bg border-info-border"
         >
-          <Info size={16} strokeWidth={2} color="#3B82F6" />
-          <AlertTitle className="font-normal text-sm text-[#1E40AF]">
+          <Info size={16} strokeWidth={2} className="text-info-fg" />
+          <AlertTitle className="font-normal text-sm text-info-fg">
             Saved mapping for <strong>{savedMappingLabel}</strong> applied automatically.
           </AlertTitle>
         </Alert>
