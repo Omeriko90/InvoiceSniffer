@@ -50,7 +50,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
           <span className="text-sm text-text-secondary font-mono truncate">
             {inv.invoiceNumber ?? "—"}
           </span>
-          <span className="text-sm font-bold text-heading text-right">
+          <span className="text-sm font-bold text-heading text-end">
             {fmtMoney(inv.amount, inv.currency)}
           </span>
           <span className="text-sm text-text-secondary">

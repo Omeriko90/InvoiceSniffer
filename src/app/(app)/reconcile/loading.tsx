@@ -22,10 +22,10 @@ export default function Loading() {
           <div key={i} className="grid items-center px-[18px] py-[14px] border-b border-hover" style={GRID}>
             <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "60%" }} />
             <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "75%" }} />
-            <Skeleton className="h-3 bg-[#EEF1F8] ml-auto" style={{ width: "55%" }} />
+            <Skeleton className="h-3 bg-[#EEF1F8] ms-auto" style={{ width: "55%" }} />
             <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "80%" }} />
             <Skeleton className="h-5 rounded-full bg-[#EEF1F8]" style={{ width: "70px" }} />
-            <Skeleton className="h-7 rounded-[8px] bg-[#EEF1F8] ml-auto" style={{ width: "140px" }} />
+            <Skeleton className="h-7 rounded-[8px] bg-[#EEF1F8] ms-auto" style={{ width: "140px" }} />
           </div>
         ))}
       </div>

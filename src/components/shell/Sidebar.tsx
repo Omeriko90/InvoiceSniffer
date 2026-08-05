@@ -24,7 +24,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
   const { readyCount } = useExports()
 
   return (
-    <aside className="w-[248px] shrink-0 h-full bg-surface border-r border-border flex flex-col">
+    <aside className="w-[248px] shrink-0 h-full bg-surface border-e border-border flex flex-col">
       {/* Logo */}
       <Logo orgName={orgName} />
 

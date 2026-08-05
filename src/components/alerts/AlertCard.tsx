@@ -52,7 +52,7 @@ export function AlertCard({
         </p>
       </div>
 
-      <div className="text-right shrink-0">
+      <div className="text-end shrink-0">
         <div className="text-xs font-semibold uppercase tracking-[0.04em] text-dim">
           {metric.label}
         </div>
