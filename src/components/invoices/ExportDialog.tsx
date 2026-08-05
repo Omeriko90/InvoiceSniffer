@@ -184,23 +184,25 @@ export function ExportDialog({
             {DATE_RANGE_PRESETS.map((p) => {
               const on = isPreset(scope) && scope.preset === p
               return (
-                <button
+                <Button
                   key={p}
+                  variant="ghost"
                   onClick={() => setScope({ preset: p })}
-                  className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+                  className="h-auto px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
                   style={{ background: on ? "#EEF3FF" : "#F1F3F8", color: on ? "#3B6FE0" : "#64748B" }}
                 >
                   {PRESET_LABELS[p]}
-                </button>
+                </Button>
               )
             })}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setScope(custom ? scope : { from: "", to: "" })}
-              className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
+              className="h-auto px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
               style={{ background: custom ? "#EEF3FF" : "#F1F3F8", color: custom ? "#3B6FE0" : "#64748B" }}
             >
               Custom
-            </button>
+            </Button>
           </div>
           {custom && (
             <div className="flex flex-wrap items-center gap-[10px]">
@@ -250,12 +252,13 @@ export function ExportDialog({
               Invoices
             </p>
             {invoices.length > 0 && (
-              <button
+              <Button
+                variant="link"
                 onClick={toggleAll}
-                className="text-[12.5px] font-[600] text-[#3B6FE0] cursor-pointer"
+                className="h-auto p-0 rounded-none text-[12.5px] font-[600] text-[#3B6FE0] cursor-pointer hover:no-underline"
               >
                 {allSelected ? "Deselect all" : "Select all"}
-              </button>
+              </Button>
             )}
           </div>
 

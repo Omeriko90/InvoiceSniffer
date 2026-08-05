@@ -143,13 +143,15 @@ export function AddFilesPanel({
                 <p className="text-[13.5px] font-[600] text-foreground truncate">{f.fileName}</p>
                 <p className="text-[12px] text-text-secondary">{f.rows.length} charges</p>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => onRemoveFile(i)}
                 aria-label={`Remove ${f.fileName}`}
-                className="w-[28px] h-[28px] rounded flex items-center justify-center text-dim hover:bg-hover transition-colors cursor-pointer"
+                className="w-[28px] h-[28px] rounded flex items-center justify-center text-dim hover:bg-hover hover:text-dim transition-colors cursor-pointer [&_svg:not([class*='size-'])]:size-auto"
               >
                 <X size={15} />
-              </button>
+              </Button>
             </div>
           ))}
         </div>
