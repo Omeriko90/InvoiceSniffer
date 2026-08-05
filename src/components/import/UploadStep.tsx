@@ -10,8 +10,8 @@ export function UploadStep({ onFile, error }: UploadStepProps) {
       <Dropzone onFile={onFile} />
 
       {error && (
-        <Alert className="mt-4 px-3 py-[11px] rounded-[10px]" style={{ background: "#FEF2F2", borderColor: "#FECACA" }}>
-          <AlertCircle size={18} strokeWidth={2} color="#DC2626" className="shrink-0" />
+        <Alert className="mt-4 px-3 py-[11px] rounded-[10px] bg-danger-bg border-danger-border">
+          <AlertCircle size={18} strokeWidth={2} className="shrink-0 text-danger-fg" />
           <AlertTitle className="font-normal text-sm text-[#7F1D1D]">{error}</AlertTitle>
         </Alert>
       )}

@@ -7,8 +7,7 @@ export function AlertsSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="bg-white border border-border rounded-[12px] p-[16px_18px] flex gap-4 items-center"
-          style={{ borderLeft: "4px solid #EEF1F8" }}
+          className="bg-white border border-border border-l-4 border-l-muted-strong rounded-[12px] p-[16px_18px] flex gap-4 items-center"
         >
           <Skeleton className="w-10 h-10 rounded-[11px] bg-muted-strong" />
           <div className="flex-1 flex flex-col gap-2">

@@ -31,6 +31,7 @@ const palette = {
   warningFg: "#B45309",
   dangerFg:  "#DC2626",
   infoFg:    "#2563EB",
+  purpleFg:  "#7C3AED",
 
   // Status borders (badge/callout outlines on the matching *-bg)
   successBorder: "#BBE7CD",
@@ -105,6 +106,7 @@ const config: Config = {
         "warning-fg": palette.warningFg,
         "danger-fg":  palette.dangerFg,
         "info-fg":    palette.infoFg,
+        "purple-fg":  palette.purpleFg,
 
         // ── Status borders ────────────────────────────────────────
         "success-border": palette.successBorder,

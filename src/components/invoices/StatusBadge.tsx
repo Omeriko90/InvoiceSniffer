@@ -4,7 +4,7 @@ import type { StatusMeta } from "./types"
 
 export function StatusBadge({ status }: { status: StatusMeta }) {
   return (
-    <StatusPill bg={status.bg} color={status.color}>
+    <StatusPill>
       {status.label}
     </StatusPill>
   )

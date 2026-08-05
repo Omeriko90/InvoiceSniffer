@@ -46,8 +46,8 @@ export function MapColumnsStep({
         <PreviewTable rows={previewRows} mapping={mapping} />
 
         {importError && (
-          <Alert className="px-3 py-[11px] rounded-[10px]" style={{ background: "#FEF2F2", borderColor: "#FECACA" }}>
-            <AlertCircle size={18} strokeWidth={2} color="#DC2626" />
+          <Alert className="px-3 py-[11px] rounded-[10px] bg-danger-bg border-danger-border">
+            <AlertCircle size={18} strokeWidth={2} className="text-danger-fg" />
             <AlertTitle className="font-normal text-sm text-[#7F1D1D]">{importError}</AlertTitle>
           </Alert>
         )}
@@ -59,8 +59,7 @@ export function MapColumnsStep({
           </Button>
           <Button
             size="lg"
-            className="text-sm px-4 text-white shadow-primary border-0"
-            style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
+            className="text-sm px-4 text-white shadow-primary border-0 bg-gradient-sky"
             disabled={!complete || importing}
             onClick={onImport}
           >

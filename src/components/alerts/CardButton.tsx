@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <AlertCard>.
 // Small pill-shaped button matching the mock's View/Dismiss affordances.
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function CardButton({
   onClick,
@@ -18,8 +19,10 @@ export function CardButton({
       variant="outline"
       onClick={onClick}
       disabled={disabled}
-      className="text-sm font-semibold px-3.5 py-1.75 rounded-lg border border-border bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-hover disabled:opacity-50 disabled:cursor-default"
-      style={{ color: muted ? "text-text-secondary" : "text-text-primary" }}
+      className={cn(
+        "text-xs font-semibold px-3.5 py-1.75 rounded-lg border border-border bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-hover disabled:opacity-50 disabled:cursor-default",
+        muted ? "text-dim" : "text-subtle"
+      )}
     >
       {children}
     </Button>

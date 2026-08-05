@@ -18,6 +18,15 @@ export function fmtAmount(amount: string, currency: string): string {
   return fmtMoney(amount, currency)
 }
 
+
+// Token bar-fill class for the extraction-confidence progress indicator,
+// mirroring reconcile/status.tsx's `bar` classes.
+export function confidenceBarClass(pct: number): string {
+  if (pct >= 0.9) return "bg-success"
+  if (pct >= 0.75) return "bg-warning"
+  return "bg-danger"
+}
+
 // The date an invoice "belongs to" for month scoping: its issue date when known,
 // else the email received date. Lets a Jul-issued/Aug-received invoice count as July.
 export function belongsToDate(inv: Pick<InvoiceRow, "invoiceDate" | "emailDate">): Date {

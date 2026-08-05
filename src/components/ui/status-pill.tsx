@@ -21,8 +21,8 @@ export function StatusPill({
   className,
   children,
 }: {
-  bg: string
-  color: string
+  bg?: string
+  color?: string
   size?: StatusPillSize
   className?: string
   children: ReactNode

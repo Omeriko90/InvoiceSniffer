@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import type { TabId } from "@/components/reconcile/types"
 
 export function TabBar({
@@ -20,16 +21,17 @@ export function TabBar({
             key={t.id}
             variant="ghost"
             onClick={() => onSelect(t.id)}
-            className="h-auto flex items-center gap-1.75 px-3.5 py-1.75 rounded-lg cursor-pointer text-sm font-semibold transition-colors"
-            style={{ background: on ? "#EEF3FF" : "transparent", color: on ? "#3B6FE0" : "#64748B" }}
+            className={cn(
+              "flex items-center gap-1.75 px-3.5 py-1.75 rounded-lg cursor-pointer text-sm font-semibold transition-colors",
+              on ? "bg-primary-soft text-primary-strong" : "text-text-secondary",
+            )}
           >
             {t.label}
             <span
-              className="text-xs font-bold px-1.75 rounded-full"
-              style={{
-                background: on ? "#7AA7FF" : "#F1F3F8",
-                color: on ? "#fff" : "#94A3B8",
-              }}
+              className={cn(
+                "text-xs font-bold px-1.75 rounded-full",
+                on ? "bg-primary text-white" : "bg-hover text-dim",
+              )}
             >
               {t.count}
             </span>

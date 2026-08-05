@@ -1,16 +1,16 @@
 import type { MemberRole, RuleType } from "@/api-types/settings"
 
-export const ROLE_META: Record<
-  MemberRole,
-  { label: string; color: string; bg: string }
-> = {
-  OWNER: { label: "Owner", color: "#7C3AED", bg: "#F5F3FF" },
-  ADMIN: { label: "Admin", color: "#3B6FE0", bg: "#EFF6FF" },
-  MEMBER: { label: "Member", color: "#64748B", bg: "#F1F3F8" },
+// `className` = badge background + text color, token-based where a token exists.
+export const ROLE_META: Record<MemberRole, { label: string; className: string }> = {
+  OWNER:  { label: "Owner",  className: "bg-purple-bg text-purple-fg" },
+  ADMIN:  { label: "Admin",  className: "bg-info-bg text-primary-strong" },
+  MEMBER: { label: "Member", className: "bg-hover text-text-secondary" },
 }
 
-export const RULE_META: Record<RuleType, { color: string; bg: string; border: string }> = {
-  POSITIVE: { color: "#047857", bg: "#ECFDF5", border: "#BBE7CD" },
-  NEGATIVE: { color: "#B91C1C", bg: "#FEF2F2", border: "#FECACA" },
-  IGNORE:   { color: "#6D28D9", bg: "#F5F3FF", border: "#DDD6FE" },
+// `className` = background + border color + text. The deep chip text/border
+// shades (#047857/#B91C1C/#6D28D9/#DDD6FE) have no token, so stay arbitrary.
+export const RULE_META: Record<RuleType, { className: string }> = {
+  POSITIVE: { className: "bg-success-bg border-success-border text-[#047857]" },
+  NEGATIVE: { className: "bg-danger-bg border-danger-border text-[#B91C1C]" },
+  IGNORE:   { className: "bg-purple-bg border-[#DDD6FE] text-[#6D28D9]" },
 }

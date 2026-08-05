@@ -31,8 +31,7 @@ export function Dropzone({ onFile }: DropzoneProps) {
       )}
     >
       <div
-        className="w-12 h-12 rounded-[14px] flex items-center justify-center text-white shadow-primary"
-        style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
+        className="w-12 h-12 rounded-[14px] flex items-center justify-center text-white shadow-primary bg-gradient-sky"
       >
         <Upload size={22} strokeWidth={2} />
       </div>

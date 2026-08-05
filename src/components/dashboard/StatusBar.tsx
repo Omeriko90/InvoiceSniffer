@@ -6,11 +6,11 @@ export function StatusBar({ rec }: { rec: RecStats }) {
 
   return (
     <div className="h-3.5 rounded-full overflow-hidden flex">
-      {rec.matched   > 0 && <div style={{ width: pct(rec.matched),   background: "#34D399", flex: "none" }} />}
-      {rec.possible  > 0 && <div style={{ width: pct(rec.possible),  background: "#FBBF24", flex: "none" }} />}
-      {rec.missing   > 0 && <div style={{ width: pct(rec.missing),   background: "#FB7171", flex: "none" }} />}
-      {rec.noInvoice > 0 && <div style={{ width: pct(rec.noInvoice), background: "#CBD5E1", flex: "none" }} />}
-      {rec.total === 1   && <div className="flex-1" style={{ background: "#E8EDFA" }} />}
+      {rec.matched   > 0 && <div className="flex-none bg-success" style={{ width: pct(rec.matched) }} />}
+      {rec.possible  > 0 && <div className="flex-none bg-warning" style={{ width: pct(rec.possible) }} />}
+      {rec.missing   > 0 && <div className="flex-none bg-danger" style={{ width: pct(rec.missing) }} />}
+      {rec.noInvoice > 0 && <div className="flex-none bg-faint" style={{ width: pct(rec.noInvoice) }} />}
+      {rec.total === 1   && <div className="flex-1 bg-border" />}
     </div>
   )
 }

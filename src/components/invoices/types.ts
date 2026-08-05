@@ -35,4 +35,4 @@ export type InvoiceRow = {
   fixedExpense: { id: string; name: string } | null
 }
 
-export type StatusMeta = { label: string; bg: string; color: string }
+export type StatusMeta = { label: string; badge: string }
