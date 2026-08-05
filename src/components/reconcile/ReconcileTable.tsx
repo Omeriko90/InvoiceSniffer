@@ -22,7 +22,7 @@ export function ReconcileTable({
   return (
     <div className="bg-card border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
-      <div className="grid px-[18px] py-3 bg-[#F8FAFF] border-b border-border" style={GRID}>
+      <div className="grid px-[18px] py-3 bg-raised border-b border-border" style={GRID}>
         {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
           <span
             key={h}

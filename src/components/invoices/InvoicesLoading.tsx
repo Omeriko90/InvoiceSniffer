@@ -10,22 +10,14 @@ export function InvoicesLoading() {
     >
       {/* Vendor */}
       <div className="flex items-center gap-2.5">
-        <Skeleton className="w-7 h-7 rounded-full bg-[#EEF1F8] shrink-0" />
-        <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "62%" }} />
+        <Skeleton className="w-7 h-7 rounded-full bg-muted-strong shrink-0" />
+        <Skeleton className="h-3 bg-muted-strong" style={{ width: "62%" }} />
       </div>
-      {/* Invoice # */}
-      <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "70%" }} />
-      {/* Issue date */}
-      <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "50%" }} />
-      {/* Received */}
-      <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "50%" }} />
-      {/* Status */}
-      <Skeleton className="h-5 rounded-full bg-[#EEF1F8]" style={{ width: "64px" }} />
-      {/* Category */}
-      <Skeleton className="h-5 rounded-full bg-[#EEF1F8]" style={{ width: "64px" }} />
-      {/* Amount */}
-      <Skeleton className="h-3 bg-[#EEF1F8] ml-auto" style={{ width: "60%" }} />
-      {/* Gmail link */}
+      <Skeleton className="h-3 bg-muted-strong" style={{ width: "70%" }} />
+      <Skeleton className="h-3 bg-muted-strong ms-auto" style={{ width: "60%" }} />
+      <Skeleton className="h-3 bg-muted-strong" style={{ width: "50%" }} />
+      <Skeleton className="h-1.5 rounded-full bg-muted-strong" style={{ width: "90%" }} />
+      <Skeleton className="h-5 rounded-full bg-muted-strong" style={{ width: "64px" }} />
       <div />
     </div>
   )

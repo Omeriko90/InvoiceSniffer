@@ -12,7 +12,7 @@ const variantBg: Record<InfoBoxVariant, string> = {
   warning: "bg-warning-bg",
   success: "bg-success-bg",
   danger: "bg-danger-bg",
-  neutral: "bg-[#F8FAFF]",
+  neutral: "bg-raised",
 }
 
 export function InfoBox({

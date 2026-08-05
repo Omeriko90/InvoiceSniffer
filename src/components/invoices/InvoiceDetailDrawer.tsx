@@ -280,7 +280,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             href={`/api/invoices/${invoice.id}/attachments/${i}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.75 bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-[#EFF6FF] transition-colors"
+            className="flex items-center gap-2.5 bg-raised border border-border rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-info-bg transition-colors"
           >
             <div className="w-8.5 h-8.5 rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
               <FileText size={16} strokeWidth={1.5} className="text-[#FB7171]" />
@@ -304,7 +304,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             href={invoice.receiptUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.75 bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-[#EFF6FF] transition-colors"
+            className="flex items-center gap-2.5 bg-raised border border-border rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-info-bg transition-colors"
           >
             <div className="w-8.5 h-8.5 rounded-lg bg-[#EFF6FF] flex items-center justify-center shrink-0">
               <ExternalLink size={16} strokeWidth={1.5} className="text-[#3B6FE0]" />
