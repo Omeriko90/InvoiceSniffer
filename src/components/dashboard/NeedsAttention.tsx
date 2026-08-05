@@ -21,7 +21,7 @@ export function NeedsAttention({
           className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border border-warning-border bg-warning-bg transition-all hover:brightness-[0.98]"
         >
           <AlertCircle size={18} strokeWidth={2} className="shrink-0 text-warning-fg" />
-          <span className="flex-1 text-sm text-[#78350F]">
+          <span className="flex-1 text-sm text-warning-fg">
             <strong>{possibleCount} possible matches</strong> waiting for confirmation
           </span>
           <span className="text-sm font-bold text-warning-fg shrink-0">Review →</span>
@@ -34,7 +34,7 @@ export function NeedsAttention({
           className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border border-danger-border bg-danger-bg transition-all hover:brightness-[0.98]"
         >
           <XCircle size={18} strokeWidth={2} className="shrink-0 text-danger-fg" />
-          <span className="flex-1 text-sm text-[#7F1D1D]">
+          <span className="flex-1 text-sm text-danger-fg">
             <strong>{unmatchedCount} transactions</strong> with no matching invoice
           </span>
           <span className="text-sm font-bold text-danger-fg shrink-0">Review →</span>
@@ -42,7 +42,7 @@ export function NeedsAttention({
       )}
 
       {possibleCount === 0 && unmatchedCount === 0 && (
-        <div className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] bg-success-bg text-sm font-medium text-success-fg">
+        <div className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-success-border bg-success-bg text-sm font-medium text-success-fg">
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />
           All transactions reconciled
         </div>

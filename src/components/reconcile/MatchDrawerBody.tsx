@@ -96,7 +96,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           icon={<CreditCard size={16} className="text-white" />}
           title="Bank charge"
           subtitle={transaction.sourceFile ?? "Imported transaction"}
-          accent="#7AA7FF"
+          accentClass="bg-primary"
         >
           <Field label="Merchant" value={transaction.merchant} />
           <Field label="Amount" value={fmtMoney(transaction.amount, transaction.currency)} />
@@ -114,7 +114,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
               icon={<FileText size={16} className="text-white" />}
               title={invoice.vendorName ?? "Unknown vendor"}
               subtitle={invoice.senderEmail}
-              accent="#34D399"
+              accentClass="bg-success"
             >
               <Field
                 label="Invoice #"

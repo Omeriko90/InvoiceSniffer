@@ -48,7 +48,7 @@ export function MapColumnsStep({
         {importError && (
           <Alert className="px-3 py-[11px] rounded-[10px] bg-danger-bg border-danger-border">
             <AlertCircle size={18} strokeWidth={2} className="text-danger-fg" />
-            <AlertTitle className="font-normal text-sm text-[#7F1D1D]">{importError}</AlertTitle>
+            <AlertTitle className="font-normal text-sm text-danger-fg">{importError}</AlertTitle>
           </Alert>
         )}
 
