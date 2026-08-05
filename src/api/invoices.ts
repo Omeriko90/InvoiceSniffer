@@ -51,4 +51,13 @@ async function restoreInvoice(id: string): Promise<void> {
   }
 }
 
-export { updateInvoice, removeInvoice, restoreInvoice }
+// Detach an invoice from its fixed expense (clears fixedExpenseId).
+async function unlinkFixedExpense(id: string): Promise<void> {
+  const res = await fetch(`/api/invoices/${id}/unlink-fixed-expense`, { method: "POST" })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to unlink invoice")
+  }
+}
+
+export { updateInvoice, removeInvoice, restoreInvoice, unlinkFixedExpense }
