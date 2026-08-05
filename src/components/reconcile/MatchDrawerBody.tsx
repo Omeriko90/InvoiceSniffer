@@ -1,6 +1,6 @@
 // Client component by import — only ever rendered from <MatchDrawer>.
 import { ArrowDown, CreditCard, ExternalLink, FileText, TriangleAlert } from "lucide-react"
-import { SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { InfoBox } from "@/components/ui/info-box"
 import { ActionButton } from "@/components/reconcile/ActionButton"
@@ -15,7 +15,7 @@ function Header({ transaction }: { transaction: TransactionRow }) {
   const { invoice } = transaction
   return (
     <>
-      <SheetTitle className="text-[16px] font-[700] text-heading">
+      <SheetTitle className="text-lg font-bold text-heading">
         {invoice ? "Confirm this match" : "Transaction detail"}
       </SheetTitle>
       <SheetDescription className="text-[12.5px] text-text-secondary">
@@ -40,45 +40,58 @@ function Content({ transaction }: { transaction: TransactionRow }) {
 
   return (
     <>
-      {/* Collision: this invoice was already reconciled in an earlier session */}
-      {transaction.collision && invoice && (
-        <InfoBox
-          variant="warning"
-          align="start"
-          className="border-[#FDE68A]"
-          icon={<TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-[1px]" />}
-        >
-          <div className="text-[12.5px] leading-[1.5] text-[#92400E]">
-            <p className="font-[700]">Already reconciled</p>
-            <p>
-              This invoice was matched
-              {invoice.reconciledSourceFile ? ` against ${invoice.reconciledSourceFile}` : ""}
-              {invoice.reconciledAt ? ` on ${fmtDate(invoice.reconciledAt)}` : ""}. Confirming
-              again may mean a duplicate charge or a re-uploaded statement.
-            </p>
-          </div>
-        </InfoBox>
-      )}
+      <SheetHeader className="px-5.5 py-5 border-b border-hover">
+        <SheetTitle className="text-lg font-bold text-heading">
+          {invoice ? "Confirm this match" : "Transaction detail"}
+        </SheetTitle>
+        <SheetDescription className="text-[12.5px] text-text-secondary">
+          {invoice
+            ? "Check that the invoice matches this charge before confirming."
+            : "No invoice is linked to this charge yet."}
+        </SheetDescription>
+      </SheetHeader>
 
-      {/* Confidence banner */}
-      {showConfidence && (
-        <InfoBox variant="neutral" className="border-border">
-          <div className="flex-1">
-            <p className="text-[11px] font-[700] uppercase tracking-[0.05em] text-text-secondary mb-[5px]">
-              Match confidence
-            </p>
-            <ConfidenceBar value={transaction.matchConfidence!} size="md" />
-          </div>
-        </InfoBox>
-      )}
-      {transaction.matchReason && (
-        <p className="text-[12.5px] text-text-secondary -mt-[8px]">
-          {transaction.matchReason}
-        </p>
-      )}
+      <div className="flex-1 overflow-y-auto px-5.5 py-4.5 flex flex-col gap-4">
+        {/* Collision: this invoice was already reconciled in an earlier session */}
+        {transaction.collision && invoice && (
+          <InfoBox
+            variant="warning"
+            align="start"
+            className="border-[#FDE68A]"
+            icon={<TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-px" />}
+          >
+            <div className="text-sm leading-relaxed text-[#92400E]">
+              <p className="font-bold">Already reconciled</p>
+              <p>
+                This invoice was matched
+                {invoice.reconciledSourceFile ? ` against ${invoice.reconciledSourceFile}` : ""}
+                {invoice.reconciledAt ? ` on ${fmtDate(invoice.reconciledAt)}` : ""}. Confirming
+                again may mean a duplicate charge or a re-uploaded statement.
+              </p>
+            </div>
+          </InfoBox>
+        )}
+      </div>
+
+        {/* Confidence banner */}
+        {showConfidence && (
+          <InfoBox variant="neutral" className="border-border">
+            <div className="flex-1">
+              <p className="text-sm font-bold uppercase tracking-tight text-text-secondary mb-1.25">
+                Match confidence
+              </p>
+              <ConfidenceBar value={transaction.matchConfidence!} size="md" />
+            </div>
+          </InfoBox>
+        )}
+        {transaction.matchReason && (
+          <p className="text-sm text-text-secondary -mt-2">
+            {transaction.matchReason}
+          </p>
+        )}
 
       {/* Side-by-side comparison */}
-      <div className="flex flex-col flex-1 items-stretch gap-[12px]">
+      <div className="flex flex-col flex-1 items-stretch gap-3">
         <Panel
           icon={<CreditCard size={16} className="text-white" />}
           title="Bank charge"
@@ -92,7 +105,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         </Panel>
 
         <div className="hidden sm:flex items-center justify-center shrink-0">
-          <div className="w-[28px] h-[28px] rounded-full bg-[#EEF3FF] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center">
             <ArrowDown size={15} className="text-primary" />
           </div>
         </div>
@@ -118,16 +131,16 @@ function Content({ transaction }: { transaction: TransactionRow }) {
             />
           </Panel>
         ) : (
-          <div className="flex-1 border border-dashed border-border rounded-[13px] flex flex-col items-center justify-center py-[28px] px-[16px] text-center">
-            <FileText size={22} strokeWidth={1.5} className="text-faint mb-[8px]" />
-            <p className="text-[13px] font-[600] text-dim">No invoice linked</p>
+          <div className="flex-1 border border-dashed border-border rounded-lg flex flex-col items-center justify-center py-7 px-4 text-center">
+            <FileText size={22} strokeWidth={1.5} className="text-faint mb-2" />
+            <p className="text-sm font-semibold text-text-dim">No invoice linked</p>
           </div>
         )}
       </div>
 
       {/* Match checks */}
       {invoice && (
-        <div className="flex flex-wrap gap-[8px]">
+        <div className="flex flex-wrap gap-2">
           <CheckChip ok={amountMatch} label={amountMatch ? "Amounts match" : "Amounts differ"} />
           {transaction.currency !== invoice.currency && (
             <CheckChip ok={false} label="Currencies differ" />
@@ -135,13 +148,12 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         </div>
       )}
 
-      {/* Gmail link */}
       {invoice && (
         <a
           href={invoice.gmailLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-[7px] text-[12.5px] font-[600] text-[#3B6FE0] hover:underline w-fit"
+          className="flex items-center gap-1.75 text-sm font-semibold text-primary hover:underline w-fit"
         >
           <ExternalLink size={13} />
           View source email
