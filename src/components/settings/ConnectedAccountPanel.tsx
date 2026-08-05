@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <GmailConnectionCard>.
 import { AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DangerButton } from "@/components/ui/danger-button"
 import type { GmailConnection } from "@/api-types/settings"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { GoogleGlyph } from "./GoogleGlyph"
@@ -35,14 +36,13 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         >
           Reconnect
         </Button>
-        <Button
-          variant="outline"
+        <DangerButton
           onClick={onDisconnect}
           disabled={disconnecting}
-          className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
+          className="shrink-0"
         >
           {disconnecting ? "Removing…" : "Remove"}
-        </Button>
+        </DangerButton>
       </div>
     )
   }
@@ -64,14 +64,13 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
       >
         {syncing ? "Syncing…" : "Sync now"}
       </Button>
-      <Button
-        variant="outline"
+      <DangerButton
         onClick={onDisconnect}
         disabled={disconnecting}
-        className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
+        className="shrink-0"
       >
         {disconnecting ? "Disconnecting…" : "Disconnect"}
-      </Button>
+      </DangerButton>
     </div>
   )
 }

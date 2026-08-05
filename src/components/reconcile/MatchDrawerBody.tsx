@@ -6,6 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { ConfidenceBar } from "@/components/ui/confidence-bar"
+import { InfoBox } from "@/components/ui/info-box"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { Field } from "@/components/reconcile/Field"
 import { Panel } from "@/components/reconcile/Panel"
@@ -51,8 +52,12 @@ export function MatchDrawerBody({
       <div className="flex-1 overflow-y-auto px-[22px] py-[18px] flex flex-col gap-[16px]">
         {/* Collision: this invoice was already reconciled in an earlier session */}
         {transaction.collision && invoice && (
-          <div className="flex gap-[10px] bg-warning-bg border border-[#FDE68A] rounded-[11px] px-[14px] py-[11px]">
-            <TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-[1px]" />
+          <InfoBox
+            variant="warning"
+            align="start"
+            className="border-[#FDE68A]"
+            icon={<TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-[1px]" />}
+          >
             <div className="text-[12.5px] leading-[1.5] text-[#92400E]">
               <p className="font-[700]">Already reconciled</p>
               <p>
@@ -62,19 +67,19 @@ export function MatchDrawerBody({
                 again may mean a duplicate charge or a re-uploaded statement.
               </p>
             </div>
-          </div>
+          </InfoBox>
         )}
 
         {/* Confidence banner */}
         {showConfidence && (
-          <div className="flex items-center gap-[10px] bg-[#F8FAFF] border border-border rounded-[11px] px-[14px] py-[11px]">
+          <InfoBox variant="neutral" className="border-border">
             <div className="flex-1">
               <p className="text-[11px] font-[700] uppercase tracking-[0.05em] text-text-secondary mb-[5px]">
                 Match confidence
               </p>
               <ConfidenceBar value={transaction.matchConfidence!} size="md" />
             </div>
-          </div>
+          </InfoBox>
         )}
         {transaction.matchReason && (
           <p className="text-[12.5px] text-text-secondary -mt-[8px]">
