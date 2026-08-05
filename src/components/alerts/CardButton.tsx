@@ -18,8 +18,8 @@ export function CardButton({
       variant="outline"
       onClick={onClick}
       disabled={disabled}
-      className="h-auto text-[12.5px] font-[600] px-[13px] py-[7px] rounded-[9px] border border-[#E8EDFA] bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-[#F1F3F8] hover:text-inherit disabled:opacity-50 disabled:cursor-default"
-      style={{ color: muted ? "#94A3B8" : "#475569" }}
+      className="text-sm font-semibold px-3.5 py-1.75 rounded-lg border border-border bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-hover disabled:opacity-50 disabled:cursor-default"
+      style={{ color: muted ? "text-text-secondary" : "text-text-primary" }}
     >
       {children}
     </Button>

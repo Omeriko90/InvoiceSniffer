@@ -25,7 +25,7 @@ export function NeedsAttention({
           <span className="flex-1 text-[13.5px] text-[#78350F]">
             <strong>{possibleCount} possible matches</strong> waiting for confirmation
           </span>
-          <span className="text-[13px] font-[700] text-[#B45309] shrink-0">Review →</span>
+          <span className="text-[13px] font-[700] text-warning-fg shrink-0">Review →</span>
         </Link>
       )}
 
@@ -39,13 +39,13 @@ export function NeedsAttention({
           <span className="flex-1 text-[13.5px] text-[#7F1D1D]">
             <strong>{unmatchedCount} transactions</strong> with no matching invoice
           </span>
-          <span className="text-[13px] font-[700] text-[#DC2626] shrink-0">Review →</span>
+          <span className="text-[13px] font-[700] text-danger-fg shrink-0">Review →</span>
         </Link>
       )}
 
       {possibleCount === 0 && unmatchedCount === 0 && (
         <div
-          className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] text-[13px] font-[500] text-[#059669]"
+          className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] text-[13px] font-[500] text-success-fg"
           style={{ background: "#ECFDF5" }}
         >
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />

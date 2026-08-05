@@ -72,19 +72,18 @@ export function ExportsHistoryClient() {
   }
 
   return (
-    <div className="border border-[#E8EDFA] rounded-[12px] overflow-hidden bg-white">
+    <div className="border border-border rounded-lg overflow-hidden bg-white">
       <table className="w-full text-[13px]">
         <thead>
-          <tr className="text-left text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary bg-[#FAFBFF]">
-            <th className="w-[40px] px-[16px] py-[11px]" />
-            <th className="px-[16px] py-[11px]">Format</th>
-            <th className="px-[16px] py-[11px]">Date range</th>
-            <th className="px-[16px] py-[11px]">Created</th>
-            <th className="px-[16px] py-[11px]">Status</th>
-            <th className="px-[16px] py-[11px] text-right">Download</th>
+          <tr className="text-left text-sm font-bold uppercase tracking-tight text-text-secondary bg-background">
+            <th className="px-3.5 py-2.5">Format</th>
+            <th className="px-3.5 py-2.5">Date range</th>
+            <th className="px-3.5 py-2.5">Created</th>
+            <th className="px-3.5 py-2.5">Status</th>
+            <th className="px-3.5 py-2.5 text-right">Download</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#F1F3F8]">
+        <tbody className="divide-y divide-hover">
           {exports.map((e) => {
             const style = STATUS_STYLE[e.status]
             const open = openIds.has(e.id)
@@ -112,29 +111,29 @@ function RowGroup({
   return (
     <>
       <tr className="hover:bg-[#FAFBFF] cursor-pointer" onClick={onToggle}>
-        <td className="px-[16px] py-[12px] text-text-secondary align-middle">
+        <td className="px-4 py-3 text-text-secondary align-middle">
           {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
         </td>
-        <td className="px-[16px] py-[12px] font-[600] text-text-primary">{e.format}</td>
-        <td className="px-[16px] py-[12px] text-text-secondary">
+        <td className="px-4 py-3 font-semibold text-text-primary">{e.format}</td>
+        <td className="px-4 py-3 text-text-secondary">
           {formatDate(new Date(e.dateRangeStart), "dd MMM yyyy")} –{" "}
           {formatDate(new Date(e.dateRangeEnd), "dd MMM yyyy")}
         </td>
-        <td className="px-[16px] py-[12px] text-text-secondary">
+        <td className="px-4 py-3 text-text-secondary">
           {formatDate(new Date(e.createdAt), "dd MMM yyyy, HH:mm")}
         </td>
-        <td className="px-[16px] py-[12px]">
+        <td className="px-4 py-3">
           <span
-            className="inline-flex items-center px-[9px] py-[3px] rounded-full text-[12px] font-[600]"
+            className="inline-flex items-center px-2.25 py-0.75 rounded-full text-sm font-semibold"
             style={{ background: style.bg, color: style.color }}
           >
             {style.label}
           </span>
           {e.skippedCount > 0 && (
-            <span className="ml-[8px] text-[12px] text-text-secondary">{e.skippedCount} skipped</span>
+            <span className="ml-2 text-sm text-text-secondary">{e.skippedCount} skipped</span>
           )}
         </td>
-        <td className="px-[16px] py-[12px] text-right">
+        <td className="px-4 py-3 text-right">
           <Button
             variant="outline"
             size="sm"
@@ -143,7 +142,7 @@ function RowGroup({
               event.stopPropagation()
               downloadExport(e.id)
             }}
-            className="gap-[6px]"
+            className="gap-1.5"
           >
             <Download size={14} />
             Download
@@ -153,7 +152,7 @@ function RowGroup({
       {open && (
         <tr className="bg-[#FAFBFF]">
           <td />
-          <td colSpan={5} className="px-[16px] pb-[16px] pt-[2px]">
+          <td colSpan={5} className="px-4 py-4">
             <ExportDetail item={e} />
           </td>
         </tr>
@@ -164,8 +163,8 @@ function RowGroup({
 
 function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
   return (
-    <div className="flex flex-col gap-[12px] rounded-[10px] border border-[#E8EDFA] bg-white p-[14px]">
-      <dl className="grid grid-cols-2 gap-x-[24px] gap-y-[8px] text-[12.5px] sm:grid-cols-3">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-white p-3.5">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
         <Detail label="Invoices" value={`${e.invoiceCount}`} />
         <Detail label="Skipped" value={`${e.skippedCount}`} />
         <Detail label="File" value={e.fileName ?? "—"} />
@@ -176,17 +175,17 @@ function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
       </dl>
 
       {e.skipped.length > 0 && (
-        <div className="flex flex-col gap-[6px]">
-          <p className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+        <div className="flex flex-col gap-1.5">
+          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
             Skipped files
           </p>
-          <ul className="flex flex-col gap-[4px]">
+          <ul className="flex flex-col gap-1">
             {e.skipped.map((s, i) => (
               <li
                 key={`${s.invoiceId}-${i}`}
-                className="flex items-center justify-between gap-[12px] text-[12.5px]"
+                className="flex items-center justify-between gap-3 text-sm"
               >
-                <span className="truncate font-[600] text-text-primary">
+                <span className="truncate font-semibold text-text-primary">
                   {s.vendorName ?? "Unknown vendor"}
                 </span>
                 <span className="shrink-0 text-text-secondary">{skipReasonLabel(s.reason)}</span>
@@ -202,7 +201,7 @@ function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
             variant="outline"
             size="sm"
             onClick={() => downloadExport(e.id)}
-            className="gap-[6px]"
+            className="gap-1.5"
           >
             <Download size={14} />
             Download
@@ -215,8 +214,8 @@ function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-[2px]">
-      <dt className="text-[11px] font-[600] uppercase tracking-[0.04em] text-text-secondary">
+    <div className="flex flex-col gap-0.5">
+      <dt className="text-sm font-semibold uppercase tracking-tight text-text-secondary">
         {label}
       </dt>
       <dd className="truncate text-text-primary">{value}</dd>

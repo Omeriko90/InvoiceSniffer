@@ -14,7 +14,7 @@ const VARIANT_MAP: Record<
   green:   { variant: "success" },
   blue:    { variant: "default" },
   // No token for this soft-blue accent yet, so it stays arbitrary but centralized.
-  find:    { variant: "outline", className: "border-[#BFDBFF] text-[#3B6FE0] hover:bg-info-bg" },
+  find:    { variant: "outline", className: "border-info-border text-primary-strong hover:bg-info-bg" },
 }
 
 export function ActionButton({

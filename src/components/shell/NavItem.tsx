@@ -18,7 +18,7 @@ export function NavItem({ label, href, icon: Icon, active, badge }: {
       className={cn(
         "flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[14px] transition-colors",
         active
-          ? "font-[600] text-[#3B6FE0] bg-[rgba(122,167,255,0.16)]"
+          ? "font-[600] text-primary-strong bg-[rgba(122,167,255,0.16)]"
           : "font-[500] text-text-secondary hover:bg-hover"
       )}
     >

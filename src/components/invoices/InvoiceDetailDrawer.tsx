@@ -134,7 +134,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <div className="min-w-0">
             <SheetTitle className="text-lg font-bold text-heading truncate">{vendor}</SheetTitle>
             {invoice.invoiceNumber && (
-              <p className="text-[12px] text-[#94A3B8] font-mono">{invoice.invoiceNumber}</p>
+              <p className="text-[12px] text-dim font-mono">{invoice.invoiceNumber}</p>
             )}
           </div>
         </div>
@@ -238,7 +238,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               className="flex items-center justify-between px-3.25 py-2.5 text-[13px]"
               style={{ borderBottom: i < arr.length - 1 ? "1px solid #F1F3F8" : undefined }}
             >
-              <span className="text-[#64748B]">{row.label}</span>
+              <span className="text-text-secondary">{row.label}</span>
               <span
                 className="font-semibold text-text-primary"
                 style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
@@ -289,7 +289,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               <p className="text-[13px] font-semibold text-[#334155] truncate">{att.filename}</p>
               <p className="text-[11.5px] text-[#94A3B8]">{fmtSize(att.size)}</p>
             </div>
-            <ExternalLink size={14} strokeWidth={1.5} className="text-[#94A3B8] shrink-0" />
+            <ExternalLink size={14} strokeWidth={1.5} className="text-dim shrink-0" />
           </a>
         ))}
 

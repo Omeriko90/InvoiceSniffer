@@ -18,9 +18,9 @@ export default function SignInPage() {
 
           <SignInForm />
 
-          <p className="text-[13.5px] text-[#64748B] text-center mt-[22px]">
+          <p className="text-sm text-text-secondary text-center mt-5.5">
             New to InvoiceSniffer?{" "}
-            <Link href="/auth/signup" className="text-primary font-[700] hover:opacity-80">Create an account</Link>
+            <Link href="/auth/signup" className="text-primary font-bold hover:opacity-80">Create an account</Link>
           </p>
         </div>
       </div>

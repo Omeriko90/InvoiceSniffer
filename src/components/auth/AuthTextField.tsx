@@ -29,17 +29,17 @@ export function AuthTextField({
     <div className={cn("flex flex-col gap-[6px]", wrapperClassName)}>
       {labelAccessory ? (
         <div className="flex items-center justify-between">
-          <Label className="text-[12.5px] font-[600] text-[#475569]" htmlFor={id}>{label}</Label>
+          <Label className="text-[12.5px] font-[600] text-subtle" htmlFor={id}>{label}</Label>
           {labelAccessory}
         </div>
       ) : (
-        <Label className="text-[12.5px] font-[600] text-[#475569]" htmlFor={id}>{label}</Label>
+        <Label className="text-[12.5px] font-[600] text-subtle" htmlFor={id}>{label}</Label>
       )}
       <Input
         id={id}
         type={type}
         placeholder={placeholder}
-        className="rounded-[10px] border-[#E8EDFA] h-[42px] text-[14px]"
+        className="rounded-[10px] border-border h-[42px] text-[14px]"
         aria-invalid={!!error}
         {...registration}
       />

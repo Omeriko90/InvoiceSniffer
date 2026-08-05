@@ -18,8 +18,8 @@ export function AlertDetailDrawer({
     <DetailDrawer
       open={!!alert}
       onClose={onClose}
-      headerClassName="pt-[20px] pb-[16px]"
-      contentClassName="py-[18px] flex flex-col gap-[16px]"
+      headerClassName="pt-5 pb-4"
+      contentClassName="py-4.5 flex flex-col gap-4"
       header={alert ? <Body.Header alert={alert} /> : null}
       footer={
         alert ? (

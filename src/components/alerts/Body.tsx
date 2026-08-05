@@ -25,15 +25,15 @@ function Header({ alert }: { alert: AlertItem }) {
   const Icon = ALERT_ICON[alert.type] ?? AlertTriangle
 
   return (
-    <div className="flex items-center gap-[11px]">
+    <div className="flex items-center gap-2.75">
       <div
-        className="w-[38px] h-[38px] rounded-[10px] grid place-items-center shrink-0"
+        className="w-9.5 h-9.5 rounded-lg grid place-items-center shrink-0"
         style={{ background: sev.iconBg }}
       >
         <Icon size={19} strokeWidth={2} style={{ color: sev.iconStroke }} />
       </div>
       <div className="min-w-0">
-        <SheetTitle className="text-[16px] font-[700] text-heading truncate">{vendor}</SheetTitle>
+        <SheetTitle className="text-lg font-bold text-heading truncate">{vendor}</SheetTitle>
         <SheetDescription className="text-[12.5px]" style={{ color: meta.color }}>
           {meta.label} · {sev.label}
         </SheetDescription>
@@ -51,13 +51,13 @@ function Content({ alert }: { alert: AlertItem }) {
     <>
       {/* Metric banner */}
       <div
-        className="rounded-[12px] px-[16px] py-[14px] flex items-center justify-between"
+        className="rounded-lg px-4 py-3.5 flex items-center justify-between"
         style={{ background: sev.iconBg }}
       >
-        <span className="text-[12px] font-[600] uppercase tracking-[0.04em]" style={{ color: sev.iconStroke }}>
+        <span className="text-sm font-semibold uppercase tracking-tight" style={{ color: sev.iconStroke }}>
           {metric.label}
         </span>
-        <span className="text-[24px] font-[800] tracking-[-0.02em]" style={{ color: sev.accent }}>
+        <span className="text-4xl font-bold tracking-tight" style={{ color: sev.accent }}>
           {metric.value}
         </span>
       </div>
@@ -68,7 +68,7 @@ function Content({ alert }: { alert: AlertItem }) {
 
       {fields.length > 0 && (
         <div className="border border-[#E8EDFA] rounded-[13px] overflow-hidden">
-          <div className="px-[15px] py-[10px] bg-[#F8FAFF] border-b border-[#E8EDFA] text-[11px] font-[700] uppercase tracking-[0.04em] text-[#94A3B8]">
+          <div className="px-3.5 py-2.5 bg-surface border-b border-border text-sm font-bold uppercase tracking-tight text-text-secondary">
             Details
           </div>
           {fields.map((f) => (
@@ -94,7 +94,7 @@ function Footer({
       variant="outline"
       onClick={() => onDismiss(alert.id)}
       disabled={dismissing}
-      className="h-auto w-full text-[13px] font-[700] px-[14px] py-[10px] rounded-[10px] border border-[#E8EDFA] bg-white text-[#475569] cursor-pointer transition-colors hover:bg-[#F1F3F8] hover:text-[#475569] disabled:opacity-50 disabled:cursor-default"
+      className="h-auto w-full text-sm font-bold px-3.5 py-2.5 rounded-lg border border-border bg-white text-text-primary cursor-pointer transition-colors hover:bg-hover hover:text-text-primary disabled:opacity-50 disabled:cursor-default"
     >
       Dismiss alert
     </Button>

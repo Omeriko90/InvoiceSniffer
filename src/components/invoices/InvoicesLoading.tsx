@@ -5,7 +5,7 @@ import { TABLE_GRID_COLUMNS } from "./constants"
 export function InvoicesLoading() {
   return (
     <div
-      className="grid items-center px-[18px] py-[13px] border-b border-[#F1F3F8]"
+      className="grid items-center px-[18px] py-[13px] border-b border-hover"
       style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
     >
       {/* Vendor */}

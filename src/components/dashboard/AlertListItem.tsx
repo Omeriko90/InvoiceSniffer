@@ -7,7 +7,7 @@ export function AlertListItem({ alert }: { alert: AlertItem }) {
   const meta   = ALERT_META[alert.type] ?? { label: alert.type, color: "#94A3B8", bg: "#F1F3F8" }
   const vendor = alert.invoice?.vendorName ?? alert.vendorName
   return (
-    <div className="flex gap-[11px] py-[11px] border-b border-[#F1F3F8] last:border-0">
+    <div className="flex gap-[11px] py-[11px] border-b border-hover last:border-0">
       <span className="w-[9px] h-[9px] rounded-full mt-[5px] shrink-0" style={{ background: meta.color }} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap leading-none mb-[3px]">

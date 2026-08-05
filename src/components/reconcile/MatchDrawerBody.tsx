@@ -57,10 +57,10 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           <InfoBox
             variant="warning"
             align="start"
-            className="border-[#FDE68A]"
-            icon={<TriangleAlert size={16} className="text-[#B45309] shrink-0 mt-px" />}
+            className="border-warning-border"
+            icon={<TriangleAlert size={16} className="text-warning-fg shrink-0 mt-px" />}
           >
-            <div className="text-sm leading-relaxed text-[#92400E]">
+            <div className="text-sm leading-relaxed text-warning-fg">
               <p className="font-bold">Already reconciled</p>
               <p>
                 This invoice was matched
@@ -135,6 +135,19 @@ function Content({ transaction }: { transaction: TransactionRow }) {
             <FileText size={22} strokeWidth={1.5} className="text-faint mb-2" />
             <p className="text-sm font-semibold text-text-dim">No invoice linked</p>
           </div>
+        )}
+
+        {/* Gmail link */}
+        {invoice && (
+          <a
+            href={invoice.gmailLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.75 text-sm font-semibold text-primary hover:underline w-fit"
+          >
+            <ExternalLink size={13} />
+            View source email
+          </a>
         )}
       </div>
 

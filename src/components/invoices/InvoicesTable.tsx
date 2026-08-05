@@ -17,16 +17,16 @@ export function InvoicesTable({
   onSelect: (invoice: InvoiceRowType) => void
 }) {
   return (
-    <div className="bg-white border border-[#E8EDFA] rounded-[14px] overflow-hidden">
+    <div className="bg-white border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
       <div
-        className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-[#E8EDFA]"
+        className="grid px-4 py-3 bg-surface border-b border-border"
         style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
       >
         {["Vendor", "Invoice #", "Issue date", "Received", "Status", "Category", "Amount", ""].map((h, i) => (
           <span
             key={i}
-            className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-[#64748B]"
+            className="text-sm font-bold uppercase tracking-tight text-text-secondary"
             style={i === 6 ? { textAlign: "right" } : undefined}
           >
             {h}
@@ -40,7 +40,7 @@ export function InvoicesTable({
       {uiState === "empty" && <EmptyState />}
 
       {uiState === "data" && filtered.length === 0 && (
-        <div className="py-12 text-center text-[13.5px] text-[#94A3B8]">
+        <div className="py-12 text-center text-[13.5px] text-dim">
           {invoices.length === 0 ? <EmptyState /> : "No results match your search"}
         </div>
       )}
