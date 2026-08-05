@@ -1,5 +1,7 @@
-import { format } from "date-fns"
 import type { TransactionRow } from "@/components/reconcile/types"
+
+// Re-exported for existing importers; canonical impl lives in @/lib/date.
+export { fmtDate } from "@/lib/date"
 
 export function invoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
   if (txn.invoice) {
@@ -11,8 +13,4 @@ export function invoiceLabel(txn: TransactionRow): { text: string; muted: boolea
   }
   if (txn.status === "NO_INVOICE") return { text: "No invoice required", muted: true }
   return { text: "No invoice found", muted: true }
-}
-
-export function fmtDate(iso: string): string {
-  return format(new Date(iso), "MMM d, yyyy")
 }

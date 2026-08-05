@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
 import { ExternalLink, FileText } from "lucide-react"
-import { format } from "date-fns"
 import { fmtMoney } from "@/lib/money"
+import { fmtDate } from "@/lib/date"
 import type { MatchInvoice } from "@/api-types/reconcile"
 
 // Invoices in the selected window that no uploaded charge matched — i.e. you may
@@ -54,7 +54,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
             {fmtMoney(inv.amount, inv.currency)}
           </span>
           <span className="text-[13px] text-text-secondary">
-            {format(new Date(inv.date), "MMM d, yyyy")}
+            {fmtDate(inv.date)}
           </span>
           <a
             href={inv.gmailLink}

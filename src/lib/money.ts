@@ -10,3 +10,18 @@ export function fmtMoney(amount: number | string, currency: string): string {
     return `${currency}${Number(amount).toFixed(2)}`
   }
 }
+
+// Same as fmtMoney but rounded to whole units — for summary/dashboard figures
+// where cents are noise.
+export function fmtMoneyWhole(amount: number | string, currency: string): string {
+  const code = normalizeCurrencyCode(currency)
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: 0,
+    }).format(Number(amount))
+  } catch {
+    return `${Number(amount).toFixed(0)} ${currency}`
+  }
+}
