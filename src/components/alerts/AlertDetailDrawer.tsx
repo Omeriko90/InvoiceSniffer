@@ -1,8 +1,5 @@
 // Client component by import — only ever rendered from the Alerts page.
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet"
+import { DetailDrawer } from "@/components/ui/detail-drawer"
 import type { AlertItem } from "@/types/alert"
 import { Body } from "@/components/alerts/Body"
 
@@ -18,15 +15,19 @@ export function AlertDetailDrawer({
   dismissing: boolean
 }) {
   return (
-    <Sheet open={!!alert} onOpenChange={(open) => !open && onClose()}>
-      {alert && (
-        <SheetContent
-          side="right"
-          className="data-[side=right]:w-full data-[side=right]:sm:max-w-[440px] bg-white border-[#E8EDFA] p-0 gap-0 flex flex-col"
-        >
-          <Body alert={alert} onDismiss={onDismiss} dismissing={dismissing} />
-        </SheetContent>
-      )}
-    </Sheet>
+    <DetailDrawer
+      open={!!alert}
+      onClose={onClose}
+      headerClassName="pt-[20px] pb-[16px]"
+      contentClassName="py-[18px] flex flex-col gap-[16px]"
+      header={alert ? <Body.Header alert={alert} /> : null}
+      footer={
+        alert ? (
+          <Body.Footer alert={alert} onDismiss={onDismiss} dismissing={dismissing} />
+        ) : undefined
+      }
+    >
+      {alert && <Body.Content alert={alert} />}
+    </DetailDrawer>
   )
 }

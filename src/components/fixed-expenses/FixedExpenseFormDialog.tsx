@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { FormDialog } from "@/components/ui/form-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -210,17 +211,40 @@ export function FixedExpenseFormDialog({
 
   return (
     <>
-    <DialogContent className="sm:max-w-[460px] p-0 gap-0 bg-surface border-border rounded-[16px]">
-      <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-hover">
-        <DialogTitle className="text-[16px] font-[700] text-heading">
-          {isEdit ? "Edit fixed expense" : "New fixed expense"}
-        </DialogTitle>
-        <DialogDescription className="text-[12.5px] text-text-secondary">
-          Track whether the expected invoice arrives each period.
-        </DialogDescription>
-      </DialogHeader>
-
-      <form onSubmit={handleSubmit(onSubmit)}>
+    <FormDialog
+      className="sm:max-w-[460px]"
+      footerClassName="gap-[8px]"
+      title={isEdit ? "Edit fixed expense" : "New fixed expense"}
+      description="Track whether the expected invoice arrives each period."
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={pending || absorb.isPending}
+            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
+          >
+            Cancel
+          </Button>
+          {locked ? (
+            <Button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={absorb.isPending}
+              className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
+            >
+              Link
+            </Button>
+          ) : (
+            <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
+              {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+            </Button>
+          )}
+        </>
+      }
+    >
         <div className="px-[22px] py-[18px] flex flex-col gap-[13px] max-h-[62vh] overflow-y-auto">
           {/* Link to an existing expense (drawer flow, only when some exist) */}
           {canLinkExisting && existing.length > 0 && (
@@ -371,34 +395,7 @@ export function FixedExpenseFormDialog({
           </div>
           </fieldset>
         </div>
-
-        <DialogFooter className="px-[22px] py-[14px] border-t border-hover gap-[8px]">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={pending || absorb.isPending}
-            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
-          >
-            Cancel
-          </Button>
-          {locked ? (
-            <Button
-              type="button"
-              onClick={() => setConfirmOpen(true)}
-              disabled={absorb.isPending}
-              className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
-            >
-              Link
-            </Button>
-          ) : (
-            <Button type="submit" disabled={pending} className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]">
-              {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
-            </Button>
-          )}
-        </DialogFooter>
-      </form>
-      </DialogContent>
+    </FormDialog>
 
       {/* Confirm absorbing this invoice into the selected existing expense. */}
       <Dialog open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
