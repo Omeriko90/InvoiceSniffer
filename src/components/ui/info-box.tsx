@@ -38,14 +38,14 @@ export function InfoBox({
   return (
     <div
       className={cn(
-        "flex gap-[10px] border rounded-[11px] px-[14px] py-[11px]",
+        "flex gap-2.5 border rounded-[11px] px-3.5 py-[11px]",
         align === "center" ? "items-center" : "items-start",
         variantBg[variant],
         className
       )}
     >
       {Icon ? (
-        <Icon size={16} className={cn("shrink-0", align === "start" && "mt-[1px]")} />
+        <Icon size={16} className={cn("shrink-0", align === "start" && "mt-px")} />
       ) : (
         (icon as ReactNode) ?? null
       )}

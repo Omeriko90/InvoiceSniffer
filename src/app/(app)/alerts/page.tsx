@@ -36,7 +36,7 @@ export default function AlertsPage() {
       ) : !data || data.alerts.length === 0 ? (
         <EmptyState filtered={filter !== "all"} />
       ) : (
-        <div className="flex flex-col gap-[12px] max-w-[880px]">
+        <div className="flex flex-col gap-3 max-w-[880px]">
           {data.alerts.map((alert) => (
             <AlertCard
               key={alert.id}

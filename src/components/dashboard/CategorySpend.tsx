@@ -22,15 +22,15 @@ export function CategorySpend({ rows, monthLabel }: { rows: CategorySpendRow[]; 
             No categorized spend yet this month.
           </p>
         ) : (
-          <div className="flex flex-col gap-[14px]">
+          <div className="flex flex-col gap-3.5">
             {rows.map((r) => {
               const meta = CATEGORY_COLORS[r.category] ?? CATEGORY_COLORS.UNCATEGORIZED
               return (
-                <div key={`${r.category}-${r.currency}`} className="flex flex-col gap-[6px]">
+                <div key={`${r.category}-${r.currency}`} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-[8px] min-w-0">
+                    <span className="flex items-center gap-2 min-w-0">
                       <span
-                        className="w-[10px] h-[10px] rounded-full shrink-0"
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ background: meta.color }}
                       />
                       <span className="text-sm font-semibold text-heading truncate">
@@ -44,7 +44,7 @@ export function CategorySpend({ rows, monthLabel }: { rows: CategorySpendRow[]; 
                       {fmtMoney(r.total, r.currency)}
                     </span>
                   </div>
-                  <div className="h-[6px] rounded-full bg-hover overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-hover overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{ width: `${Math.max(4, (r.total / max) * 100)}%`, background: meta.color }}

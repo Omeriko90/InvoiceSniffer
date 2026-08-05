@@ -5,11 +5,11 @@ import { TABLE_GRID_COLUMNS } from "./constants"
 export function InvoicesLoading() {
   return (
     <div
-      className="grid items-center px-[18px] py-[13px] border-b border-hover"
+      className="grid items-center px-4.5 py-3 border-b border-hover"
       style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
     >
       {/* Vendor */}
-      <div className="flex items-center gap-[10px]">
+      <div className="flex items-center gap-2.5">
         <Skeleton className="w-7 h-7 rounded-full bg-[#EEF1F8] shrink-0" />
         <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "62%" }} />
       </div>

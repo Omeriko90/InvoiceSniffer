@@ -13,7 +13,7 @@ export function DangerButton({
     <Button
       variant="outline"
       className={cn(
-        "h-auto text-sm font-semibold text-danger bg-surface border-danger-border rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60",
+        "h-auto text-sm font-semibold text-danger bg-surface border-danger-border rounded-[9px] px-3.5 py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60",
         className
       )}
       {...props}

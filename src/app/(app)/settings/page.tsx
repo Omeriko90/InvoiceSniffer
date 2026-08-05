@@ -15,11 +15,11 @@ export default function SettingsPage() {
   if (isPending || !data) return <SettingsSkeleton />
 
   return (
-    <div className="flex flex-col gap-[14px]">
+    <div className="flex flex-col gap-3.5">
       <Suspense fallback={null}>
         <GmailConnectResult />
       </Suspense>
-      <div className="grid grid-cols-2 gap-[14px]">
+      <div className="grid grid-cols-2 gap-3.5">
         <GmailConnectionCard gmails={data.gmails} maxGmailAccounts={data.maxGmailAccounts} />
         <WorkspaceMembersCard members={data.members} />
       </div>
@@ -31,10 +31,10 @@ export default function SettingsPage() {
 
 function SettingsSkeleton() {
   return (
-    <div className="flex flex-col gap-[14px]">
-      <div className="grid grid-cols-2 gap-[14px]">
-        <Skeleton className="h-[240px] rounded-[14px] bg-hover" />
-        <Skeleton className="h-[240px] rounded-[14px] bg-hover" />
+    <div className="flex flex-col gap-3.5">
+      <div className="grid grid-cols-2 gap-3.5">
+        <Skeleton className="h-60 rounded-[14px] bg-hover" />
+        <Skeleton className="h-60 rounded-[14px] bg-hover" />
       </div>
       <Skeleton className="h-[180px] rounded-[14px] bg-hover" />
     </div>

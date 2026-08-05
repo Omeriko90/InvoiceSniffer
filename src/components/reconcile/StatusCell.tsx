@@ -12,11 +12,11 @@ export function StatusCell({ txn }: { txn: TransactionRow }) {
 
   return (
     <div>
-      <div className="flex items-center gap-[6px]">
+      <div className="flex items-center gap-1.5">
         <StatusBadge status={txn.status} confirmed={txn.matchConfirmed} />
         {txn.aiSuggested && (
           <span
-            className="inline-flex items-center gap-[3px] rounded-full bg-primary/10 px-[6px] py-[2px] text-xs font-bold text-primary"
+            className="inline-flex items-center gap-[3px] rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary"
             title="Suggested by AI — please review"
           >
             <Sparkles size={10} aria-hidden />

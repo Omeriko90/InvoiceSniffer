@@ -24,7 +24,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div
-        className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-border"
+        className="grid px-[18px] py-3 bg-[#F8FAFF] border-b border-border"
         style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
       >
         {["Vendor", "Invoice #", "Amount", "Date", ""].map((h, i) => (
@@ -41,7 +41,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
       {invoices.map((inv) => (
         <div
           key={inv.id}
-          className="grid items-center px-[18px] py-[14px] border-b border-hover last:border-b-0"
+          className="grid items-center px-[18px] py-3.5 border-b border-hover last:border-b-0"
           style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
         >
           <span className="text-sm font-semibold text-foreground truncate">

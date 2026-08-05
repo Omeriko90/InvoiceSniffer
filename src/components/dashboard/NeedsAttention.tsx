@@ -11,7 +11,7 @@ export function NeedsAttention({
 }) {
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-[18px]">
-      <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.04em] mb-[2px]">
+      <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.04em] mb-0.5">
         Needs your attention
       </p>
 

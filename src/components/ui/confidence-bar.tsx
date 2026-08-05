@@ -26,7 +26,7 @@ export function ConfidenceBar({
   const pct = Math.round(value * 100)
   return (
     <div
-      className={cn("flex items-center gap-[6px]", className)}
+      className={cn("flex items-center gap-1.5", className)}
       role="meter"
       aria-valuenow={pct}
       aria-valuemin={0}
@@ -36,7 +36,7 @@ export function ConfidenceBar({
       <div
         className={cn(
           "flex-1 bg-hover rounded-full overflow-hidden",
-          size === "md" ? "h-[6px]" : "h-[5px]"
+          size === "md" ? "h-1.5" : "h-[5px]"
         )}
       >
         <div

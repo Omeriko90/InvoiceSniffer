@@ -29,7 +29,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
       <Logo orgName={orgName} />
 
       {/* Nav */}
-      <nav className="flex-1 px-[14px] flex flex-col gap-5 overflow-y-auto">
+      <nav className="flex-1 px-3.5 flex flex-col gap-5 overflow-y-auto">
         <NavGroup label="Workspace" items={WORKSPACE_NAV} pathname={pathname} />
         <NavGroup
           label="Insights"
@@ -40,7 +40,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
       </nav>
 
       {/* Bottom: Settings + User */}
-      <div className="px-[14px] pb-4 flex flex-col gap-1">
+      <div className="px-3.5 pb-4 flex flex-col gap-1">
         <NavItem
           label="Settings"
           href="/settings"

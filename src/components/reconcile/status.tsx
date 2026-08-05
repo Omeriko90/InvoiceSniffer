@@ -31,7 +31,7 @@ export function StatusBadge({
   const meta = STATUS_META[status]
   const label = confirmed && status === "MATCHED" ? "Confirmed" : meta.label
   return (
-    <Badge className={cn("h-auto text-xs font-bold px-[10px] py-[2px]", meta.badge, className)}>
+    <Badge className={cn("h-auto text-xs font-bold px-2.5 py-0.5", meta.badge, className)}>
       {label}
     </Badge>
   )

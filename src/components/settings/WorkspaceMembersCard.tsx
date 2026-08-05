@@ -17,7 +17,7 @@ export function WorkspaceMembersCard({ members }: WorkspaceMembersCardProps) {
           Workspace &amp; members
         </h2>
 
-        <div className="flex flex-col gap-[14px]">
+        <div className="flex flex-col gap-3.5">
           {members.map((member) => (
             <MemberRow key={member.id} member={member} />
           ))}

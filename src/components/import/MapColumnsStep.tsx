@@ -15,7 +15,7 @@ export function MapColumnsStep({
   const previewRows = parsed.records.slice(0, 3)
 
   return (
-    <div className="grid gap-[14px] items-start" style={{ gridTemplateColumns: "300px 1fr" }}>
+    <div className="grid gap-3.5 items-start" style={{ gridTemplateColumns: "300px 1fr" }}>
 
       {/* File summary */}
       <FileSummary parsed={parsed} savedMappingLabel={savedMappingLabel} />

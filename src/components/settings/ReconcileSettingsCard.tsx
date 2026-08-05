@@ -39,7 +39,7 @@ export function ReconcileSettingsCard({
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5">
-        <h2 className="text-base font-bold text-heading leading-none mb-[6px]">
+        <h2 className="text-base font-bold text-heading leading-none mb-1.5">
           Reconcile settings
         </h2>
         <p className="text-xs text-text-secondary mb-[18px] leading-[1.55]">
@@ -48,8 +48,8 @@ export function ReconcileSettingsCard({
           after purchase.
         </p>
 
-        <div className="flex items-center gap-[10px]">
-          <label className="flex items-center gap-[10px] text-sm font-semibold text-text-primary">
+        <div className="flex items-center gap-2.5">
+          <label className="flex items-center gap-2.5 text-sm font-semibold text-text-primary">
             Settlement lag:
           </label>
           <Select
@@ -58,7 +58,7 @@ export function ReconcileSettingsCard({
               if (v) setValue(v);
             }}
           >
-            <SelectTrigger className="h-auto py-[7px] px-[10px] w-[85px] rounded border-border text-sm font-semibold text-text-primary">
+            <SelectTrigger className="h-auto py-[7px] px-2.5 w-[85px] rounded border-border text-sm font-semibold text-text-primary">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -72,11 +72,11 @@ export function ReconcileSettingsCard({
           <span>days</span>
         </div>
 
-        <div className="mt-[16px]">
+        <div className="mt-4">
           <Button
             onClick={save}
             disabled={!dirty || update.isPending}
-            className="h-auto text-sm font-semibold text-white bg-primary rounded-[9px] px-[16px] py-[8px] shadow-primary hover:bg-primary hover:opacity-90 disabled:opacity-60"
+            className="h-auto text-sm font-semibold text-white bg-primary rounded-[9px] px-4 py-2 shadow-primary hover:bg-primary hover:opacity-90 disabled:opacity-60"
           >
             {update.isPending ? "Saving…" : "Save"}
           </Button>

@@ -23,7 +23,7 @@ export function StatCard({ label, value, delta, deltaColor, iconBg, icon }: Stat
           </div>
         </div>
         <p className="text-3xl font-extrabold text-heading leading-none tracking-tight mt-2">{value}</p>
-        <p className="text-xs font-semibold mt-[6px] leading-none" style={{ color: deltaColor }}>{delta}</p>
+        <p className="text-xs font-semibold mt-1.5 leading-none" style={{ color: deltaColor }}>{delta}</p>
       </CardContent>
     </Card>
   )

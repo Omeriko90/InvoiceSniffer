@@ -47,7 +47,7 @@ export function SignInForm() {
         placeholder="you@company.com"
         error={errors.email?.message}
         registration={register("email")}
-        wrapperClassName="mb-[14px]"
+        wrapperClassName="mb-3.5"
       />
 
       {/* Password */}

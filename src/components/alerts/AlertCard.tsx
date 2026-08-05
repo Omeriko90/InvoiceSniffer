@@ -30,24 +30,24 @@ export function AlertCard({
 
   return (
     <div
-      className="bg-white border border-border rounded-[12px] p-[16px_18px] flex gap-[16px] items-center"
+      className="bg-white border border-border rounded-lg p-4 flex gap-4 items-center"
       style={{ borderLeft: `4px solid ${sev.accent}` }}
     >
       <div
-        className="w-[40px] h-[40px] rounded-[11px] grid place-items-center shrink-0"
+        className="w-10 h-10 rounded-[11px] grid place-items-center shrink-0"
         style={{ background: sev.iconBg }}
       >
         <Icon size={19} strokeWidth={2} style={{ color: sev.iconStroke }} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-[10px] mb-[3px] flex-wrap">
-          <span className="text-[14.5px] font-[700] text-heading">{vendor}</span>
-          <StatusPill bg={meta.bg} color={meta.color} className="text-[11px] px-[9px]">
+        <div className="flex items-center gap-2.5 mb-0.75 flex-wrap">
+          <span className="text-base font-bold text-heading">{vendor}</span>
+          <StatusPill bg={meta.bg} color={meta.color} className="text-xs px-2.25">
             {meta.label}
           </StatusPill>
         </div>
-        <p className="text-sm text-text-secondary leading-[1.5]">
+        <p className="text-sm text-text-secondary leading-relaxed">
           {alertDescription(alert.type, alert.details)}
         </p>
       </div>
@@ -61,7 +61,7 @@ export function AlertCard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-[6px] shrink-0">
+      <div className="flex flex-col gap-1.5 shrink-0">
         <CardButton onClick={onView}>View</CardButton>
         <CardButton onClick={onDismiss} disabled={dismissing} muted>
           Dismiss

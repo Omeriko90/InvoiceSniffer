@@ -42,7 +42,7 @@ export function SignUpForm() {
         placeholder="Jordan Maye"
         error={errors.name?.message}
         registration={register("name")}
-        wrapperClassName="mb-[14px]"
+        wrapperClassName="mb-3.5"
       />
 
       {/* Email */}
@@ -53,7 +53,7 @@ export function SignUpForm() {
         placeholder="you@company.com"
         error={errors.email?.message}
         registration={register("email")}
-        wrapperClassName="mb-[14px]"
+        wrapperClassName="mb-3.5"
       />
 
       {/* Password */}
@@ -72,7 +72,7 @@ export function SignUpForm() {
         {isSubmitting ? "Creating account…" : "Create account"}
       </AuthSubmitButton>
 
-      <p className="text-xs text-dim text-center leading-[1.5] mt-[14px]">
+      <p className="text-xs text-dim text-center leading-[1.5] mt-3.5">
         By creating an account you agree to our <strong className="text-subtle">Terms &amp; Privacy Policy</strong>.
       </p>
     </form>

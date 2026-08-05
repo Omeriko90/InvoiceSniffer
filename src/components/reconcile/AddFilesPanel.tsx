@@ -128,13 +128,13 @@ export function AddFilesPanel({
   const totalCharges = files.reduce((n, f) => n + f.rows.length, 0)
 
   return (
-    <div className="flex flex-col gap-[14px]">
+    <div className="flex flex-col gap-3.5">
       {files.length > 0 && (
         <div className="bg-card border border-border rounded-lg overflow-hidden">
           {files.map((f, i) => (
             <div
               key={`${f.fileName}-${i}`}
-              className="flex items-center gap-[12px] px-[16px] py-[12px] border-b border-hover last:border-b-0"
+              className="flex items-center gap-3 px-4 py-3 border-b border-hover last:border-b-0"
             >
               <div className="w-[34px] h-[34px] rounded bg-hover flex items-center justify-center shrink-0">
                 <FileSpreadsheet size={17} className="text-primary" />
@@ -148,7 +148,7 @@ export function AddFilesPanel({
                 size="icon-sm"
                 onClick={() => onRemoveFile(i)}
                 aria-label={`Remove ${f.fileName}`}
-                className="w-[28px] h-[28px] rounded flex items-center justify-center text-dim hover:bg-hover hover:text-dim transition-colors cursor-pointer [&_svg:not([class*='size-'])]:size-auto"
+                className="w-7 h-7 rounded flex items-center justify-center text-dim hover:bg-hover hover:text-dim transition-colors cursor-pointer [&_svg:not([class*='size-'])]:size-auto"
               >
                 <X size={15} />
               </Button>

@@ -20,7 +20,7 @@ export function MetaBadge({
   return (
     <Badge
       className={cn(
-        "rounded-full h-auto text-xs font-bold px-[10px] py-[2px]",
+        "rounded-full h-auto text-xs font-bold px-2.5 py-0.5",
         className
       )}
       style={{ background: bg, color }}

@@ -26,7 +26,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
 
   return (
     <DialogContent className="sm:max-w-[540px] p-0 gap-0 bg-white border-border rounded-[16px]">
-          <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-hover">
+          <DialogHeader className="px-[22px] pt-5 pb-3.5 border-b border-hover">
             <DialogTitle className="text-base font-bold text-heading">
               Find invoice
             </DialogTitle>
@@ -38,7 +38,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="p-[22px] flex flex-col gap-[14px]">
+          <div className="p-[22px] flex flex-col gap-3.5">
             <div className="relative">
               <Search size={14} className="absolute start-[11px] top-1/2 -translate-y-1/2 text-dim" />
               <Input
