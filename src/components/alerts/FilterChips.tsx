@@ -2,6 +2,7 @@
 import { ALERT_FILTERS, type AlertFilter } from "@/api-types/alerts"
 import { CHIP_META } from "@/components/alerts/constants"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function FilterChips({
   filter,
@@ -22,15 +23,13 @@ export function FilterChips({
             key={key}
             variant="ghost"
             onClick={() => onSelect(key)}
-            className="h-auto text-sm font-semibold px-3.5 py-1.75 rounded-lg border cursor-pointer transition-colors"
-            style={
-              active
-                ? { background: chip.activeBg, borderColor: chip.activeBorder, color: chip.activeColor }
-                : { background: "#fff", borderColor: "#E8EDFA", color: "#334155" }
-            }
+            className={cn(
+              "text-sm font-semibold px-3.5 py-1.75 rounded-lg border cursor-pointer transition-colors",
+              active ? chip.active : "bg-surface border-border text-foreground"
+            )}
           >
             {chip.label}{" "}
-            <span style={{ color: active ? chip.activeColor : "#94A3B8" }}>{counts[key]}</span>
+            <span className={cn(active ? chip.count : "text-dim")}>{counts[key]}</span>
           </Button>
         )
       })}

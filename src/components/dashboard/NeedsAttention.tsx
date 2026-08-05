@@ -18,10 +18,9 @@ export function NeedsAttention({
       {possibleCount > 0 && (
         <Link
           href="/reconcile"
-          className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border transition-all hover:brightness-[0.98]"
-          style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}
+          className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border border-warning-border bg-warning-bg transition-all hover:brightness-[0.98]"
         >
-          <AlertCircle size={18} strokeWidth={2} color="#B45309" className="shrink-0" />
+          <AlertCircle size={18} strokeWidth={2} className="shrink-0 text-warning-fg" />
           <span className="flex-1 text-sm text-[#78350F]">
             <strong>{possibleCount} possible matches</strong> waiting for confirmation
           </span>
@@ -32,10 +31,9 @@ export function NeedsAttention({
       {unmatchedCount > 0 && (
         <Link
           href="/reconcile"
-          className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border transition-all hover:brightness-[0.98]"
-          style={{ background: "#FEF2F2", borderColor: "#FECACA" }}
+          className="flex items-center gap-3 px-3 py-[11px] rounded-[10px] border border-danger-border bg-danger-bg transition-all hover:brightness-[0.98]"
         >
-          <XCircle size={18} strokeWidth={2} color="#DC2626" className="shrink-0" />
+          <XCircle size={18} strokeWidth={2} className="shrink-0 text-danger-fg" />
           <span className="flex-1 text-sm text-[#7F1D1D]">
             <strong>{unmatchedCount} transactions</strong> with no matching invoice
           </span>
@@ -44,10 +42,7 @@ export function NeedsAttention({
       )}
 
       {possibleCount === 0 && unmatchedCount === 0 && (
-        <div
-          className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] text-sm font-medium text-success-fg"
-          style={{ background: "#ECFDF5" }}
-        >
+        <div className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] bg-success-bg text-sm font-medium text-success-fg">
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />
           All transactions reconciled
         </div>

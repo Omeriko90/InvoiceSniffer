@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Ban, ChevronRight, Clock, ExternalLink, EyeOff, FileText, FileX, Lock, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -235,8 +236,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           ].map((row, i, arr) => (
             <div
               key={row.label}
-              className="flex items-center justify-between px-3.25 py-2.5 text-[13px]"
-              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F1F3F8" : undefined }}
+              className={cn(
+                "flex items-center justify-between px-[13px] py-2.5 text-sm",
+                i < arr.length - 1 && "border-b border-hover",
+              )}
             >
               <span className="text-text-secondary">{row.label}</span>
               <span
@@ -396,8 +399,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Cancel
             </Button>
             <Button
-              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-[13.5px] font-bold border-0"
-              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-sm font-bold border-0 bg-gradient-logo"
               disabled={update.isPending || !amountValid}
               onClick={handleSave}
             >
@@ -416,8 +418,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Open in Gmail
             </Button>
             <Button
-
-              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-[13.5px] font-bold border-0"
+              className="flex-1 h-auto py-2.5 rounded-lg text-white text-sm font-bold border-0 bg-gradient-logo"
               onClick={() => setEditing(true)}
             >
               Edit fields

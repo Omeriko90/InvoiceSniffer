@@ -7,13 +7,14 @@ import { ChevronDown, ChevronRight, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useExports } from "@/components/exports/ExportsProvider"
 import { fetchExportsHistory, downloadExport, type ExportHistoryItem } from "@/api/exports"
+import { cn } from "@/lib/utils"
 
-const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; bg: string; color: string }> = {
-  QUEUED: { label: "Queued", bg: "#F1F3F8", color: "#64748B" },
-  BUILDING: { label: "Building…", bg: "#FEF6E7", color: "#B7791F" },
-  READY: { label: "Ready", bg: "#E7F6EC", color: "#1A9C4E" },
-  EXPIRED: { label: "Expired", bg: "#F1F3F8", color: "#94A3B8" },
-  FAILED: { label: "Failed", bg: "#FDECEC", color: "#D64545" },
+const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; className: string }> = {
+  QUEUED: { label: "Queued", className: "bg-hover text-text-secondary" },
+  BUILDING: { label: "Building…", className: "bg-[#FEF6E7] text-[#B7791F]" },
+  READY: { label: "Ready", className: "bg-[#E7F6EC] text-[#1A9C4E]" },
+  EXPIRED: { label: "Expired", className: "bg-hover text-dim" },
+  FAILED: { label: "Failed", className: "bg-[#FDECEC] text-[#D64545]" },
 }
 
 // Machine skip reasons (from the PDF build worker) → human copy.
@@ -85,10 +86,10 @@ export function ExportsHistoryClient() {
         </thead>
         <tbody className="divide-y divide-hover">
           {exports.map((e) => {
-            const style = STATUS_STYLE[e.status]
+            const className = STATUS_STYLE[e.status].className
             const open = openIds.has(e.id)
             return (
-              <RowGroup key={e.id} open={open} onToggle={() => toggle(e.id)} item={e} style={style} />
+              <RowGroup key={e.id} open={open} onToggle={() => toggle(e.id)} item={e} className={className} />
             )
           })}
         </tbody>
@@ -101,16 +102,16 @@ function RowGroup({
   item: e,
   open,
   onToggle,
-  style,
+  className,
 }: {
   item: ExportHistoryItem
   open: boolean
   onToggle: () => void
-  style: { label: string; bg: string; color: string }
+  className: string
 }) {
   return (
     <>
-      <tr className="hover:bg-[#FAFBFF] cursor-pointer" onClick={onToggle}>
+      <tr className={cn("hover:bg-[#FAFBFF] cursor-pointer", className)} onClick={onToggle}>
         <td className="px-4 py-3 text-text-secondary align-middle">
           {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
         </td>
@@ -125,9 +126,8 @@ function RowGroup({
         <td className="px-4 py-3">
           <span
             className="inline-flex items-center px-2.25 py-0.75 rounded-full text-sm font-semibold"
-            style={{ background: style.bg, color: style.color }}
           >
-            {style.label}
+            {STATUS_STYLE[e.status].label}
           </span>
           {e.skippedCount > 0 && (
             <span className="ml-2 text-sm text-text-secondary">{e.skippedCount} skipped</span>

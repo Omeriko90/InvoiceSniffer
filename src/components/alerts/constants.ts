@@ -16,9 +16,11 @@ export const ALERT_ICON: Record<string, LucideIcon> = {
   NEW_VENDOR:        Plus,
 }
 
-export const CHIP_META: Record<AlertFilter, { label: string; activeBg: string; activeBorder: string; activeColor: string }> = {
-  all:      { label: "All",      activeBg: "#EEF3FF", activeBorder: "#BFD3FF", activeColor: "#3B6FE0" },
-  critical: { label: "Critical", activeBg: "#FEF2F2", activeBorder: "#FECACA", activeColor: "#DC2626" },
-  warning:  { label: "Warning",  activeBg: "#FFFBEB", activeBorder: "#FDE68A", activeColor: "#B45309" },
-  info:     { label: "Info",     activeBg: "#EFF6FF", activeBorder: "#BFDBFF", activeColor: "#2563EB" },
+// Active-chip color classes (inactive state is a shared static class in FilterChips).
+// `count` is applied to the count badge; `active` sets bg/border/text together.
+export const CHIP_META: Record<AlertFilter, { label: string; active: string; count: string }> = {
+  all:      { label: "All",      active: "bg-primary-soft border-[#BFD3FF] text-primary-strong", count: "text-primary-strong" },
+  critical: { label: "Critical", active: "bg-danger-bg border-danger-border text-danger-fg",     count: "text-danger-fg" },
+  warning:  { label: "Warning",  active: "bg-warning-bg border-warning-border text-warning-fg",   count: "text-warning-fg" },
+  info:     { label: "Info",     active: "bg-info-bg border-info-border text-info-fg",            count: "text-info-fg" },
 }

@@ -18,8 +18,7 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
 
       {savedMappingLabel && (
         <Alert
-          className="px-3 py-[11px] rounded-[10px]"
-          style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}
+          className="px-3 py-[11px] rounded-[10px] bg-info-bg border-[#BFDBFE]"
         >
           <Info size={16} strokeWidth={2} color="#3B82F6" />
           <AlertTitle className="font-normal text-sm text-[#1E40AF]">

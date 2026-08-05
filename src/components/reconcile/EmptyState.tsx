@@ -14,11 +14,8 @@ export function EmptyState() {
         <Button
           nativeButton={false}
           render={<Link href="/reconcile" />}
-          className="h-auto px-[18px] py-2.5 rounded-[10px] text-sm font-bold text-white border-0"
-          style={{
-            background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",
-            boxShadow: "0 4px 12px rgba(122,167,255,.3)",
-          }}
+          className="h-auto px-[18px] py-2.5 rounded-[10px] text-sm font-bold text-white border-0 bg-gradient-sky"
+          style={{ boxShadow: "0 4px 12px rgba(122,167,255,.3)" }}
         >
           Import a CSV
         </Button>

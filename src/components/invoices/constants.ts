@@ -11,11 +11,11 @@ export const VENDOR_GRADIENTS = [
 ]
 
 export const STATUS_META: Record<string, StatusMeta> = {
-  MATCHED:   { label: "Confirmed",  bg: "#ECFDF5", color: "#059669" },
-  UNMATCHED: { label: "Review",     bg: "#FEF2F2", color: "#DC2626" },
-  DETECTED:  { label: "Detected",   bg: "#EFF6FF", color: "#2563EB" },
-  REVIEWED:  { label: "Reviewed",   bg: "#F5F3FF", color: "#7C3AED" },
-  IGNORED:   { label: "Ignored",    bg: "#F1F3F8", color: "#94A3B8" },
+  MATCHED:   { label: "Confirmed",  badge: "bg-success-bg text-success-fg" },
+  UNMATCHED: { label: "Review",     badge: "bg-danger-bg text-danger-fg" },
+  DETECTED:  { label: "Detected",   badge: "bg-info-bg text-info-fg" },
+  REVIEWED:  { label: "Reviewed",   badge: "bg-purple-bg text-purple-fg" },
+  IGNORED:   { label: "Ignored",    badge: "bg-hover text-dim" },
 }
 
 // No "Ignored" option: removed invoices (marked "not an invoice" / "not relevant")

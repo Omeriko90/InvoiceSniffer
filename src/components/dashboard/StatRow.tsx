@@ -18,32 +18,32 @@ export function StatRow({ unmatched, possible, matched, matchedDelta, alerts, cr
         label="Unmatched"
         value={unmatched}
         delta="needs review"
-        deltaColor="#FB7171"
-        iconBg="#FB7171"
+        deltaClass="text-danger"
+        iconBgClass="bg-danger"
         icon={<X size={15} strokeWidth={2} />}
       />
       <StatCard
         label="Possible matches"
         value={possible}
         delta="awaiting confirm"
-        deltaColor="#B45309"
-        iconBg="#FBBF24"
+        deltaClass="text-warning-fg"
+        iconBgClass="bg-warning"
         icon={<Clock size={15} strokeWidth={2} />}
       />
       <StatCard
         label="Matched this month"
         value={matched}
         delta={matchedDelta >= 0 ? `+${matchedDelta} this week` : `${matchedDelta} vs last month`}
-        deltaColor="#059669"
-        iconBg="#34D399"
+        deltaClass="text-success-fg"
+        iconBgClass="bg-success"
         icon={<Check size={15} strokeWidth={2.2} />}
       />
       <StatCard
         label="Open alerts"
         value={alerts}
         delta={criticalAlerts > 0 ? `${criticalAlerts} critical` : "No critical alerts"}
-        deltaColor={criticalAlerts > 0 ? "#DC2626" : "#A78BFA"}
-        iconBg="#A78BFA"
+        deltaClass={criticalAlerts > 0 ? "text-danger-fg" : "text-purple"}
+        iconBgClass="bg-purple"
         icon={<Bell size={15} strokeWidth={2} />}
       />
     </div>

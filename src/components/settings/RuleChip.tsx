@@ -2,6 +2,7 @@
 import { X, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import type { LearnedRule } from "@/api-types/settings"
 import { RULE_META } from "./constants"
 import { ruleTarget } from "./helpers"
@@ -16,8 +17,10 @@ export function RuleChip({ rule, onRemove, removing }: RuleChipProps) {
   const meta = RULE_META[rule.type]
   return (
     <Badge
-      className="h-auto gap-[9px] rounded-full border px-3.5 py-[7px] text-sm font-bold"
-      style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
+      className={cn(
+        "h-auto gap-2.25 rounded-full border px-3.5 py-1.75 text-sm font-bold",
+        meta.className
+      )}
     >
       {rule.merchantPattern}
       <ArrowRight size={13} strokeWidth={2.4} className="opacity-70" />

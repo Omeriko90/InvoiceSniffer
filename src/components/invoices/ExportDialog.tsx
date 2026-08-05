@@ -22,6 +22,7 @@ import {
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
 import { DateRangePreset, PRESET_LABELS } from "@/lib/date-range"
+import { cn } from "@/lib/utils"
 
 type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
 
@@ -195,8 +196,10 @@ export function ExportDialog({
                   key={p}
                   variant="ghost"
                   onClick={() => setScope({ preset: p })}
-                  className="h-auto px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer"
-                  style={{ background: on ? "#EEF3FF" : "#F1F3F8", color: on ? "#3B6FE0" : "#64748B" }}
+                  className={cn(
+                    "px-3.5 py-1.75 rounded-full text-sm font-semibold transition-colors cursor-pointer",
+                    on ? "bg-primary-soft text-primary-strong" : "bg-hover text-text-secondary",
+                  )}
                 >
                   {PRESET_LABELS[p as DateRangePreset]}
                 </Button>
@@ -205,8 +208,10 @@ export function ExportDialog({
             <Button
               variant="ghost"
               onClick={() => setScope(custom ? scope : { from: "", to: "" })}
-              className="h-auto px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer"
-              style={{ background: custom ? "#EEF3FF" : "#F1F3F8", color: custom ? "#3B6FE0" : "#64748B" }}
+              className={cn(
+                "px-3.5 py-1.75 rounded-full text-sm font-semibold transition-colors cursor-pointer",
+                custom ? "bg-primary-soft text-primary-strong" : "bg-hover text-text-secondary",
+              )}
             >
               Custom
               </Button>
