@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <GmailConnectionCard>.
 import { AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DangerButton } from "@/components/ui/danger-button"
 import type { GmailConnection } from "@/api-types/settings"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { GoogleGlyph } from "./GoogleGlyph"
@@ -21,38 +22,37 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
   // Reconnect action instead of the usual "Sync now".
   if (!gmail.connected) {
     return (
-      <div className="flex items-center gap-3 rounded-[12px] border border-[#FDE68A] bg-[#FFFBEB] px-4 py-[14px]">
-        <AlertTriangle size={18} className="shrink-0 text-[#B45309]" />
+      <div className="flex items-center gap-3 rounded-lg border border-warning-border bg-warning-bg px-4 py-3.5">
+        <AlertTriangle size={18} className="shrink-0 text-warning" />
         <div className="min-w-0 flex-1">
-          <p className="text-[14.5px] font-[700] text-heading truncate">{gmail.label ?? gmail.email}</p>
-          <p className="text-[12.5px] text-[#B45309] mt-[2px]">
+          <p className="text-[14.5px] font-bold text-heading truncate">{gmail.label ?? gmail.email}</p>
+          <p className="text-[12.5px] text-warning mt-1">
             Out of sync — Gmail access expired. Reconnect to resume detecting invoices.
           </p>
         </div>
         <Button
           onClick={() => { window.location.href = "/api/gmail/connect" }}
-          className="shrink-0 h-auto text-[13px] font-[600] text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
+          className="shrink-0 h-auto text-sm font-semibold text-white bg-primary rounded-lg px-3.5 py-2 shadow-primary hover:bg-primary hover:opacity-90"
         >
           Reconnect
         </Button>
-        <Button
-          variant="outline"
+        <DangerButton
           onClick={onDisconnect}
           disabled={disconnecting}
-          className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
+          className="shrink-0"
         >
           {disconnecting ? "Removing…" : "Remove"}
-        </Button>
+        </DangerButton>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-[12px] border border-[#BBE7CD] bg-success-bg px-4 py-[14px]">
+    <div className="flex items-center gap-3 rounded-lg border border-success-border bg-success-bg px-4 py-3.5">
       <GoogleGlyph />
       <div className="min-w-0 flex-1">
-        <p className="text-[14.5px] font-[700] text-heading truncate">{gmail.label ?? gmail.email}</p>
-        <p className="text-[12.5px] text-[#059669] mt-[2px]">
+        <p className="text-[14.5px] font-bold text-heading truncate">{gmail.label ?? gmail.email}</p>
+        <p className="text-[12.5px] text-success mt-1">
           Connected · read-only · {syncedLabel(gmail.lastSyncedAt)}
         </p>
       </div>
@@ -60,19 +60,17 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         variant="outline"
         onClick={() => sync.mutate(gmail.id)}
         disabled={syncing}
-        className="shrink-0 h-auto text-[13px] font-[600] text-[#047857] bg-surface border-[#BBE7CD] rounded-[9px] px-[14px] py-[7px] hover:bg-success-bg hover:text-[#047857] disabled:opacity-60"
+        className="shrink-0 h-auto text-sm font-semibold text-success bg-surface border-success-border rounded-lg px-3.5 py-2 hover:bg-success-bg hover:text-success disabled:opacity-60"
       >
         {syncing ? "Syncing…" : "Sync now"}
       </Button>
-      <Button
-        variant="outline"
-        analytics="account_disconnected"
+      <DangerButton
         onClick={onDisconnect}
         disabled={disconnecting}
-        className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
+        className="shrink-0"
       >
         {disconnecting ? "Disconnecting…" : "Disconnect"}
-      </Button>
+      </DangerButton>
     </div>
   )
 }
