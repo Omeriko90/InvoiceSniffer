@@ -3,13 +3,7 @@ import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { format as formatDate } from "date-fns"
-import {
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { FormDialog } from "@/components/ui/form-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -164,18 +158,29 @@ export function ExportDialog({
   }
 
   return (
-    <DialogContent className="sm:max-w-[620px] p-0 gap-0 bg-white border-[#E8EDFA] rounded-[16px]">
-      <DialogHeader className="px-[22px] pt-[20px] pb-[14px] border-b border-[#F1F3F8]">
-        <DialogTitle className="text-[16px] font-[700] text-heading">
-          Export invoices as {FORMAT_LABELS[format]}
-        </DialogTitle>
-        <DialogDescription className="text-[12.5px] text-[#64748B]">
-          {format === "pdf"
-            ? "The selected invoices' PDFs are merged into a single document. You'll get a notification when it's ready to download."
-            : "Choose a date range, deselect any invoices you don't want, and pick which columns to include."}
-        </DialogDescription>
-      </DialogHeader>
-
+    <FormDialog
+      className="sm:max-w-[620px]"
+      footerClassName="rounded-b-[16px] bg-surface flex items-center justify-end gap-[10px]"
+      title={`Export invoices as ${FORMAT_LABELS[format]}`}
+      description={
+        format === "pdf"
+          ? "The selected invoices' PDFs are merged into a single document. You'll get a notification when it's ready to download."
+          : "Choose a date range, deselect any invoices you don't want, and pick which columns to include."
+      }
+      footer={
+        <>
+          <span className="text-[12.5px] text-text-secondary mr-auto">
+            {selectedIds.size} of {invoices.length} selected
+          </span>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button onClick={handleExport} disabled={submitting || selectedIds.size === 0}>
+            {submitting ? "Working…" : format === "pdf" ? "Build PDF" : `Export ${FORMAT_LABELS[format]}`}
+          </Button>
+        </>
+      }
+    >
       <div className="px-[22px] py-[16px] flex flex-col gap-[16px] max-h-[60vh] overflow-y-auto">
         {/* Date range */}
         <div className="flex flex-col gap-[10px]">
@@ -301,18 +306,6 @@ export function ExportDialog({
           </div>
         </div>
       </div>
-
-      <DialogFooter className="rounded-b-[16px] bg-white px-[22px] py-[14px] border-t border-[#F1F3F8] flex items-center justify-end gap-[10px]">
-        <span className="text-[12.5px] text-text-secondary mr-auto">
-          {selectedIds.size} of {invoices.length} selected
-        </span>
-        <Button variant="outline" onClick={onClose} disabled={submitting}>
-          Cancel
-        </Button>
-        <Button onClick={handleExport} disabled={submitting || selectedIds.size === 0}>
-          {submitting ? "Working…" : format === "pdf" ? "Build PDF" : `Export ${FORMAT_LABELS[format]}`}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    </FormDialog>
   )
 }
