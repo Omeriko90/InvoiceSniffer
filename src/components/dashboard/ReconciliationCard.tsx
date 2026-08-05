@@ -18,10 +18,10 @@ export function ReconciliationCard({ monthLabel, rec, possibleCount, unmatchedCo
       <CardContent className="p-5 flex flex-col gap-4">
 
         <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-[700] text-heading leading-none">
+          <h2 className="text-base font-bold text-heading leading-none">
             Reconciliation status — {monthLabel}
           </h2>
-          <Link href="/reconcile" className="text-[13px] font-[600] text-primary hover:opacity-75 transition-opacity">
+          <Link href="/reconcile" className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity">
             Review →
           </Link>
         </div>

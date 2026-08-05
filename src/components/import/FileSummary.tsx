@@ -9,8 +9,8 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
       <div className="flex items-start gap-3">
         <FileText size={20} strokeWidth={1.8} className="text-text-secondary shrink-0 mt-0.5" />
         <div className="min-w-0">
-          <p className="text-[14.5px] font-[700] text-heading truncate">{parsed.fileName}</p>
-          <p className="text-[12.5px] text-dim mt-0.5">
+          <p className="text-sm font-bold text-heading truncate">{parsed.fileName}</p>
+          <p className="text-xs text-dim mt-0.5">
             {parsed.records.length} rows · {parsed.headers.length} columns detected
           </p>
         </div>
@@ -22,7 +22,7 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
           style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}
         >
           <Info size={16} strokeWidth={2} color="#3B82F6" />
-          <AlertTitle className="font-normal text-[13px] text-[#1E40AF]">
+          <AlertTitle className="font-normal text-sm text-[#1E40AF]">
             Saved mapping for <strong>{savedMappingLabel}</strong> applied automatically.
           </AlertTitle>
         </Alert>

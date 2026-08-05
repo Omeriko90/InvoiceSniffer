@@ -134,7 +134,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <div className="min-w-0">
             <SheetTitle className="text-lg font-bold text-heading truncate">{vendor}</SheetTitle>
             {invoice.invoiceNumber && (
-              <p className="text-[12px] text-dim font-mono">{invoice.invoiceNumber}</p>
+              <p className="text-xs text-dim font-mono">{invoice.invoiceNumber}</p>
             )}
           </div>
         </div>

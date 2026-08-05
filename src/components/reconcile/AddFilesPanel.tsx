@@ -140,8 +140,8 @@ export function AddFilesPanel({
                 <FileSpreadsheet size={17} className="text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13.5px] font-[600] text-foreground truncate">{f.fileName}</p>
-                <p className="text-[12px] text-text-secondary">{f.rows.length} charges</p>
+                <p className="text-sm font-semibold text-foreground truncate">{f.fileName}</p>
+                <p className="text-xs text-text-secondary">{f.rows.length} charges</p>
               </div>
               <Button
                 variant="ghost"
@@ -160,14 +160,14 @@ export function AddFilesPanel({
       <UploadStep onFile={handleFile} error={parseError} />
 
       <div className="flex items-center justify-between">
-        <p className="text-[13px] text-text-secondary">
+        <p className="text-sm text-text-secondary">
           {files.length === 0
             ? "Add one or more CSVs — from several cards if you like."
             : `${files.length} file${files.length === 1 ? "" : "s"} · ${totalCharges} charges ready`}
         </p>
         <Button
           size="lg"
-          className="text-[13.5px] px-4 text-white shadow-primary border-0"
+          className="text-sm px-4 text-white shadow-primary border-0"
           style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
           disabled={files.length === 0 || reconciling}
           onClick={onReconcile}

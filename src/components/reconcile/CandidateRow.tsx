@@ -18,13 +18,13 @@ export function CandidateRow({
   return (
     <div className="flex items-center gap-[12px] border border-border rounded-[11px] px-[13px] py-[11px]">
       <div className="flex-1 min-w-0">
-        <p className="text-[13.5px] font-[600] text-foreground truncate">
+        <p className="text-sm font-semibold text-foreground truncate">
           {c.vendorName ?? "Unknown vendor"}
           {c.invoiceNumber && (
-            <span className="text-dim font-mono font-[500]"> — {c.invoiceNumber}</span>
+            <span className="text-dim font-mono font-medium"> — {c.invoiceNumber}</span>
           )}
         </p>
-        <p className="text-[11.5px] text-dim truncate">
+        <p className="text-xs text-dim truncate">
           {fmtMoney(c.amount, c.currency)} · {fmtDateShort(c.date)} · {c.reason}
         </p>
       </div>

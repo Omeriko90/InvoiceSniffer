@@ -10,7 +10,7 @@ export function NavGroup({ label, items, pathname, badges }: {
 }) {
   return (
     <div>
-      <p className="text-[11px] font-[700] text-dim uppercase tracking-[0.05em] mb-1 px-2.5">
+      <p className="text-xs font-bold text-dim uppercase tracking-[0.05em] mb-1 px-2.5">
         {label}
       </p>
       <div className="flex flex-col gap-0.5">

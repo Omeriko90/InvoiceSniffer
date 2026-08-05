@@ -40,7 +40,7 @@ export function InvoicesTable({
       {uiState === "empty" && <EmptyState />}
 
       {uiState === "data" && filtered.length === 0 && (
-        <div className="py-12 text-center text-[13.5px] text-dim">
+        <div className="py-12 text-center text-sm text-dim">
           {invoices.length === 0 ? <EmptyState /> : "No results match your search"}
         </div>
       )}

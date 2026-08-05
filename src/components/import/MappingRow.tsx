@@ -14,8 +14,8 @@ export function MappingRow({ field, first, headers, value, onChange }: MappingRo
       style={{ gridTemplateColumns: "1fr 20px 1.4fr" }}
     >
       <div>
-        <p className="text-[14px] font-[600] text-heading">{field.label}</p>
-        <p className="text-[12.5px] text-dim mt-0.5">{field.hint}</p>
+        <p className="text-sm font-semibold text-heading">{field.label}</p>
+        <p className="text-xs text-dim mt-0.5">{field.hint}</p>
       </div>
       <ArrowRight size={15} strokeWidth={2} className="text-faint" />
       <ColumnSelect headers={headers} value={value} onChange={onChange} />

@@ -12,13 +12,13 @@ export function CategorySpend({ rows, monthLabel }: { rows: CategorySpendRow[]; 
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-[700] text-heading leading-none">
+          <h2 className="text-base font-bold text-heading leading-none">
             Spend by category — {monthLabel}
           </h2>
         </div>
 
         {rows.length === 0 ? (
-          <p className="text-[13px] text-text-secondary py-6 text-center">
+          <p className="text-sm text-text-secondary py-6 text-center">
             No categorized spend yet this month.
           </p>
         ) : (
@@ -33,14 +33,14 @@ export function CategorySpend({ rows, monthLabel }: { rows: CategorySpendRow[]; 
                         className="w-[10px] h-[10px] rounded-full shrink-0"
                         style={{ background: meta.color }}
                       />
-                      <span className="text-[13px] font-[600] text-heading truncate">
+                      <span className="text-sm font-semibold text-heading truncate">
                         {CATEGORY_LABELS[r.category] ?? r.category}
                       </span>
-                      <span className="text-[12px] text-text-secondary shrink-0">
+                      <span className="text-xs text-text-secondary shrink-0">
                         · {r.count}
                       </span>
                     </span>
-                    <span className="text-[13.5px] font-[700] text-heading shrink-0">
+                    <span className="text-sm font-bold text-heading shrink-0">
                       {fmtMoney(r.total, r.currency)}
                     </span>
                   </div>

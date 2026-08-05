@@ -9,7 +9,7 @@ export function MemberRow({ member }: { member: Member }) {
     <div className="flex items-center gap-3">
       <Avatar className="size-[38px]">
         <AvatarFallback
-          className="text-[12.5px] font-[700] text-white"
+          className="text-xs font-bold text-white"
           style={{
             background: "linear-gradient(135deg, #A78BFA, #7AA7FF)",
           }}
@@ -18,10 +18,10 @@ export function MemberRow({ member }: { member: Member }) {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-[700] text-heading truncate leading-tight">
+        <p className="text-sm font-bold text-heading truncate leading-tight">
           {member.name ?? member.email}
         </p>
-        <p className="text-[12.5px] text-text-secondary truncate">
+        <p className="text-xs text-text-secondary truncate">
           {member.email}
         </p>
       </div>

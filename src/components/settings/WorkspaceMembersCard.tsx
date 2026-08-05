@@ -13,7 +13,7 @@ export function WorkspaceMembersCard({ members }: WorkspaceMembersCardProps) {
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none h-full rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex-1 flex flex-col">
-        <h2 className="text-[16px] font-[700] text-heading leading-none mb-[18px]">
+        <h2 className="text-base font-bold text-heading leading-none mb-[18px]">
           Workspace &amp; members
         </h2>
 

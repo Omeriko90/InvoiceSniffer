@@ -11,7 +11,7 @@ export function StepIndicator({ label, stepNo, current, showConnector }: StepInd
       <div className="flex items-center gap-2.5">
         <div
           className={cn(
-            "w-[26px] h-[26px] rounded-full flex items-center justify-center text-[13px] font-[600] shrink-0",
+            "w-[26px] h-[26px] rounded-full flex items-center justify-center text-sm font-semibold shrink-0",
             done && "bg-success text-white",
             active && "bg-primary text-white",
             !done && !active && "bg-hover text-dim"
@@ -21,8 +21,8 @@ export function StepIndicator({ label, stepNo, current, showConnector }: StepInd
         </div>
         <span
           className={cn(
-            "text-[14px]",
-            active || done ? "font-[600] text-heading" : "font-[500] text-dim"
+            "text-sm",
+            active || done ? "font-semibold text-heading" : "font-medium text-dim"
           )}
         >
           {label}

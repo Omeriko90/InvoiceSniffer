@@ -6,7 +6,7 @@ export function VendorCell({ vendor, className }: { vendor: string; className?: 
   return (
     <Avatar className={className ?? "size-7"}>
       <AvatarFallback
-        className="text-white text-[12px] font-[700]"
+        className="text-white text-xs font-bold"
         style={{ background: vendorGradient(vendor) }}
       >
         {initials(vendor)}

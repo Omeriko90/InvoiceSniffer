@@ -37,7 +37,7 @@ export function DateRangeDialog({
 
   return (
     <FormDialog
-      className="sm:max-w-[420px]"
+      className="sm:max-w-105"
       footerClassName="gap-[8px]"
       title="Custom date range"
       description={
@@ -50,21 +50,21 @@ export function DateRangeDialog({
           <Button
             variant="outline"
             onClick={onClose}
-            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
+            className="h-auto py-2 rounded-lg border-border bg-surface text-sm font-semibold text-text-primary"
           >
             Cancel
           </Button>
           <Button
             onClick={apply}
             disabled={!canApply}
-            className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
+            className="h-auto py-2 rounded-lg text-sm font-semibold"
           >
             Apply
           </Button>
         </>
       }
     >
-      <div className="px-[10px] py-[8px] flex justify-center">
+      <div className="px-2.5 py-2 flex justify-center">
         <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={1} />
       </div>
     </FormDialog>

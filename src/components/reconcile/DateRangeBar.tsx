@@ -21,11 +21,11 @@ export function DateRangeBar({
   const activePreset = isPreset(scope) ? scope.preset : null
 
   return (
-    <div className="bg-card border border-border rounded-lg p-[14px] flex flex-col gap-[12px]">
-      <p className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary">
+    <div className="bg-card border border-border rounded-lg p-3.5 flex flex-col gap-3">
+      <p className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
         Match against invoices from
       </p>
-      <div className="flex flex-wrap items-center gap-[6px]">
+      <div className="flex flex-wrap items-center gap-1.5">
         {DATE_RANGE_PRESETS.map((p: DateRangePreset) => (
           <ToggleChip key={p} active={activePreset === p} onClick={() => onChange({ preset: p })}>
             {PRESET_LABELS[p]}
@@ -37,23 +37,23 @@ export function DateRangeBar({
       </div>
 
       {custom && (
-        <div className="flex flex-wrap items-center gap-[10px]">
-          <label className="flex items-center gap-[8px] text-[13px] text-text-secondary">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
             From
             <Input
               type="date"
               value={(scope as { from: string }).from}
               onChange={(e) => onChange({ from: e.target.value, to: (scope as { to: string }).to })}
-              className="h-auto py-[7px] px-[10px] text-[13px] w-[160px] border-border rounded"
+              className="h-auto py-1.75 px-2.5 text-sm w-40 border-border rounded"
             />
           </label>
-          <label className="flex items-center gap-[8px] text-[13px] text-text-secondary">
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
             To
             <Input
               type="date"
               value={(scope as { to: string }).to}
               onChange={(e) => onChange({ from: (scope as { from: string }).from, to: e.target.value })}
-              className="h-auto py-[7px] px-[10px] text-[13px] w-[160px] border-border rounded"
+              className="h-auto py-1.75 px-2.5 text-sm w-40 border-border rounded"
             />
           </label>
         </div>

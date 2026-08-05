@@ -47,16 +47,16 @@ export function AlertCard({
             {meta.label}
           </StatusPill>
         </div>
-        <p className="text-[13px] text-text-secondary leading-[1.5]">
+        <p className="text-sm text-text-secondary leading-[1.5]">
           {alertDescription(alert.type, alert.details)}
         </p>
       </div>
 
       <div className="text-right shrink-0">
-        <div className="text-[11px] font-[600] uppercase tracking-[0.04em] text-dim">
+        <div className="text-xs font-semibold uppercase tracking-[0.04em] text-dim">
           {metric.label}
         </div>
-        <div className="text-[20px] font-[800] tracking-[-0.02em]" style={{ color: sev.accent }}>
+        <div className="text-xl font-extrabold tracking-[-0.02em]" style={{ color: sev.accent }}>
           {metric.value}
         </div>
       </div>

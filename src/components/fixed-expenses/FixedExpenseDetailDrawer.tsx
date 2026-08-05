@@ -41,7 +41,7 @@ function periodLabel(startIso: string, frequency: FixedExpenseFrequency): string
   return format(d, "MMMM yyyy")
 }
 
-const sectionLabel = "text-[11px] font-[700] text-text-secondary uppercase tracking-[0.05em] mb-2"
+const sectionLabel = "text-xs font-bold text-text-secondary uppercase tracking-[0.05em] mb-2"
 
 export function FixedExpenseDetailDrawer({
   expense,
@@ -111,28 +111,28 @@ export function FixedExpenseDetailDrawer({
   return (
     <SheetContent
       side="right"
-      className="w-[440px] sm:max-w-[440px] gap-0 bg-surface border-l border-border"
+      className="w-110 sm:max-w-110 gap-0 bg-surface border-l border-border"
       style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-hover shrink-0">
+      <div className="flex items-center justify-between px-5.5 py-4.5 border-b border-hover shrink-0">
         <div className="min-w-0 pr-8">
-          <SheetTitle className="text-[15px] font-[700] text-heading truncate">{expense.name}</SheetTitle>
-          <div className="flex items-center gap-[8px] mt-[6px]">
+          <SheetTitle className="text-base font-bold text-heading truncate">{expense.name}</SheetTitle>
+          <div className="flex items-center gap-2 mt-1.5">
             <FixedExpenseStatusBadge status={expense.currentStatus} />
             <CategoryBadge category={expense.category} />
             {paused && (
-              <span className="text-[11px] font-[700] text-dim uppercase tracking-[0.04em]">Paused</span>
+              <span className="text-xs font-bold text-dim uppercase tracking-[0.04em]">Paused</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto p-[22px]">
+      <div className="flex-1 overflow-y-auto p-5.5">
         {/* Details */}
         <p className={sectionLabel}>Details</p>
-        <div className="border border-border rounded-[11px] overflow-hidden mb-[22px]">
+        <div className="border border-border rounded-lg overflow-hidden mb-5.5">
           {[
             { label: "Source", value: source },
             ...(senderLabel && vendorLabel
@@ -149,11 +149,11 @@ export function FixedExpenseDetailDrawer({
           ].map((row, i, arr) => (
             <div
               key={row.label}
-              className="flex items-center justify-between px-[13px] py-[10px] text-[13px]"
+              className="flex items-center justify-between px-3.5 py-2.5 text-sm"
               style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--color-hover)" : undefined }}
             >
               <span className="text-text-secondary">{row.label}</span>
-              <span className="font-[600] text-text-primary text-right truncate ml-3">{row.value}</span>
+              <span className="font-semibold text-text-primary text-right truncate ml-3">{row.value}</span>
             </div>
           ))}
         </div>
@@ -161,11 +161,11 @@ export function FixedExpenseDetailDrawer({
         {/* Timeline */}
         <p className={sectionLabel}>Invoice history</p>
         {timeline.isLoading ? (
-          <p className="text-[12.5px] text-dim">Loading…</p>
+          <p className="text-xs text-dim">Loading…</p>
         ) : entries.length === 0 ? (
-          <p className="text-[12.5px] text-dim">No periods yet.</p>
+          <p className="text-xs text-dim">No periods yet.</p>
         ) : (
-          <div className="flex flex-col gap-[8px]">
+          <div className="flex flex-col gap-2">
             {entries.map((entry) => {
               const hasInvoice = entry.invoices.length > 0
               const first = entry.invoices[0]
@@ -185,12 +185,12 @@ export function FixedExpenseDetailDrawer({
                         }
                       : undefined
                   }
-                  className={`flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px] ${
+                  className={`flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 ${
                     hasInvoice ? "cursor-pointer hover:bg-hover transition-colors" : ""
                   }`}
                 >
                   <div className="min-w-0">
-                    <p className="text-[13px] font-[600] text-text-primary">
+                    <p className="text-sm font-semibold text-text-primary">
                       {periodLabel(entry.periodStart, expense.frequency)}
                     </p>
                     {hasInvoice ? (
@@ -205,7 +205,7 @@ export function FixedExpenseDetailDrawer({
                       <button
                         type="button"
                         onClick={() => setLinkingIndex(entry.index)}
-                        className="flex items-center gap-[5px] text-[12px] font-[600] text-primary hover:underline mt-0.5"
+                        className="flex items-center gap-1.25 text-xs font-semibold text-primary hover:underline mt-0.5"
                       >
                         <Link2 size={12} strokeWidth={2} />
                         Link an existing invoice
@@ -214,7 +214,7 @@ export function FixedExpenseDetailDrawer({
                       <p className="text-[12px] text-dim mt-0.5">No invoice yet</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-[8px] shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <FixedExpenseStatusBadge status={entry.status} variant="timeline" />
                     {hasInvoice && <ChevronRight size={15} strokeWidth={2} className="text-dim" />}
                   </div>
@@ -224,7 +224,7 @@ export function FixedExpenseDetailDrawer({
             {timeline.hasNextPage && (
               <Button
                 variant="ghost"
-                className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-text-secondary"
+                className="h-auto py-2 rounded-lg text-sm font-semibold text-text-secondary"
                 disabled={timeline.isFetchingNextPage}
                 onClick={() => timeline.fetchNextPage()}
               >
@@ -236,11 +236,11 @@ export function FixedExpenseDetailDrawer({
       </div>
 
       {/* Footer actions */}
-      <div className="flex flex-col gap-[10px] px-[22px] py-[16px] border-t border-hover shrink-0">
-        <div className="flex gap-[10px]">
+      <div className="flex flex-col gap-2.5 px-5.5 py-4 border-t border-hover shrink-0">
+        <div className="flex gap-2.5">
           <Button
             variant="outline"
-            className="flex-1 h-auto py-[10px] rounded-[10px] border-border text-[13.5px] font-[600] text-heading"
+            className="flex-1 h-auto py-2.5 rounded-lg border-border text-sm font-semibold text-heading"
             onClick={onEdit}
           >
             <Pencil size={15} strokeWidth={1.8} />
@@ -248,7 +248,7 @@ export function FixedExpenseDetailDrawer({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 h-auto py-[10px] rounded-[10px] border-border text-[13.5px] font-[600] text-heading"
+            className="flex-1 h-auto py-2.5 rounded-lg border-border text-sm font-semibold text-heading"
             disabled={update.isPending}
             onClick={togglePause}
           >
@@ -258,7 +258,7 @@ export function FixedExpenseDetailDrawer({
         </div>
         <Button
           variant="ghost"
-          className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-dim hover:text-danger hover:bg-danger-bg"
+          className="h-auto py-2 rounded-lg text-sm font-semibold text-dim hover:text-danger hover:bg-danger-bg"
           disabled={remove.isPending}
           onClick={() => setConfirmDelete(true)}
         >
@@ -284,18 +284,18 @@ export function FixedExpenseDetailDrawer({
 
       {/* Manual link picker */}
       <Dialog name="fixed_expense_link_invoice" open={linkingIndex !== null} onOpenChange={(open) => { if (!open) setLinkingIndex(null) }}>
-        <DialogContent className="sm:max-w-[440px]">
+        <DialogContent className="sm:max-w-110">
           <DialogHeader>
             <DialogTitle>Link an existing invoice</DialogTitle>
             <DialogDescription>
               Pick an invoice that belongs to this expense. It attaches to whichever period it falls in.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-[8px] max-h-[50vh] overflow-y-auto">
+          <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
             {candidates.isLoading ? (
-              <p className="text-[12.5px] text-dim">Loading…</p>
+              <p className="text-xs text-dim">Loading…</p>
             ) : (candidates.data?.candidates.length ?? 0) === 0 ? (
-              <p className="text-[12.5px] text-dim">No unlinked invoices match this vendor or sender.</p>
+              <p className="text-xs text-dim">No unlinked invoices match this vendor or sender.</p>
             ) : (
               candidates.data!.candidates.map((c) => (
                 <button
@@ -303,15 +303,15 @@ export function FixedExpenseDetailDrawer({
                   type="button"
                   disabled={link.isPending}
                   onClick={() => linkInvoice(c.id)}
-                  className="flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px] text-left hover:bg-hover disabled:opacity-50"
+                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-left hover:bg-hover disabled:opacity-50"
                 >
                   <div className="min-w-0">
-                    <p className="text-[13px] font-[600] text-text-primary truncate">{c.vendorName ?? "—"}</p>
-                    <p className="text-[12px] text-text-secondary mt-0.5">
+                    <p className="text-sm font-semibold text-text-primary truncate">{c.vendorName ?? "—"}</p>
+                    <p className="text-xs text-text-secondary mt-0.5">
                       {format(new Date(c.emailDate), "MMM d, yyyy")}
                     </p>
                   </div>
-                  <span className="text-[13px] font-[700] text-heading shrink-0">
+                  <span className="text-sm font-bold text-heading shrink-0">
                     {fmtAmount(c.totalAmount, c.currency)}
                   </span>
                 </button>
@@ -324,28 +324,28 @@ export function FixedExpenseDetailDrawer({
       {/* Which invoice to open, when a period holds more than one */}
       <Dialog name="fixed_expense_period_invoices" open={chooser !== null} onOpenChange={(open) => { if (!open) setChooser(null) }}>
         {chooser && (
-          <DialogContent className="sm:max-w-[440px]">
+          <DialogContent className="sm:max-w-110">
             <DialogHeader>
               <DialogTitle>Invoices this period</DialogTitle>
               <DialogDescription>
                 {periodLabel(chooser.periodStart, expense.frequency)} has more than one invoice. Pick one to open.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col gap-[8px] max-h-[50vh] overflow-y-auto">
+            <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
               {chooser.invoices.map((inv) => (
                 <button
                   key={inv.id}
                   type="button"
                   onClick={() => { setOpenInvoiceId(inv.id); setChooser(null) }}
-                  className="flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px] text-left hover:bg-hover"
+                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-left hover:bg-hover"
                 >
                   <div className="min-w-0">
-                    <p className="text-[13px] font-[600] text-text-primary truncate">{inv.vendorName ?? "—"}</p>
+                    <p className="text-sm font-semibold text-text-primary truncate">{inv.vendorName ?? "—"}</p>
                     <p className="text-[12px] text-text-secondary mt-0.5">
                       {format(new Date(inv.emailDate), "MMM d, yyyy")}
                     </p>
                   </div>
-                  <span className="text-[13px] font-[700] text-heading shrink-0">
+                  <span className="text-sm font-bold text-heading shrink-0">
                     {fmtAmount(inv.totalAmount, inv.currency)}
                   </span>
                 </button>
@@ -390,11 +390,11 @@ function InvoiceDrawerLoader({
     return (
       <SheetContent
         side="right"
-        className="w-[440px] sm:max-w-[440px] gap-0 bg-white border-l border-[#E8EDFA]"
+        className="w-110 sm:max-w-110 gap-0 bg-white border-l border-[#E8EDFA]"
       >
         <SheetTitle className="sr-only">Invoice</SheetTitle>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-[12.5px] text-dim">Loading invoice…</p>
+          <p className="text-xs text-dim">Loading invoice…</p>
         </div>
       </SheetContent>
     )

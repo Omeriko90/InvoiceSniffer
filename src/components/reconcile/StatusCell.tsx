@@ -16,7 +16,7 @@ export function StatusCell({ txn }: { txn: TransactionRow }) {
         <StatusBadge status={txn.status} confirmed={txn.matchConfirmed} />
         {txn.aiSuggested && (
           <span
-            className="inline-flex items-center gap-[3px] rounded-full bg-primary/10 px-[6px] py-[2px] text-[10px] font-bold text-primary"
+            className="inline-flex items-center gap-[3px] rounded-full bg-primary/10 px-[6px] py-[2px] text-xs font-bold text-primary"
             title="Suggested by AI — please review"
           >
             <Sparkles size={10} aria-hidden />

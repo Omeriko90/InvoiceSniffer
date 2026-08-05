@@ -27,7 +27,7 @@ export function GmailSyncPill() {
       title="Reconnect Gmail to resume detecting invoices"
       className="h-auto appearance-none bg-transparent border-0 p-0 cursor-pointer hover:bg-transparent"
     >
-      <Badge className="h-auto gap-1.5 px-3 py-1.5 rounded-full bg-danger-bg border-danger-border text-[12px] font-medium text-danger hover:opacity-90 cursor-pointer">
+      <Badge className="h-auto gap-1.5 px-3 py-1.5 rounded-full bg-danger-bg border-danger-border text-xs font-medium text-danger hover:opacity-90 cursor-pointer">
         <AlertTriangle size={12} />
         Gmail out of sync · reconnect
       </Badge>

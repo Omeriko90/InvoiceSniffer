@@ -24,7 +24,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5">
-        <h2 className="text-[16px] font-[700] text-heading leading-none mb-[18px]">Gmail connection</h2>
+        <h2 className="text-base font-bold text-heading leading-none mb-[18px]">Gmail connection</h2>
 
         {gmails.length > 0 ? (
           <div className="flex flex-col gap-[10px]">
@@ -37,7 +37,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               />
             ))}
             {atLimit ? (
-              <p className="self-start text-[12.5px] text-text-secondary mt-[2px]">
+              <p className="self-start text-xs text-text-secondary mt-[2px]">
                 You&apos;ve reached your plan&apos;s limit of {maxGmailAccounts}{" "}
                 {maxGmailAccounts === 1 ? "mailbox" : "mailboxes"}.
               </p>
@@ -45,7 +45,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               <Button
                 variant="outline"
                 onClick={() => { window.location.href = "/api/gmail/connect" }}
-                className="self-start h-auto text-[13px] font-[600] text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
+                className="self-start h-auto text-sm font-semibold text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
               >
                 + Add account
               </Button>
@@ -55,13 +55,13 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
           <div className="flex items-center gap-3 rounded-[12px] border border-border bg-hover px-4 py-[14px]">
             <GoogleGlyph />
             <div className="min-w-0 flex-1">
-              <p className="text-[14.5px] font-[700] text-heading">Not connected</p>
-              <p className="text-[12.5px] text-text-secondary mt-[2px]">
+              <p className="text-sm font-bold text-heading">Not connected</p>
+              <p className="text-xs text-text-secondary mt-[2px]">
                 Connect Gmail to detect invoices automatically
               </p>
             </div>
             <Button
-              className="shrink-0 h-auto text-[13px] font-[600] text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
+              className="shrink-0 h-auto text-sm font-semibold text-white bg-primary rounded-[9px] px-[14px] py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
               onClick={() => { window.location.href = "/api/gmail/connect" }}
             >
               Connect
@@ -70,7 +70,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
         )}
 
         <div className="mt-[14px] rounded-[12px] border border-border bg-background px-4 py-[14px]">
-          <p className="text-[13px] text-text-secondary leading-[1.55]">
+          <p className="text-sm text-text-secondary leading-[1.55]">
             Invoice files are never stored. We keep sender, subject, amount, date and a link to the
             original email — files are downloaded only during an export, then deleted.
           </p>

@@ -13,8 +13,8 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
         <div className="w-14 h-14 rounded-xl bg-hover flex items-center justify-center mb-4">
           <FileText size={26} strokeWidth={1.5} className="text-dim" />
         </div>
-        <p className="text-[15px] font-[700] text-heading mb-1">Every invoice is accounted for</p>
-        <p className="text-[13.5px] text-text-secondary text-center max-w-[340px] leading-[1.6]">
+        <p className="text-base font-bold text-heading mb-1">Every invoice is accounted for</p>
+        <p className="text-sm text-text-secondary text-center max-w-[340px] leading-[1.6]">
           Each invoice in this window matched a charge in your uploaded files.
         </p>
       </div>
@@ -30,7 +30,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
         {["Vendor", "Invoice #", "Amount", "Date", ""].map((h, i) => (
           <span
             key={i}
-            className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-text-secondary"
+            className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
             style={i === 2 ? { textAlign: "right" } : undefined}
           >
             {h}
@@ -44,23 +44,23 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
           className="grid items-center px-[18px] py-[14px] border-b border-hover last:border-b-0"
           style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
         >
-          <span className="text-[13px] font-[600] text-foreground truncate">
+          <span className="text-sm font-semibold text-foreground truncate">
             {inv.vendorName ?? "Unknown vendor"}
           </span>
-          <span className="text-[13px] text-text-secondary font-mono truncate">
+          <span className="text-sm text-text-secondary font-mono truncate">
             {inv.invoiceNumber ?? "—"}
           </span>
-          <span className="text-[13.5px] font-[700] text-heading text-right">
+          <span className="text-sm font-bold text-heading text-right">
             {fmtMoney(inv.amount, inv.currency)}
           </span>
-          <span className="text-[13px] text-text-secondary">
+          <span className="text-sm text-text-secondary">
             {fmtDate(inv.date)}
           </span>
           <a
             href={inv.gmailLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-[5px] text-[12.5px] font-[600] text-primary-strong hover:underline justify-end"
+            className="flex items-center gap-[5px] text-xs font-semibold text-primary-strong hover:underline justify-end"
           >
             <ExternalLink size={13} />
             Email

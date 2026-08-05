@@ -37,14 +37,14 @@ export function Dropzone({ onFile }: DropzoneProps) {
         <Upload size={22} strokeWidth={2} />
       </div>
       <div className="text-center">
-        <p className="text-[15px] font-[600] text-heading">
+        <p className="text-base font-semibold text-heading">
           Drag & drop your CSV here
         </p>
-        <p className="text-[13px] text-text-secondary mt-1">
+        <p className="text-sm text-text-secondary mt-1">
           Export transactions from your bank or card provider, then drop the file here.
         </p>
       </div>
-      <Button variant="outline" size="sm" className="gap-1.5 text-[13px] mt-1 pointer-events-none">
+      <Button variant="outline" size="sm" className="gap-1.5 text-sm mt-1 pointer-events-none">
         <FileText size={14} />
         Browse files
       </Button>

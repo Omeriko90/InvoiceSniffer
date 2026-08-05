@@ -11,7 +11,7 @@ export function NeedsAttention({
 }) {
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-[18px]">
-      <p className="text-[12.5px] font-[700] text-text-secondary uppercase tracking-[0.04em] mb-[2px]">
+      <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.04em] mb-[2px]">
         Needs your attention
       </p>
 
@@ -22,10 +22,10 @@ export function NeedsAttention({
           style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}
         >
           <AlertCircle size={18} strokeWidth={2} color="#B45309" className="shrink-0" />
-          <span className="flex-1 text-[13.5px] text-[#78350F]">
+          <span className="flex-1 text-sm text-[#78350F]">
             <strong>{possibleCount} possible matches</strong> waiting for confirmation
           </span>
-          <span className="text-[13px] font-[700] text-warning-fg shrink-0">Review →</span>
+          <span className="text-sm font-bold text-warning-fg shrink-0">Review →</span>
         </Link>
       )}
 
@@ -36,16 +36,16 @@ export function NeedsAttention({
           style={{ background: "#FEF2F2", borderColor: "#FECACA" }}
         >
           <XCircle size={18} strokeWidth={2} color="#DC2626" className="shrink-0" />
-          <span className="flex-1 text-[13.5px] text-[#7F1D1D]">
+          <span className="flex-1 text-sm text-[#7F1D1D]">
             <strong>{unmatchedCount} transactions</strong> with no matching invoice
           </span>
-          <span className="text-[13px] font-[700] text-danger-fg shrink-0">Review →</span>
+          <span className="text-sm font-bold text-danger-fg shrink-0">Review →</span>
         </Link>
       )}
 
       {possibleCount === 0 && unmatchedCount === 0 && (
         <div
-          className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] text-[13px] font-[500] text-success-fg"
+          className="flex items-center gap-2 px-3 py-[11px] rounded-[10px] border border-[#BBF7D0] text-sm font-medium text-success-fg"
           style={{ background: "#ECFDF5" }}
         >
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />

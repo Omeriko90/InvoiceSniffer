@@ -37,25 +37,25 @@ export function ReconcileRow({
       style={GRID}
     >
       {/* Date */}
-      <span className="text-[13px] text-text-secondary">
+      <span className="text-sm text-text-secondary">
         {fmtDateShort(txn.date)}
       </span>
 
       {/* Merchant */}
       <div className="min-w-0">
-        <span className="flex items-center gap-[6px] text-[13px] font-[600] text-foreground font-mono truncate">
+        <span className="flex items-center gap-[6px] text-sm font-semibold text-foreground font-mono truncate">
           {txn.collision && (
             <TriangleAlert size={13} className="text-warning-fg shrink-0" aria-label="Already reconciled" />
           )}
           <span className="truncate">{txn.merchant}</span>
         </span>
         {txn.sourceFile && (
-          <span className="block text-[11px] text-dim truncate">{txn.sourceFile}</span>
+          <span className="block text-xs text-dim truncate">{txn.sourceFile}</span>
         )}
       </div>
 
       {/* Amount */}
-      <span className="text-[13.5px] font-[700] text-heading text-right">
+      <span className="text-sm font-bold text-heading text-right">
         {fmtMoney(txn.amount, txn.currency)}
       </span>
 
