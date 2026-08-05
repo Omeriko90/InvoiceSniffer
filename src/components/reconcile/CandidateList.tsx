@@ -38,7 +38,7 @@ export function CandidateList({
   const candidates = useQuery(queries.reconcile.candidates(charge, range, q))
 
   return (
-    <div className="flex flex-col gap-[8px] max-h-[320px] overflow-y-auto">
+    <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
       {candidates.isLoading && (
         <p className="text-sm text-dim py-6 text-center">Searching…</p>
       )}

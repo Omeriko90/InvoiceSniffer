@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronRight, Clock, ExternalLink, EyeOff, FileText, FileX, Lock, Repeat, X } from "lucide-react"
+import { Ban, ChevronRight, Clock, ExternalLink, EyeOff, FileText, FileX, Lock, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -425,6 +425,38 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </>
         )}
         </div>
+        {!editing && !invoice.fixedExpense && (
+          <Button
+            variant="ghost"
+            className="h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-primary hover:bg-info-bg"
+            onClick={() => setMarkFixedOpen(true)}
+          >
+            <Repeat size={14} strokeWidth={1.8} />
+            Mark as fixed expense
+          </Button>
+        )}
+        {!editing && (
+          <div className="flex gap-2.5">
+            <Button
+              variant="ghost"
+              className="flex-1 h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-danger-fg hover:bg-danger-bg"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_RELEVANT")}
+            >
+              <Trash2 size={14} strokeWidth={1.8} />
+              Not relevant
+            </Button>
+            <Button
+              variant="ghost"
+              className="flex-1 h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-danger-fg hover:bg-danger-bg"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_AN_INVOICE")}
+            >
+              <Ban size={14} strokeWidth={1.8} />
+              This isn&apos;t an invoice
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Removal confirmation */}

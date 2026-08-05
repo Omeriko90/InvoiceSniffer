@@ -18,10 +18,10 @@ export function TaxPaidCard({ rows, monthLabel }: { rows: TaxByCurrency[]; month
             No tax recorded on this month&apos;s invoices.
           </p>
         ) : (
-          <div className="flex flex-col gap-[12px]">
+          <div className="flex flex-col gap-3">
             {rows.map((r) => (
               <div key={r.currency} className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-[8px] min-w-0">
+                <span className="flex items-center gap-2 min-w-0">
                   <span className="text-sm font-semibold text-heading">
                     {r.currency}
                   </span>

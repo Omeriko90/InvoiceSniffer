@@ -210,7 +210,7 @@ export function ReconcileSession() {
 
   if (phase === "collect") {
     return (
-      <div className="flex flex-col gap-[16px] mx-auto">
+      <div className="flex flex-col gap-4 mx-auto">
         <DateRangeBar scope={scope} onChange={setScope} />
         <AddFilesPanel
           files={files}
@@ -224,7 +224,7 @@ export function ReconcileSession() {
   }
 
   return (
-    <div className="flex flex-col gap-[16px]">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <Button
           variant="outline"

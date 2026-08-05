@@ -15,7 +15,7 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4 mb-[16px]">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h2 className="text-base font-bold text-heading leading-none">Learned rules &amp; aliases</h2>
             <p className="text-sm text-text-secondary mt-[7px]">
@@ -32,7 +32,7 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
             No rules yet — they appear as you confirm and correct matches.
           </div>
         ) : (
-          <div className="flex flex-wrap gap-[10px]">
+          <div className="flex flex-wrap gap-2.5">
             {rules.map((rule) => (
               <RuleChip
                 key={rule.id}

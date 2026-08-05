@@ -2,7 +2,7 @@
 export function CheckChip({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span
-      className={`text-xs font-bold px-[10px] py-[4px] rounded-full ${
+      className={`text-xs font-bold px-2.5 py-1 rounded-full ${
         ok ? "bg-success-bg text-success-fg" : "bg-danger-bg text-danger-fg"
       }`}
     >

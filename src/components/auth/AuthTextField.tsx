@@ -26,7 +26,7 @@ export function AuthTextField({
   labelAccessory,
 }: AuthTextFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-[6px]", wrapperClassName)}>
+    <div className={cn("flex flex-col gap-1.5", wrapperClassName)}>
       {labelAccessory ? (
         <div className="flex items-center justify-between">
           <Label className="text-xs font-semibold text-subtle" htmlFor={id}>{label}</Label>

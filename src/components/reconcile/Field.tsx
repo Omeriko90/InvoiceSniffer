@@ -9,7 +9,7 @@ export function Field({
   muted?: boolean
 }) {
   return (
-    <div className="flex flex-col justify-between gap-[2px] bg-card px-[15px] py-[13px]">
+    <div className="flex flex-col justify-between gap-0.5 bg-card px-[15px] py-[13px]">
       <span className="text-xs font-bold uppercase tracking-[0.05em] text-dim">
         {label}
       </span>

@@ -12,7 +12,7 @@ export function RecentAlertsCard({ alerts }: RecentAlertsCardProps) {
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5">
 
-        <div className="flex items-center justify-between mb-[14px]">
+        <div className="flex items-center justify-between mb-3.5">
           <h2 className="text-base font-bold text-heading leading-none">Recent alerts</h2>
           <Link href="/alerts" className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity">
             All →

@@ -13,7 +13,7 @@ interface StatRowProps {
 
 export function StatRow({ unmatched, possible, matched, matchedDelta, alerts, criticalAlerts }: StatRowProps) {
   return (
-    <div className="grid grid-cols-4 gap-[14px]">
+    <div className="grid grid-cols-4 gap-3.5">
       <StatCard
         label="Unmatched"
         value={unmatched}

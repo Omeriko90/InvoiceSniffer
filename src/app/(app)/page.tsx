@@ -24,7 +24,7 @@ export default function DashboardPage() {
       />
 
       {/* Main content */}
-      <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
         <ReconciliationCard
           monthLabel={dashboardData?.monthLabel}
           rec={dashboardData?.rec}
@@ -34,7 +34,7 @@ export default function DashboardPage() {
         <RecentAlertsCard alerts={dashboardData?.recentAlerts} />
       </div>
 
-      <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
         <CategorySpend
           rows={dashboardData?.spendByCategory ?? []}
           monthLabel={dashboardData?.monthLabel}
@@ -52,14 +52,14 @@ export default function DashboardPage() {
 function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-[18px]">
-      <div className="grid grid-cols-4 gap-[14px]">
+      <div className="grid grid-cols-4 gap-3.5">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-[108px] rounded-[14px] bg-hover" />
         ))}
       </div>
-      <div className="grid gap-[14px]" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <Skeleton className="h-[320px] rounded-[14px] bg-hover" />
-        <Skeleton className="h-[320px] rounded-[14px] bg-hover" />
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+        <Skeleton className="h-80 rounded-[14px] bg-hover" />
+        <Skeleton className="h-80 rounded-[14px] bg-hover" />
       </div>
     </div>
   )

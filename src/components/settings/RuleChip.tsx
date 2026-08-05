@@ -16,7 +16,7 @@ export function RuleChip({ rule, onRemove, removing }: RuleChipProps) {
   const meta = RULE_META[rule.type]
   return (
     <Badge
-      className="h-auto gap-[9px] rounded-full border px-[14px] py-[7px] text-sm font-bold"
+      className="h-auto gap-[9px] rounded-full border px-3.5 py-[7px] text-sm font-bold"
       style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
     >
       {rule.merchantPattern}

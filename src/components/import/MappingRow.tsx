@@ -8,7 +8,7 @@ export function MappingRow({ field, first, headers, value, onChange }: MappingRo
   return (
     <div
       className={cn(
-        "grid items-center gap-4 py-[14px]",
+        "grid items-center gap-4 py-3.5",
         !first && "border-t border-border"
       )}
       style={{ gridTemplateColumns: "1fr 20px 1.4fr" }}

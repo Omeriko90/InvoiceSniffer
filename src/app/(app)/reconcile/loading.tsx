@@ -7,7 +7,7 @@ export default function Loading() {
     <div className="flex flex-col">
       <Skeleton className="h-[46px] w-[420px] rounded-[12px] bg-[#EEF1F8] mb-4" />
       <div className="bg-white border border-border rounded-[14px] overflow-hidden">
-        <div className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-border" style={GRID}>
+        <div className="grid px-[18px] py-3 bg-[#F8FAFF] border-b border-border" style={GRID}>
           {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
             <span
               key={h}
@@ -19,7 +19,7 @@ export default function Loading() {
           ))}
         </div>
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="grid items-center px-[18px] py-[14px] border-b border-hover" style={GRID}>
+          <div key={i} className="grid items-center px-[18px] py-3.5 border-b border-hover" style={GRID}>
             <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "60%" }} />
             <Skeleton className="h-3 bg-[#EEF1F8]" style={{ width: "75%" }} />
             <Skeleton className="h-3 bg-[#EEF1F8] ms-auto" style={{ width: "55%" }} />

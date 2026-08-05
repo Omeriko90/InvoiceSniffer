@@ -16,7 +16,7 @@ export function CandidateRow({
 }) {
   const c = candidate
   return (
-    <div className="flex items-center gap-[12px] border border-border rounded-[11px] px-[13px] py-[11px]">
+    <div className="flex items-center gap-3 border border-border rounded-[11px] px-[13px] py-[11px]">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">
           {c.vendorName ?? "Unknown vendor"}

@@ -95,7 +95,7 @@ export function InvoicesToolbar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search vendor, amount, invoice #…"
-          className="h-auto ps-[34px] pe-3 py-[8px] text-sm text-text-primary border-border rounded-[10px] bg-surface"
+          className="h-auto ps-[34px] pe-3 py-2 text-sm text-text-primary border-border rounded-[10px] bg-surface"
         />
       </div>
 
@@ -107,7 +107,7 @@ export function InvoicesToolbar({
         value={statusFilter}
         onValueChange={(v) => onStatusChange(v as string)}
       >
-        <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -126,7 +126,7 @@ export function InvoicesToolbar({
         value={categoryFilter}
         onValueChange={(v) => onCategoryChange(v as string)}
       >
-        <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="w-fit min-w-(--anchor-width)">
@@ -143,7 +143,7 @@ export function InvoicesToolbar({
           render={
             <Button
               variant="outline"
-              className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-[6px]"
+              className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
             >
               <CalendarDays size={14} className="text-dim" />
               {dateScopeLabel(dateScope)}
@@ -169,7 +169,7 @@ export function InvoicesToolbar({
           value={accountFilter}
           onValueChange={(v) => onAccountChange(v as string)}
         >
-          <SelectTrigger className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+          <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="w-fit min-w-(--anchor-width)">
@@ -188,7 +188,7 @@ export function InvoicesToolbar({
         variant="ghost"
         onClick={onClearAll}
         disabled={!canClear}
-        className="h-auto py-[8px] px-[10px] rounded-[10px] text-sm font-semibold text-text-secondary hover:bg-hover disabled:text-faint"
+        className="h-auto py-2 px-2.5 rounded-[10px] text-sm font-semibold text-text-secondary hover:bg-hover disabled:text-faint"
       >
         Clear all
       </Button>
@@ -199,7 +199,7 @@ export function InvoicesToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-[6px]"
+                className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
               >
                 <Download size={14} />
                 Export

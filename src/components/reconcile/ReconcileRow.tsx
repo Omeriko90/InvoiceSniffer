@@ -33,7 +33,7 @@ export function ReconcileRow({
           onOpen(txn)
         }
       }}
-      className="grid items-center px-[18px] py-[14px] border-b border-hover last:border-b-0 hover:bg-background transition-colors cursor-pointer focus:outline-none focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
+      className="grid items-center px-[18px] py-3.5 border-b border-hover last:border-b-0 hover:bg-background transition-colors cursor-pointer focus:outline-none focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
       style={GRID}
     >
       {/* Date */}
@@ -43,7 +43,7 @@ export function ReconcileRow({
 
       {/* Merchant */}
       <div className="min-w-0">
-        <span className="flex items-center gap-[6px] text-sm font-semibold text-foreground font-mono truncate">
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground font-mono truncate">
           {txn.collision && (
             <TriangleAlert size={13} className="text-warning-fg shrink-0" aria-label="Already reconciled" />
           )}
@@ -66,7 +66,7 @@ export function ReconcileRow({
       <StatusCell txn={txn} />
 
       {/* Actions */}
-      <div className="flex gap-[6px] justify-end" onClick={(e) => e.stopPropagation()}>
+      <div className="flex gap-1.5 justify-end" onClick={(e) => e.stopPropagation()}>
         {txn.status === "MATCHED" && !txn.matchConfirmed && (
           <>
             <ActionButton variant="outline" disabled={pending} onClick={() => onRun(txn.id, "reject")}>

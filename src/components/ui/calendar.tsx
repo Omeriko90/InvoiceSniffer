@@ -20,7 +20,7 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         month: "flex flex-col gap-3",
         month_caption: "flex justify-center items-center h-8",
         caption_label: "text-sm font-bold text-heading",
-        nav: "flex items-center absolute inset-x-0 top-[14px] justify-between",
+        nav: "flex items-center absolute inset-x-0 top-3.5 justify-between",
         button_previous:
           "inline-flex items-center justify-center h-7 w-7 rounded bg-transparent text-text-secondary hover:bg-hover transition-colors cursor-pointer z-10",
         button_next:

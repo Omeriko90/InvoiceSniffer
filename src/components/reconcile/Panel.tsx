@@ -14,7 +14,7 @@ export function Panel({
 }) {
   return (
     <div className="flex-1 flex flex-col min-w-0 border border-border rounded-[13px] overflow-hidden">
-      <div className="flex items-center gap-[9px] px-[15px] py-[12px] border-b border-hover">
+      <div className="flex items-center gap-[9px] px-[15px] py-3 border-b border-hover">
         <div
           className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center shrink-0"
           style={{ background: accent }}
