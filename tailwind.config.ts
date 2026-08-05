@@ -26,6 +26,18 @@ const palette = {
   infoBg:    "#EFF6FF",
   purpleBg:  "#F5F3FF",
 
+  // Status foregrounds (dark text on the matching *-bg)
+  successFg: "#059669",
+  warningFg: "#B45309",
+  dangerFg:  "#DC2626",
+  infoFg:    "#2563EB",
+
+  // Status borders (badge/callout outlines on the matching *-bg)
+  successBorder: "#BBE7CD",
+  warningBorder: "#FDE68A",
+  dangerBorder:  "#FECACA",
+  infoBorder:    "#BFDBFF",
+
   // Surfaces
   background: "#FAFBFF",
   surface:    "#FFFFFF",
@@ -83,6 +95,18 @@ const config: Config = {
         "danger-bg":  palette.dangerBg,
         "info-bg":    palette.infoBg,
         "purple-bg":  palette.purpleBg,
+
+        // ── Status foregrounds ────────────────────────────────────
+        "success-fg": palette.successFg,
+        "warning-fg": palette.warningFg,
+        "danger-fg":  palette.dangerFg,
+        "info-fg":    palette.infoFg,
+
+        // ── Status borders ────────────────────────────────────────
+        "success-border": palette.successBorder,
+        "warning-border": palette.warningBorder,
+        "danger-border":  palette.dangerBorder,
+        "info-border":    palette.infoBorder,
 
         // ── Text ──────────────────────────────────────────────────
         heading:          palette.heading,

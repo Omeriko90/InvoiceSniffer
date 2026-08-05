@@ -45,7 +45,7 @@ export function ReconcileRow({
       <div className="min-w-0">
         <span className="flex items-center gap-[6px] text-[13px] font-[600] text-foreground font-mono truncate">
           {txn.collision && (
-            <TriangleAlert size={13} className="text-[#B45309] shrink-0" aria-label="Already reconciled" />
+            <TriangleAlert size={13} className="text-warning-fg shrink-0" aria-label="Already reconciled" />
           )}
           <span className="truncate">{txn.merchant}</span>
         </span>

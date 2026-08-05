@@ -60,7 +60,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
             href={inv.gmailLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-[5px] text-[12.5px] font-[600] text-[#3B6FE0] hover:underline justify-end"
+            className="flex items-center gap-[5px] text-[12.5px] font-[600] text-primary-strong hover:underline justify-end"
           >
             <ExternalLink size={13} />
             Email

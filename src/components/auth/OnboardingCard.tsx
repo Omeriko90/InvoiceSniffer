@@ -24,9 +24,9 @@ export function OnboardingCard() {
         Connect your Gmail
       </h1>
 
-      <p className="text-[14.5px] text-[#64748B] leading-[1.6] mb-[22px]">
+      <p className="text-[14.5px] text-text-secondary leading-[1.6] mb-[22px]">
         We scan your inbox for invoices &amp; receipts and store only the details — sender, amount, date, and a link back to the original email.{" "}
-        <strong className="text-[#475569]">Your invoice files are never stored.</strong>
+        <strong className="text-subtle">Your invoice files are never stored.</strong>
       </p>
 
       <Link
@@ -38,12 +38,12 @@ export function OnboardingCard() {
         Connect Gmail
       </Link>
 
-      <div className="flex items-center justify-center gap-[7px] mt-4 text-[12.5px] text-[#94A3B8]">
+      <div className="flex items-center justify-center gap-[7px] mt-4 text-[12.5px] text-dim">
         <Lock size={13} strokeWidth={1.5} className="shrink-0" />
         <span>Read-only access · encrypted · revoke anytime</span>
       </div>
 
-      <Link href="/" className="mt-5 text-[13px] text-[#94A3B8] hover:text-[#64748B] transition-colors">
+      <Link href="/" className="mt-5 text-[13px] text-dim hover:text-text-secondary transition-colors">
         Skip for now
       </Link>
     </div>

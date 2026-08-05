@@ -13,9 +13,9 @@ type StatusMeta = {
 }
 
 export const STATUS_META = {
-  MATCHED:    { label: "Matched",    badge: "bg-success-bg text-[#059669]",  bar: "bg-success" },
-  POSSIBLE:   { label: "Possible",   badge: "bg-warning-bg text-[#B45309]",  bar: "bg-warning" },
-  UNMATCHED:  { label: "Missing",    badge: "bg-danger-bg text-[#DC2626]",   bar: "bg-danger" },
+  MATCHED:    { label: "Matched",    badge: "bg-success-bg text-success-fg",  bar: "bg-success" },
+  POSSIBLE:   { label: "Possible",   badge: "bg-warning-bg text-warning-fg",  bar: "bg-warning" },
+  UNMATCHED:  { label: "Missing",    badge: "bg-danger-bg text-danger-fg",   bar: "bg-danger" },
   NO_INVOICE: { label: "No invoice", badge: "bg-hover text-text-secondary",  bar: "bg-faint" },
 } as const satisfies Record<TxnStatus, StatusMeta>
 

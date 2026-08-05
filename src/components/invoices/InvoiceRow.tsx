@@ -18,17 +18,17 @@ export function InvoiceRow({ invoice, onSelect }: {
   return (
     <div
       onClick={() => onSelect(invoice)}
-      className="grid items-center px-[18px] py-[13px] border-b border-[#F1F3F8] cursor-pointer hover:bg-[#FAFBFF] transition-colors last:border-b-0"
+      className="grid items-center px-[18px] py-[13px] border-b border-hover cursor-pointer hover:bg-background transition-colors last:border-b-0"
       style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
     >
       {/* Vendor */}
       <div className="flex items-center gap-[10px] min-w-0">
         <VendorCell vendor={vendor} />
-        <span className="text-[13.5px] font-[600] text-[#334155] truncate">{vendor}</span>
+        <span className="text-[13.5px] font-[600] text-foreground truncate">{vendor}</span>
       </div>
 
       {/* Invoice # */}
-      <span className="text-[13px] text-[#64748B] font-mono truncate">
+      <span className="text-[13px] text-text-secondary font-mono truncate">
         {invoice.invoiceNumber ?? "—"}
       </span>
 
@@ -38,7 +38,7 @@ export function InvoiceRow({ invoice, onSelect }: {
       </span>
 
       {/* Date */}
-      <span className="text-[13px] text-[#64748B]">
+      <span className="text-[13px] text-text-secondary">
         {fmtDateShort(invoice.emailDate)}
       </span>
 
