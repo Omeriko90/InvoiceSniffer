@@ -1,18 +1,7 @@
 // Client component by import — only ever rendered from <DashboardPage>.
 import { Card, CardContent } from "@/components/ui/card"
+import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
 import type { TaxByCurrency } from "@/api-types/dashboard"
-
-function fmtMoney(total: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(total)
-  } catch {
-    return `${total.toFixed(0)} ${currency}`
-  }
-}
 
 export function TaxPaidCard({ rows, monthLabel }: { rows: TaxByCurrency[]; monthLabel: string }) {
   return (

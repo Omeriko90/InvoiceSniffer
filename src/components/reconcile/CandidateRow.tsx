@@ -1,8 +1,8 @@
 // Client component by import — only ever rendered from <FindInvoiceModal>.
-import { format } from "date-fns"
 import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { fmtMoney } from "@/lib/money"
+import { fmtDateShort } from "@/lib/date"
 import type { CandidateResult } from "@/api-types/reconcile"
 
 export function CandidateRow({
@@ -25,7 +25,7 @@ export function CandidateRow({
           )}
         </p>
         <p className="text-[11.5px] text-dim truncate">
-          {fmtMoney(c.amount, c.currency)} · {format(new Date(c.date), "MMM d")} · {c.reason}
+          {fmtMoney(c.amount, c.currency)} · {fmtDateShort(c.date)} · {c.reason}
         </p>
       </div>
       {c.confidence !== null && (

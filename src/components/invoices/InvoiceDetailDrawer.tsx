@@ -14,14 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog } from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
@@ -394,22 +388,22 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </div>
 
       {/* Removal confirmation */}
-      <Dialog
-        open={confirmReason !== null}
-        onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmReason === "NOT_AN_INVOICE" ? "Mark as not an invoice?" : "Remove this invoice?"}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmReason === "NOT_AN_INVOICE"
-                ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
-                : "It genuinely is an invoice but won't appear in your list. You can undo this."}
-            </DialogDescription>
-          </DialogHeader>
-
+      {confirmReason !== null && (
+        <ConfirmationDialog
+          open={confirmReason !== null}
+          onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
+          title={confirmReason === "NOT_AN_INVOICE" ? "Mark as not an invoice?" : "Remove this invoice?"}
+          description={
+            confirmReason === "NOT_AN_INVOICE"
+              ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
+              : "It genuinely is an invoice but won't appear in your list. You can undo this."
+          }
+          confirmLabel="Remove"
+          pendingLabel="Removing…"
+          destructive
+          isPending={remove.isPending}
+          onConfirm={handleRemove}
+        >
           {confirmReason === "NOT_RELEVANT" && (
             <Label
               htmlFor="mute-sender"
@@ -423,26 +417,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Also stop showing invoices from this sender
             </Label>
           )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-[10px] text-[13.5px] font-[600]"
-              disabled={remove.isPending}
-              onClick={() => setConfirmReason(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
-              disabled={remove.isPending}
-              onClick={handleRemove}
-            >
-              {remove.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </ConfirmationDialog>
+      )}
 
       {/* Mark as fixed expense — pre-filled from this invoice, links it on save */}
       <Dialog open={markFixedOpen} onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
