@@ -11,7 +11,7 @@ export function BrandPanel() {
           Invoices in. Transactions matched. Books done.
         </h2>
         <p style={{ fontSize: "15.5px", lineHeight: 1.65, opacity: 0.92, margin: "0 0 32px" }}>
-          Connect Gmail, upload a statement, and let Reconcile match every charge to its invoice — flagging anomalies and building your accountant export automatically.
+          Connect Gmail, upload a statement, and let InvoiceSniffer match every charge to its invoice — flagging anomalies and building your accountant export automatically.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {FEATURES.map((feat) => (

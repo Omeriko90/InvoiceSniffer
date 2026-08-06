@@ -17,7 +17,7 @@ export function OnboardingCard() {
       </div>
 
       <p className="text-[13px] font-[700] text-primary uppercase tracking-[0.12em] mb-2">
-        Reconcile
+        InvoiceSniffer
       </p>
 
       <h1 className="text-[25px] font-[800] text-heading tracking-[-0.02em] mb-2">

@@ -16,7 +16,7 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/alerts"))    return "Alerts"
   if (pathname.startsWith("/exports"))   return "Exports"
   if (pathname.startsWith("/settings"))  return "Settings"
-  return "Reconcile"
+  return "InvoiceSniffer"
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
