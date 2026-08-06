@@ -1,3 +1,4 @@
+import { fmtMoney } from "@/lib/money"
 import { VENDOR_GRADIENTS } from "./constants"
 import type { InvoiceRow } from "./types"
 
@@ -18,7 +19,9 @@ export function confidenceColor(pct: number): string {
 }
 
 export function fmtAmount(amount: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(Number(amount))
+  // Delegates to fmtMoney, which normalizes symbol "currencies" ("₪" → "ILS")
+  // and falls back gracefully — a raw symbol would otherwise throw in Intl.
+  return fmtMoney(amount, currency)
 }
 
 export function fmtSize(bytes: number): string {
