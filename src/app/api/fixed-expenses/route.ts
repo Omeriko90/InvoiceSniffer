@@ -6,6 +6,7 @@ import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES } from "@/lib/fixed-expense-meta"
 import { normalizeVendor } from "@/lib/invoice-detection"
+import { dedupeInsensitive } from "@/lib/fixed-expenses"
 
 const MAX_TEXT = 200
 const MAX_AMOUNT = 1e12
@@ -87,10 +88,11 @@ export async function POST(request: Request) {
     )
   }
   const p = parsed.data
-  // Dedup and derive normalized vendor keys from the vendor-title array.
-  const vendorNames = [...new Set(p.vendorName)]
-  const senderEmails = [...new Set(p.senderEmail)]
-  const vendorNormalized = [...new Set(vendorNames.map(normalizeVendor))]
+  // Case-insensitive dedup (no "same email/title twice") and derive normalized
+  // vendor keys from the vendor-title array.
+  const vendorNames = dedupeInsensitive(p.vendorName)
+  const senderEmails = dedupeInsensitive(p.senderEmail)
+  const vendorNormalized = dedupeInsensitive(vendorNames.map(normalizeVendor))
 
   // Pinned mailbox must belong to this org (no cross-tenant reference).
   if (p.gmailCredentialId) {

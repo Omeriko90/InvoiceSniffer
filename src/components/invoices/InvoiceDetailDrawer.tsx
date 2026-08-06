@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2 } from "lucide-react"
+import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import {
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
+import { useUnlinkFixedExpense } from "@/hooks/useUnlinkFixedExpense"
 import type { RemovalReason } from "@/api/invoices"
 import { STATUS_META } from "./constants"
 import { fmtAmount, fmtSize, toDraft } from "./helpers"
@@ -43,6 +44,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   const router = useRouter()
   const update = useUpdateInvoice()
   const remove = useRemoveInvoice(() => router.refresh())
+  const unlink = useUnlinkFixedExpense(() => router.refresh())
+  const [unlinkOpen, setUnlinkOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
   const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(invoice.category)
@@ -157,6 +160,15 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             <span className="text-[12.5px] font-[600] text-text-primary truncate">
               Fixed expense · {invoice.fixedExpense.name}
             </span>
+            <button
+              type="button"
+              onClick={() => setUnlinkOpen(true)}
+              disabled={unlink.isPending}
+              className="ml-auto shrink-0 text-[#94A3B8] hover:text-[#DC2626] disabled:opacity-50"
+              aria-label="Remove from fixed expense"
+            >
+              <X size={14} strokeWidth={2} />
+            </button>
           </div>
         )}
 
@@ -462,6 +474,37 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             onSaved={() => router.refresh()}
           />
         )}
+      </Dialog>
+
+      {/* Remove this invoice from its fixed expense */}
+      <Dialog open={unlinkOpen} onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove from fixed expense?</DialogTitle>
+            <DialogDescription>
+              This invoice will no longer count toward
+              {invoice.fixedExpense ? ` “${invoice.fixedExpense.name}”` : " this fixed expense"}.
+              The fixed expense keeps its match rules, so a matching invoice can re-link later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="rounded-[10px] text-[13.5px] font-[600]"
+              disabled={unlink.isPending}
+              onClick={() => setUnlinkOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
+              disabled={unlink.isPending}
+              onClick={() => unlink.mutate(invoice.id, { onSuccess: () => setUnlinkOpen(false) })}
+            >
+              {unlink.isPending ? "Removing…" : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </SheetContent>
   )
