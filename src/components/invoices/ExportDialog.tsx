@@ -7,6 +7,7 @@ import { FormDialog } from "@/components/ui/form-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { ToggleChip } from "@/components/ui/toggle-chip"
 import {
   INVOICE_DATE_PRESETS,
   resolveInvoiceDateRange,
@@ -209,7 +210,7 @@ export function ExportDialog({
               style={{ background: custom ? "#EEF3FF" : "#F1F3F8", color: custom ? "#3B6FE0" : "#64748B" }}
             >
               Custom
-            </Button>
+              </Button>
           </div>
           {custom && (
             <div className="flex flex-wrap items-center gap-2.5">
