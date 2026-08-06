@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <FixedExpensesClient>.
-import { MetaBadge } from "@/components/ui/meta-badge"
+import { StatusPill } from "@/components/ui/status-pill"
 import {
   PERIOD_STATUS_META,
   PERIOD_STATUS_LABELS,
@@ -18,5 +18,9 @@ export function FixedExpenseStatusBadge({
 }) {
   const meta = PERIOD_STATUS_META[status]
   const label = (variant === "timeline" ? TIMELINE_STATUS_LABELS : PERIOD_STATUS_LABELS)[status]
-  return <MetaBadge label={label} bg={meta.bg} color={meta.color} />
+  return (
+    <StatusPill bg={meta.bg} color={meta.color}>
+      {label}
+    </StatusPill>
+  )
 }
