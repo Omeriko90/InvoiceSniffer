@@ -2,8 +2,9 @@
 -- Existing non-null scalars become single-element arrays; nulls become empty arrays.
 
 -- The scalar composite index is no longer valid on an array column and nothing
--- queries FixedExpense by vendorNormalized, so drop it.
-DROP INDEX "FixedExpense_organizationId_vendorNormalized_idx";
+-- queries FixedExpense by vendorNormalized, so drop it. IF EXISTS: some
+-- environments never had this index (it's absent in production).
+DROP INDEX IF EXISTS "FixedExpense_organizationId_vendorNormalized_idx";
 
 ALTER TABLE "FixedExpense"
   ALTER COLUMN "vendorName" TYPE TEXT[]
