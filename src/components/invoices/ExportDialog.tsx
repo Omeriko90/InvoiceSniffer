@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { ToggleChip } from "@/components/ui/toggle-chip"
 import {
   DATE_RANGE_PRESETS,
   PRESET_LABELS,
@@ -176,26 +177,18 @@ export function ExportDialog({
             Date range
           </p>
           <div className="flex flex-wrap items-center gap-[6px]">
-            {DATE_RANGE_PRESETS.map((p) => {
-              const on = isPreset(scope) && scope.preset === p
-              return (
-                <button
-                  key={p}
-                  onClick={() => setScope({ preset: p })}
-                  className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
-                  style={{ background: on ? "#EEF3FF" : "#F1F3F8", color: on ? "#3B6FE0" : "#64748B" }}
-                >
-                  {PRESET_LABELS[p]}
-                </button>
-              )
-            })}
-            <button
-              onClick={() => setScope(custom ? scope : { from: "", to: "" })}
-              className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
-              style={{ background: custom ? "#EEF3FF" : "#F1F3F8", color: custom ? "#3B6FE0" : "#64748B" }}
-            >
+            {DATE_RANGE_PRESETS.map((p) => (
+              <ToggleChip
+                key={p}
+                active={isPreset(scope) && scope.preset === p}
+                onClick={() => setScope({ preset: p })}
+              >
+                {PRESET_LABELS[p]}
+              </ToggleChip>
+            ))}
+            <ToggleChip active={custom} onClick={() => setScope(custom ? scope : { from: "", to: "" })}>
               Custom
-            </button>
+            </ToggleChip>
           </div>
           {custom && (
             <div className="flex flex-wrap items-center gap-[10px]">
