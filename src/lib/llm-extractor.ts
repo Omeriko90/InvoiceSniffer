@@ -1,5 +1,6 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
+import { normalizeCurrencyCode } from "@/lib/csv-import"
 import { geminiClient, isGeminiModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 
@@ -146,7 +147,11 @@ export async function extractInvoiceFromPdf(input: {
     const text = res.text
     if (!text) return null
     const parsed = extractionSchema.safeParse(JSON.parse(text))
-    return parsed.success ? parsed.data : null
+    if (!parsed.success) return null
+    // The model returns currency "as written" — often a symbol ("₪") for
+    // Israeli docs. Normalize to an ISO 4217 code before it's persisted, or it
+    // will later crash Intl.NumberFormat wherever the invoice is rendered.
+    return { ...parsed.data, currency: parsed.data.currency ? normalizeCurrencyCode(parsed.data.currency) : null }
   } catch (err) {
     log.warn("llm-extractor failed, falling back to heuristics", { model, err: String(err) })
     return null
