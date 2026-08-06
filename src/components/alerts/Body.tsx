@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <AlertDetailDrawer>.
 import { AlertTriangle } from "lucide-react"
 import { SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 import {
   ALERT_META,
   SEVERITY_META,
@@ -89,13 +90,14 @@ function Footer({
   dismissing: boolean
 }) {
   return (
-    <button
+    <Button
+      variant="outline"
       onClick={() => onDismiss(alert.id)}
       disabled={dismissing}
-      className="w-full text-[13px] font-[700] px-[14px] py-[10px] rounded-[10px] border border-[#E8EDFA] bg-white text-[#475569] cursor-pointer transition-colors hover:bg-[#F1F3F8] disabled:opacity-50 disabled:cursor-default"
+      className="h-auto w-full text-[13px] font-[700] px-[14px] py-[10px] rounded-[10px] border border-[#E8EDFA] bg-white text-[#475569] cursor-pointer transition-colors hover:bg-[#F1F3F8] hover:text-[#475569] disabled:opacity-50 disabled:cursor-default"
     >
       Dismiss alert
-    </button>
+    </Button>
   )
 }
 
