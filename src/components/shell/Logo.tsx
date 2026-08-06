@@ -12,7 +12,7 @@ export function Logo({ orgName }: { orgName: string }) {
           </svg>
         </div>
         <div>
-          <p className="text-[15px] font-[800] text-heading leading-none">Reconcile</p>
+          <p className="text-[15px] font-[800] text-heading leading-none">InvoiceSniffer</p>
           <p className="text-[11px] text-dim mt-0.5 leading-none">{orgName}</p>
         </div>
       </div>
