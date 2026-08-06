@@ -89,6 +89,20 @@ async function enqueueSyncForAllCredentials() {
   })
 
   for (const cred of credentials) {
+    // Stable id (no timestamp) so a concurrent daily + on-demand sync for the
+    // same mailbox dedupes to one job instead of double-scanning Gmail. But a
+    // retained completed/failed job under this id (removeOnComplete keeps the
+    // last 100) makes BullMQ treat the next add() as a no-op — so after the
+    // first run the daily sync would silently never fire again. Drop a terminal
+    // job first, but only once it's no longer in flight, so an active/waiting/
+    // delayed job still dedupes as intended. (Mirrors the on-demand path in
+    // api/gmail/sync/route.ts.)
+    const jobId = `sync-${cred.id}`
+    const existing = await gmailSyncQueue().getJob(jobId)
+    if (existing && ["completed", "failed"].includes(await existing.getState())) {
+      await existing.remove()
+    }
+
     await gmailSyncQueue().add(
       "gmail:sync",
       {
@@ -96,9 +110,7 @@ async function enqueueSyncForAllCredentials() {
         credentialId: cred.id,
         mode: cred.syncToken ? "incremental" : "full",
       } satisfies GmailSyncJobData,
-      // Stable id (no timestamp) so a concurrent daily + on-demand sync for the
-      // same mailbox dedupes to one job instead of double-scanning Gmail.
-      { jobId: `sync-${cred.id}` }
+      { jobId }
     )
   }
 
