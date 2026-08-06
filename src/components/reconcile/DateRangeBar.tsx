@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
 import { Input } from "@/components/ui/input"
+import { ToggleChip } from "@/components/ui/toggle-chip"
 import { DATE_RANGE_PRESETS, PRESET_LABELS, type DateRangePreset } from "@/lib/date-range"
 import type { DateRangeScope } from "@/api-types/reconcile"
 
@@ -25,32 +26,14 @@ export function DateRangeBar({
         Match against invoices from
       </p>
       <div className="flex flex-wrap items-center gap-[6px]">
-        {DATE_RANGE_PRESETS.map((p: DateRangePreset) => {
-          const on = activePreset === p
-          return (
-            <button
-              key={p}
-              onClick={() => onChange({ preset: p })}
-              className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
-              style={{
-                background: on ? "#EEF3FF" : "#F1F3F8",
-                color: on ? "#3B6FE0" : "#64748B",
-              }}
-            >
-              {PRESET_LABELS[p]}
-            </button>
-          )
-        })}
-        <button
-          onClick={() => onChange(custom ? scope : { from: "", to: "" })}
-          className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
-          style={{
-            background: custom ? "#EEF3FF" : "#F1F3F8",
-            color: custom ? "#3B6FE0" : "#64748B",
-          }}
-        >
+        {DATE_RANGE_PRESETS.map((p: DateRangePreset) => (
+          <ToggleChip key={p} active={activePreset === p} onClick={() => onChange({ preset: p })}>
+            {PRESET_LABELS[p]}
+          </ToggleChip>
+        ))}
+        <ToggleChip active={custom} onClick={() => onChange(custom ? scope : { from: "", to: "" })}>
           Custom
-        </button>
+        </ToggleChip>
       </div>
 
       {custom && (
