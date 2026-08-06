@@ -18,7 +18,7 @@ const mono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Reconcile",
+  title: "InvoiceSniffer",
   description: "Manage invoices from email and reconcile against bank transactions",
 }
 
