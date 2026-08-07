@@ -6,7 +6,7 @@ import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES } from "@/lib/fixed-expense-meta"
 import { normalizeVendor } from "@/lib/invoice-detection"
-import { dedupeInsensitive } from "@/lib/fixed-expenses"
+import { dedupeInsensitive, effectiveAnchor } from "@/lib/fixed-expenses"
 
 const MAX_TEXT = 200
 const MAX_AMOUNT = 1e12
@@ -124,10 +124,14 @@ export async function POST(request: Request) {
     })
 
     // Backfill: link existing unlinked invoices that already match, from the
-    // anchor date onward. Without this, an expense created after its invoices
-    // arrived would show every past period as "Missing" and could fire a false
-    // alert for the current period. Matching mirrors matchesExpense() — vendor OR
-    // sender, narrowed to the pinned mailbox — expressed as a single updateMany.
+    // start of the expense's first period onward. Uses effectiveAnchor (not the
+    // raw anchorDate) so a MONTHLY expense created mid-month still absorbs
+    // invoices that arrived earlier in the same calendar-month period — matching
+    // how the timeline buckets them. Without this, an expense created after its
+    // invoices arrived would show every past period as "Missing" and could fire a
+    // false alert for the current period. Matching mirrors matchesExpense() —
+    // vendor OR sender, narrowed to the pinned mailbox — as a single updateMany.
+    const backfillFrom = effectiveAnchor({ anchorDate: new Date(p.anchorDate), frequency: p.frequency })
     const matchOr: Prisma.InvoiceWhereInput[] = []
     if (vendorNormalized.length > 0) matchOr.push({ vendorNormalized: { in: vendorNormalized } })
     // Sender match stays case-insensitive (one condition per address; `in` can't
@@ -140,7 +144,7 @@ export async function POST(request: Request) {
           organizationId,
           fixedExpenseId: null,
           removedAt: null,
-          emailDate: { gte: new Date(p.anchorDate) },
+          emailDate: { gte: backfillFrom },
           ...(p.gmailCredentialId ? { gmailCredentialId: p.gmailCredentialId } : {}),
           OR: matchOr,
         },
