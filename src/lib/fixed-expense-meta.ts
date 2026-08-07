@@ -6,12 +6,21 @@
 
 import type { FixedExpensePeriodStatus } from "./fixed-expenses"
 
-export const FIXED_EXPENSE_FREQUENCIES = ["WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"] as const
+export const FIXED_EXPENSE_FREQUENCIES = [
+  "WEEKLY",
+  "BIWEEKLY",
+  "MONTHLY",
+  "BIMONTHLY",
+  "QUARTERLY",
+  "YEARLY",
+] as const
 export type FixedExpenseFrequency = (typeof FIXED_EXPENSE_FREQUENCIES)[number]
 
 export const FREQUENCY_LABELS: Record<FixedExpenseFrequency, string> = {
   WEEKLY: "Weekly",
+  BIWEEKLY: "Bi-weekly",
   MONTHLY: "Monthly",
+  BIMONTHLY: "Bi-monthly",
   QUARTERLY: "Quarterly",
   YEARLY: "Yearly",
 }
@@ -19,7 +28,9 @@ export const FREQUENCY_LABELS: Record<FixedExpenseFrequency, string> = {
 // Singular noun for a single occurrence, used in copy like "no invoice this month".
 export const FREQUENCY_PERIOD_NOUN: Record<FixedExpenseFrequency, string> = {
   WEEKLY: "week",
+  BIWEEKLY: "two weeks",
   MONTHLY: "month",
+  BIMONTHLY: "two months",
   QUARTERLY: "quarter",
   YEARLY: "year",
 }

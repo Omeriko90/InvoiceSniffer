@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <FixedExpensesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
+import { addDays, addMonths, format } from "date-fns"
 import { Pause, Play, Pencil, Trash2, Link2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -29,6 +29,9 @@ import type { FixedExpenseRow } from "./types"
 function periodLabel(startIso: string, frequency: FixedExpenseFrequency): string {
   const d = new Date(startIso)
   if (frequency === "WEEKLY") return `Week of ${format(d, "MMM d, yyyy")}`
+  // Bi-weekly / bi-monthly span two units, so show the range they cover.
+  if (frequency === "BIWEEKLY") return `${format(d, "MMM d")} – ${format(addDays(d, 13), "MMM d, yyyy")}`
+  if (frequency === "BIMONTHLY") return `${format(d, "MMM")} – ${format(addMonths(d, 1), "MMM yyyy")}`
   if (frequency === "YEARLY") return format(d, "yyyy")
   if (frequency === "QUARTERLY") return `Q${Math.floor(d.getMonth() / 3) + 1} ${format(d, "yyyy")}`
   return format(d, "MMMM yyyy")
