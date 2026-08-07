@@ -7,30 +7,77 @@
 // COMPUTED from the invoices linked to the expense (never stored), so it resets
 // to PENDING on its own when a new period begins.
 
-import { addDays, addMonths, addWeeks, differenceInCalendarDays, differenceInCalendarMonths } from "date-fns"
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  differenceInCalendarDays,
+  differenceInCalendarMonths,
+  startOfMonth,
+  startOfQuarter,
+  startOfWeek,
+  startOfYear,
+} from "date-fns"
 import type { FixedExpenseFrequency } from "@prisma/client"
 
 export type FixedExpensePeriodStatus = "ARRIVED" | "PENDING" | "OVERDUE"
 
-// Months advanced per period; WEEKLY is handled separately (day-based).
-const MONTHS_PER_PERIOD: Record<Exclude<FixedExpenseFrequency, "WEEKLY">, number> = {
+// Week-based cadences advance in whole weeks; the rest advance in whole months.
+type WeekBasedFrequency = Extract<FixedExpenseFrequency, "WEEKLY" | "BIWEEKLY">
+const WEEKS_PER_PERIOD: Record<WeekBasedFrequency, number> = {
+  WEEKLY: 1,
+  BIWEEKLY: 2,
+}
+const MONTHS_PER_PERIOD: Record<Exclude<FixedExpenseFrequency, WeekBasedFrequency>, number> = {
   MONTHLY: 1,
+  BIMONTHLY: 2,
   QUARTERLY: 3,
   YEARLY: 12,
 }
 
+function isWeekBased(frequency: FixedExpenseFrequency): frequency is WeekBasedFrequency {
+  return frequency === "WEEKLY" || frequency === "BIWEEKLY"
+}
+
+/**
+ * The date period boundaries actually roll forward from. Every cadence snaps to
+ * the natural calendar boundary containing the anchor — start of week / month /
+ * quarter / year — so periods line up with how people read them. The raw
+ * anchorDate defaults to the day the expense was created (see
+ * FixedExpenseFormDialog); without snapping, an expense created on Aug 6 would
+ * run its monthly periods 6th→6th and drop an invoice that arrived Aug 1 into
+ * the *previous* period. `weekStartsOn` defaults to Sunday, matching the app's
+ * primary (Israel) locale.
+ */
+export function effectiveAnchor(
+  expense: Pick<FixedExpenseLike, "anchorDate" | "frequency">,
+): Date {
+  switch (expense.frequency) {
+    case "WEEKLY":
+    case "BIWEEKLY":
+      return startOfWeek(expense.anchorDate)
+    case "MONTHLY":
+    case "BIMONTHLY":
+      return startOfMonth(expense.anchorDate)
+    case "QUARTERLY":
+      return startOfQuarter(expense.anchorDate)
+    case "YEARLY":
+      return startOfYear(expense.anchorDate)
+  }
+}
+
 /** Advance `date` by `n` whole periods (n may be negative). */
 export function addPeriods(date: Date, frequency: FixedExpenseFrequency, n: number): Date {
-  if (frequency === "WEEKLY") return addWeeks(date, n)
-  return addMonths(date, n * MONTHS_PER_PERIOD[frequency])
+  return isWeekBased(frequency)
+    ? addWeeks(date, n * WEEKS_PER_PERIOD[frequency])
+    : addMonths(date, n * MONTHS_PER_PERIOD[frequency])
 }
 
 /** Largest k such that period k has started at or before `target`. */
 export function periodIndexFor(frequency: FixedExpenseFrequency, anchor: Date, target: Date): number {
-  let k =
-    frequency === "WEEKLY"
-      ? Math.floor(differenceInCalendarDays(target, anchor) / 7)
-      : Math.floor(differenceInCalendarMonths(target, anchor) / MONTHS_PER_PERIOD[frequency])
+  let k = isWeekBased(frequency)
+    ? Math.floor(differenceInCalendarDays(target, anchor) / (7 * WEEKS_PER_PERIOD[frequency]))
+    : Math.floor(differenceInCalendarMonths(target, anchor) / MONTHS_PER_PERIOD[frequency])
   // Correct for day-of-month / DST drift the estimate can't capture.
   while (addPeriods(anchor, frequency, k).getTime() > target.getTime()) k--
   while (addPeriods(anchor, frequency, k + 1).getTime() <= target.getTime()) k++
@@ -44,10 +91,11 @@ export function periodBounds(
   expense: Pick<FixedExpenseLike, "anchorDate" | "frequency">,
   index: number,
 ): PeriodBounds {
+  const anchor = effectiveAnchor(expense)
   return {
     index,
-    start: addPeriods(expense.anchorDate, expense.frequency, index),
-    end: addPeriods(expense.anchorDate, expense.frequency, index + 1),
+    start: addPeriods(anchor, expense.frequency, index),
+    end: addPeriods(anchor, expense.frequency, index + 1),
   }
 }
 
@@ -56,7 +104,7 @@ export function currentPeriod(
   expense: Pick<FixedExpenseLike, "anchorDate" | "frequency">,
   now: Date,
 ): PeriodBounds {
-  const index = Math.max(0, periodIndexFor(expense.frequency, expense.anchorDate, now))
+  const index = Math.max(0, periodIndexFor(expense.frequency, effectiveAnchor(expense), now))
   return periodBounds(expense, index)
 }
 
@@ -110,8 +158,9 @@ export function periodTimeline(
   { limit = 12, offset = 0 }: { limit?: number; offset?: number } = {},
 ): { entries: TimelineEntry[]; hasMore: boolean } {
   const currentIdx = currentPeriod(expense, now).index
-  const startBound = expense.createdAt.getTime() > expense.anchorDate.getTime() ? expense.createdAt : expense.anchorDate
-  const firstIdx = Math.max(0, periodIndexFor(expense.frequency, expense.anchorDate, startBound))
+  const anchor = effectiveAnchor(expense)
+  const startBound = expense.createdAt.getTime() > anchor.getTime() ? expense.createdAt : anchor
+  const firstIdx = Math.max(0, periodIndexFor(expense.frequency, anchor, startBound))
 
   const top = currentIdx - offset
   const from = Math.max(firstIdx, top - limit + 1)
