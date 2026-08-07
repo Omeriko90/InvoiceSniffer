@@ -77,7 +77,9 @@ enum RemovalReason {
 // (src/lib/fixed-expenses.ts).
 enum FixedExpenseFrequency {
   WEEKLY
+  BIWEEKLY
   MONTHLY
+  BIMONTHLY
   QUARTERLY
   YEARLY
 }
