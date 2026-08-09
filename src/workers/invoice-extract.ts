@@ -156,6 +156,10 @@ async function extractInvoice(
   // allocation number (which the regex heuristics never extract).
   const docBytes = pdfBytes ?? remotePdfBytes
   let extractionMethod: "HEURISTIC" | "AI" = "HEURISTIC"
+  // Category read off the full document by the vision extractor, when it ran.
+  // Preferred over the text-only categorizer below because it sees the actual
+  // PDF (logo, layout, line items) — the richest signal available.
+  let visionCategory: InvoiceCategory | undefined
   if (extractorEnabled() && docBytes) {
     // Run the vision extractor when the cheap signals left a gap it can close:
     // no amount at all, or an Israeli document still missing its Tax Authority
@@ -171,16 +175,22 @@ async function extractInvoice(
       if (llm) {
         extracted = applyLlmExtraction(extracted, llm)
         extractionMethod = "AI"
+        // The vision extractor also classifies the expense off the full
+        // document; treat UNCATEGORIZED as "no opinion" so the text-only
+        // fallback below still gets a shot.
+        if (llm.category !== "UNCATEGORIZED") visionCategory = llm.category
       }
     }
   }
 
-  // Auto-categorize every invoice with a cheap text-only LLM call (vendor +
-  // subject + line items — no PDF image). Fail-open to the DB default. Only ever
+  // Category, best signal first: the vision extractor's read of the full
+  // document when there was a PDF (attachment or linked), else a cheap text-only
+  // LLM call (vendor + subject + line items — the only option for HTML-linked or
+  // body-only invoices with no PDF). Fail-open to the DB default. Only ever
   // applied on create below, never on update, so it can't clobber a user's
   // manual category (or the original auto-category) when a message re-extracts.
-  let category: InvoiceCategory | undefined
-  if (categorizerEnabled()) {
+  let category: InvoiceCategory | undefined = visionCategory
+  if (!category && categorizerEnabled()) {
     category =
       (await categorizeInvoice({
         vendorName: extracted.vendorName,
