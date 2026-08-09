@@ -4,10 +4,26 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
+import { track } from "@/lib/analytics"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
+function Dialog({
+  name,
+  ...props
+}: DialogPrimitive.Root.Props & {
+  // Fire a `dialog_opened` PostHog event when this dialog opens.
+  name?: string
+}) {
+  // Fire once on the transition into the open state. The ref-guard covers both
+  // the always-mounted `<Dialog open={x}>` pattern and the conditional
+  // `{open && <Dialog open>}` convention (mounts with open already true).
+  const prevOpen = React.useRef(false)
+  React.useEffect(() => {
+    const isOpen = props.open ?? false
+    if (isOpen && !prevOpen.current && name) track("dialog_opened", { name })
+    prevOpen.current = isOpen
+  }, [props.open, name])
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
