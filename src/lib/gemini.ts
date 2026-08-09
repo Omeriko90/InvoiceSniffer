@@ -7,8 +7,12 @@ import { GoogleGenAI } from "@google/genai"
 // Auth is GCP Application Default Credentials — the Cloud Run service account in
 // prod, or `gcloud auth application-default login` locally — so there is no API
 // key. Project and location reuse the existing GCP env convention:
-//   GCP_PROJECT_ID   Vertex project (required)
-//   GCP_REGION       Vertex location, e.g. "us-central1" (defaults to us-central1)
+//   GCP_PROJECT_ID    Vertex project (required)
+//   VERTEX_LOCATION   Vertex model location; falls back to GCP_REGION, then
+//                     "us-central1". Set to "global" for models served only on
+//                     the global endpoint (all Gemini 3.x). Kept separate from
+//                     GCP_REGION because that also pins Cloud Run Jobs / GCS,
+//                     which need a real region, not "global".
 //
 // One model drives every LLM-backed feature — classification, PDF vision
 // extraction, categorization, reconcile arbitration. Set LLM_MODEL (e.g.
@@ -25,7 +29,7 @@ export function geminiClient(): GoogleGenAI {
     client = new GoogleGenAI({
       vertexai: true,
       project: process.env.GCP_PROJECT_ID,
-      location: process.env.GCP_REGION ?? DEFAULT_LOCATION,
+      location: process.env.VERTEX_LOCATION ?? process.env.GCP_REGION ?? DEFAULT_LOCATION,
     })
   }
   return client
