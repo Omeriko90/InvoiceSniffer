@@ -23,7 +23,7 @@ export function InvoicesTable({
         className="grid px-[18px] py-[12px] bg-[#F8FAFF] border-b border-[#E8EDFA]"
         style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
       >
-        {["Vendor", "Invoice #", "Amount", "Date", "Confidence", "Status", "Category", ""].map((h, i) => (
+        {["Vendor", "Invoice #", "Amount", "Date", "Status", "Category", ""].map((h, i) => (
           <span
             key={i}
             className="text-[11.5px] font-[700] uppercase tracking-[0.04em] text-[#64748B]"

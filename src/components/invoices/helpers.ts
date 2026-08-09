@@ -12,12 +12,6 @@ export function initials(name: string): string {
   return name.split(/\s+/).map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase()
 }
 
-export function confidenceColor(pct: number): string {
-  if (pct >= 0.9) return "#34D399"
-  if (pct >= 0.75) return "#FBBF24"
-  return "#FB7171"
-}
-
 export function fmtAmount(amount: string, currency: string): string {
   // Delegates to fmtMoney, which normalizes symbol "currencies" ("₪" → "ILS")
   // and falls back gracefully — a raw symbol would otherwise throw in Intl.

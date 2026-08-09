@@ -80,7 +80,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
   const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
-  const pct = Math.round(invoice.extractionConfidence * 100)
 
   const amountValid =
     draft.totalAmount.trim() !== "" &&
@@ -149,9 +148,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <StatusBadge status={status} />
           <CategoryBadge category={invoice.category} />
         </div>
-        <p className="text-[12.5px] text-[#94A3B8] mb-6">
-          Extraction confidence: {pct}%
-        </p>
 
         {/* Fixed-expense link indication */}
         {invoice.fixedExpense && (

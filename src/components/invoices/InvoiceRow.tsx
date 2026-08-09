@@ -4,7 +4,6 @@ import { STATUS_META, TABLE_GRID_COLUMNS } from "./constants"
 import { fmtAmount } from "./helpers"
 import type { InvoiceRow as InvoiceRowType } from "./types"
 import { VendorCell } from "./VendorCell"
-import { ConfidenceCell } from "./ConfidenceCell"
 import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
 import { GmailLinkButton } from "./GmailLinkButton"
@@ -42,9 +41,6 @@ export function InvoiceRow({ invoice, onSelect }: {
       <span className="text-[13px] text-[#64748B]">
         {format(new Date(invoice.emailDate), "MMM d")}
       </span>
-
-      {/* Confidence */}
-      <ConfidenceCell confidence={invoice.extractionConfidence} />
 
       {/* Status */}
       <div>
