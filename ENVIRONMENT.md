@@ -8,8 +8,8 @@ All environment variables used by the project, grouped by function.
 > All LLM features (classifier, extractor, categorizer, arbitrator) run on Google
 > Gemini via **Vertex AI**. Auth is GCP Application Default Credentials (the
 > Cloud Run service account in prod, or `gcloud auth application-default login`
-> locally) — no API key. They share `GCP_PROJECT_ID` / `GCP_REGION`, and the
-> runtime service account needs the **Vertex AI User** role
+> locally) — no API key. They share `GCP_PROJECT_ID` and the Vertex location, and
+> the runtime service account needs the **Vertex AI User** role
 > (`roles/aiplatform.user`).
 >
 > **One model drives everything: set `LLM_MODEL`** (e.g. `gemini-2.5-flash`) and
@@ -18,12 +18,20 @@ All environment variables used by the project, grouped by function.
 > reconcile arbitration. A feature is enabled whenever `LLM_MODEL` is set (any
 > model name the Vertex client accepts); leaving it unset disables every LLM tier
 > (fail-open to heuristics).
+>
+> **Model location:** the Vertex client calls `VERTEX_LOCATION` (→ `GCP_REGION` →
+> `us-central1`). All **Gemini 3.x** models are served only on the **`global`**
+> endpoint, not regional endpoints like `us-central1`, so to run any 3.x model set
+> `VERTEX_LOCATION=global`. It's a separate var from `GCP_REGION` on purpose:
+> `GCP_REGION` also pins the Cloud Run Jobs and the batch-classifier GCS bucket,
+> which need a real region — never `global`.
 
 ## LLM model (shared)
 
 | Var | Purpose |
 |---|---|
 | `LLM_MODEL` | The model for **all** LLM features (e.g. `gemini-2.5-flash`); any model name the Vertex client accepts. Unset disables every LLM tier. |
+| `VERTEX_LOCATION` | Vertex model location. Defaults to `GCP_REGION`, then `us-central1`. Set to `global` for Gemini 3.x (global-endpoint only). Kept separate from `GCP_REGION`, which pins Cloud Run Jobs / GCS to a real region. |
 
 ## Core (required)
 
