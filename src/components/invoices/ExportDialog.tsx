@@ -27,6 +27,7 @@ import {
   type ExportFormat,
 } from "@/api/exports"
 import { useExports } from "@/components/exports/ExportsProvider"
+import { track } from "@/lib/analytics"
 
 type Scope = { preset: DateRangePreset } | { from: string; to: string }
 
@@ -148,6 +149,7 @@ export function ExportDialog({
         })
         trackExport(exportJobId)
       }
+      track("invoice_exported", { format, count: invoiceIds.length })
       onClose()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Export failed")

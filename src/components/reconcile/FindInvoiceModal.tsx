@@ -18,7 +18,7 @@ export function FindInvoiceModal({
   onClose: () => void
 }) {
   return (
-    <Dialog open={!!transaction} onOpenChange={(open) => { if (!open) onClose() }}>
+    <Dialog name="find_invoice" open={!!transaction} onOpenChange={(open) => { if (!open) onClose() }}>
       {transaction && (
         <FindInvoiceModalBody
           key={transaction.id}

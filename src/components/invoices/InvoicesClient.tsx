@@ -104,7 +104,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
       />
 
       {/* Custom date-range dialog */}
-      <Dialog open={customDateOpen} onOpenChange={setCustomDateOpen}>
+      <Dialog name="invoices_custom_date_range" open={customDateOpen} onOpenChange={setCustomDateOpen}>
         {customDateOpen && (
           <DateRangeDialog
             scope={dateScope}
@@ -115,7 +115,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
       </Dialog>
 
       {/* Export dialog */}
-      <Dialog open={!!exportFormat} onOpenChange={(open) => { if (!open) setExportFormat(null) }}>
+      <Dialog name="invoices_export" open={!!exportFormat} onOpenChange={(open) => { if (!open) setExportFormat(null) }}>
         {exportFormat && (
           <ExportDialog format={exportFormat} onClose={() => setExportFormat(null)} />
         )}
