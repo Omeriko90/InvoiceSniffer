@@ -227,6 +227,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           {[
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
             { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
+            { label: "Tax",       value: invoice.taxAmount != null ? fmtAmount(invoice.taxAmount, invoice.currency) : "—" },
             { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
             // Most receipts are already paid, so a missing due date means
             // "not applicable" — hide the row rather than show a dash

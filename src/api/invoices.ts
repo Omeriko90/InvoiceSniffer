@@ -1,4 +1,5 @@
 import type { InvoiceCategory } from "@/lib/invoice-categories"
+import type { InvoiceRow } from "@/components/invoices/types"
 
 export type UpdateInvoicePayload = {
   vendorName?: string | null
@@ -60,4 +61,15 @@ async function unlinkFixedExpense(id: string): Promise<void> {
   }
 }
 
-export { updateInvoice, removeInvoice, restoreInvoice, unlinkFixedExpense }
+// Fetch one invoice as a full InvoiceRow — used to open the invoice drawer from
+// outside the list (e.g. a fixed-expense period).
+async function fetchInvoice(id: string): Promise<InvoiceRow> {
+  const res = await fetch(`/api/invoices/${id}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to load invoice")
+  }
+  return res.json()
+}
+
+export { updateInvoice, removeInvoice, restoreInvoice, unlinkFixedExpense, fetchInvoice }

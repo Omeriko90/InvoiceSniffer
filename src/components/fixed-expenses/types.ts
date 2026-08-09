@@ -30,19 +30,23 @@ export type FixedExpenseRow = {
 // invoice-drawer "link to an existing expense" dropdown (no computed status).
 export type FixedExpenseListItem = Omit<FixedExpenseRow, "currentStatus" | "createdAt" | "sourceAccount">
 
-// One entry in the detail-drawer timeline: a period + whether its invoice arrived.
+// One entry in the detail-drawer timeline: a period + the invoices that arrived
+// in it (newest first). Usually 0 or 1, but a period can hold several (e.g. a
+// bi-weekly expense with two bills in a month), which the drawer lets you pick from.
+export type FixedExpenseTimelineInvoice = {
+  id: string
+  vendorName: string | null
+  totalAmount: string
+  currency: string
+  emailDate: string
+}
+
 export type FixedExpenseTimelineEntry = {
   index: number
   periodStart: string
   periodEnd: string
   status: FixedExpensePeriodStatus
-  invoice: {
-    id: string
-    vendorName: string | null
-    totalAmount: string
-    currency: string
-    emailDate: string
-  } | null
+  invoices: FixedExpenseTimelineInvoice[]
 }
 
 export type FixedExpenseTimelineResponse = {

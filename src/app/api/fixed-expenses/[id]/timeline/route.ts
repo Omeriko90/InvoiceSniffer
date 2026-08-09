@@ -51,8 +51,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const serialized: FixedExpenseTimelineEntry[] = entries.map((entry) => {
     const graceEnd = addDays(entry.end, expense.gracePeriodDays).getTime()
-    // Most recent invoice whose emailDate lands in this period's arrival window.
-    const invoice = invoices.find(
+    // Every invoice whose emailDate lands in this period's arrival window
+    // (invoices is already newest-first from the query's orderBy).
+    const periodInvoices = invoices.filter(
       (inv) => inv.emailDate.getTime() >= entry.start.getTime() && inv.emailDate.getTime() < graceEnd,
     )
     return {
@@ -60,15 +61,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       periodStart: entry.start.toISOString(),
       periodEnd: entry.end.toISOString(),
       status: entry.status,
-      invoice: invoice
-        ? {
-            id: invoice.id,
-            vendorName: invoice.vendorName,
-            totalAmount: invoice.totalAmount.toString(),
-            currency: invoice.currency,
-            emailDate: invoice.emailDate.toISOString(),
-          }
-        : null,
+      invoices: periodInvoices.map((invoice) => ({
+        id: invoice.id,
+        vendorName: invoice.vendorName,
+        totalAmount: invoice.totalAmount.toString(),
+        currency: invoice.currency,
+        emailDate: invoice.emailDate.toISOString(),
+      })),
     }
   })
 
