@@ -59,7 +59,6 @@ export async function GET() {
         organizationId,
         removedAt: null,
         status: { not: "IGNORED" },
-        documentType: "TAX_INVOICE",
         emailDate: { gte: monthStart, lte: monthEnd },
         taxAmount: { not: null },
       },
