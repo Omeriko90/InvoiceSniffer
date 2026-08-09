@@ -35,6 +35,7 @@ import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
 import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
 import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog"
+import { track } from "@/lib/analytics"
 
 export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   invoice: InvoiceRow
@@ -404,6 +405,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
       {/* Removal confirmation */}
       <Dialog
+        name="invoice_remove_confirm"
         open={confirmReason !== null}
         onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
       >
@@ -454,7 +456,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </Dialog>
 
       {/* Mark as fixed expense — pre-filled from this invoice, links it on save */}
-      <Dialog open={markFixedOpen} onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
+      <Dialog name="invoice_mark_fixed" open={markFixedOpen} onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
         {markFixedOpen && (
           <FixedExpenseFormDialog
             prefill={{
@@ -468,13 +470,16 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             linkInvoiceId={invoice.id}
             mailboxes={[]}
             onClose={() => setMarkFixedOpen(false)}
-            onSaved={() => router.refresh()}
+            onSaved={() => {
+              track("invoice_marked_fixed", { invoiceId: invoice.id })
+              router.refresh()
+            }}
           />
         )}
       </Dialog>
 
       {/* Remove this invoice from its fixed expense */}
-      <Dialog open={unlinkOpen} onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
+      <Dialog name="invoice_unlink" open={unlinkOpen} onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Remove from fixed expense?</DialogTitle>
@@ -496,7 +501,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             <Button
               className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
               disabled={unlink.isPending}
-              onClick={() => unlink.mutate(invoice.id, { onSuccess: () => setUnlinkOpen(false) })}
+              onClick={() => unlink.mutate(invoice.id, { onSuccess: () => {
+                track("invoice_unlinked", { invoiceId: invoice.id })
+                setUnlinkOpen(false)
+              } })}
             >
               {unlink.isPending ? "Removing…" : "Remove"}
             </Button>
