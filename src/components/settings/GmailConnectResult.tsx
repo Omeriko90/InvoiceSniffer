@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import { track } from "@/lib/analytics"
 
 // Friendly copy for each `gmail_error` code the OAuth callback can redirect
 // with (see src/app/api/gmail/callback/route.ts). `access_denied` comes from
@@ -59,6 +60,7 @@ export function GmailConnectResult() {
     shown.current = true
 
     if (connected) {
+      track("account_connected")
       toast.success("Gmail connected", {
         description: "We'll start detecting invoices shortly.",
       })
