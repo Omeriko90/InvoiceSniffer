@@ -28,4 +28,4 @@ export const STATUS_OPTIONS = [
   { value: "REVIEWED", label: "Reviewed" },
 ]
 
-export const TABLE_GRID_COLUMNS = "1.6fr 1fr 0.8fr 0.7fr 1.1fr 0.9fr 1fr 40px"
+export const TABLE_GRID_COLUMNS = "1.6fr 1fr 0.8fr 0.7fr 0.9fr 1fr 40px"
