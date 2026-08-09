@@ -21,6 +21,21 @@ export const INVOICE_CATEGORIES = [
 
 export type InvoiceCategory = (typeof INVOICE_CATEGORIES)[number]
 
+// The category rubric handed to the LLM. Shared by the always-run text-only
+// categorizer (llm-categorizer.ts) and the Tier-2 vision extractor
+// (llm-extractor.ts) so both classify against identical definitions.
+export const CATEGORY_GUIDANCE = `Pick exactly ONE category, by what the business is spending money ON:
+- MARKETING: advertising, ad spend, PR, social/media, design, sponsorships, events.
+- EQUIPMENT: physical hardware and machinery — computers, phones, furniture, tools.
+- SOFTWARE: SaaS, cloud/hosting, licenses, subscriptions, developer/API services.
+- TRAVEL: flights, hotels, car rental, taxi/rideshare, fuel, parking, meals while traveling.
+- OFFICE_SUPPLIES: consumables and small office goods — paper, stationery, kitchen, cleaning.
+- PROFESSIONAL_SERVICES: accountants, lawyers, consultants, agencies, contractors, bookkeeping.
+- UTILITIES: electricity, water, gas, internet, phone/mobile service, communications.
+- OTHER: a clear business expense that fits none of the above.
+- UNCATEGORIZED: only when there is genuinely not enough information to decide.
+Return UNCATEGORIZED rather than guessing when unsure.`
+
 export const CATEGORY_LABELS: Record<InvoiceCategory, string> = {
   MARKETING: "Marketing",
   EQUIPMENT: "Equipment",

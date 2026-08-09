@@ -2,6 +2,7 @@ import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
 import { normalizeCurrencyCode } from "@/lib/csv-import"
 import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { log } from "@/lib/posthog-server"
 
 // Tier 2: structured LLM extraction from an invoice PDF. This is the deferred
@@ -42,6 +43,7 @@ const extractionSchema = z.object({
   totalAmount: z.number().nullable(),
   lineItems: z.array(lineItemSchema),
   documentType: z.enum(DOCUMENT_TYPES),
+  category: z.enum(INVOICE_CATEGORIES),
 })
 
 export type LlmExtraction = z.infer<typeof extractionSchema>
@@ -78,11 +80,12 @@ const RESPONSE_SCHEMA: Schema = {
       },
     },
     documentType: { type: Type.STRING, enum: [...DOCUMENT_TYPES] },
+    category: { type: Type.STRING, enum: [...INVOICE_CATEGORIES] },
   },
   required: [
     "vendorName", "vendorTaxId", "invoiceNumber", "allocationNumber",
     "invoiceDate", "dueDate", "currency", "subtotalAmount", "vatAmount",
-    "totalAmount", "lineItems", "documentType",
+    "totalAmount", "lineItems", "documentType", "category",
   ],
 }
 
@@ -97,7 +100,9 @@ Guardrails:
 - documentType: TAX_INVOICE (חשבונית מס), RECEIPT (קבלה), CREDIT_INVOICE (חשבונית זיכוי), else UNKNOWN.
 - When the document shows subtotal, VAT and total, they must satisfy subtotalAmount + vatAmount = totalAmount; re-read the figures if they do not.
 - Return at most 20 line items.
-- Return null for any field not present. Do not guess.`
+- Return null for any field not present. Do not guess.
+- category is NOT nullable — always return one of the enum values (use UNCATEGORIZED when unsure). Classify by what the business is spending money ON, using the full document (vendor, line items, logo/branding):
+${CATEGORY_GUIDANCE}`
 
 export function extractorEnabled(): boolean {
   return isGeminiModel(process.env.EXTRACTION_MODEL)
