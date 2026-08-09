@@ -268,7 +268,7 @@ export function FixedExpenseDetailDrawer({
       </div>
 
       {/* Delete confirmation */}
-      <Dialog open={confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}>
+      <Dialog name="fixed_expense_delete_confirm" open={confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete this fixed expense?</DialogTitle>
@@ -297,7 +297,7 @@ export function FixedExpenseDetailDrawer({
       </Dialog>
 
       {/* Manual link picker */}
-      <Dialog open={linkingIndex !== null} onOpenChange={(open) => { if (!open) setLinkingIndex(null) }}>
+      <Dialog name="fixed_expense_link_invoice" open={linkingIndex !== null} onOpenChange={(open) => { if (!open) setLinkingIndex(null) }}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
             <DialogTitle>Link an existing invoice</DialogTitle>
@@ -336,7 +336,7 @@ export function FixedExpenseDetailDrawer({
       </Dialog>
 
       {/* Which invoice to open, when a period holds more than one */}
-      <Dialog open={chooser !== null} onOpenChange={(open) => { if (!open) setChooser(null) }}>
+      <Dialog name="fixed_expense_period_invoices" open={chooser !== null} onOpenChange={(open) => { if (!open) setChooser(null) }}>
         {chooser && (
           <DialogContent className="sm:max-w-[440px]">
             <DialogHeader>
