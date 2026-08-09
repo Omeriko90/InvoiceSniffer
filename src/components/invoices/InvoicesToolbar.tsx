@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/components/menu"
 import { STATUS_OPTIONS } from "./constants"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import type { UIState } from "./types"
@@ -139,18 +139,16 @@ export function InvoicesToolbar({
 
       {/* Date filter */}
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="secondary"
-              className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
-            >
-              <CalendarDays size={14} className="text-dim" />
-              {dateScopeLabel(dateScope)}
-              <ChevronDown size={14} className="text-dim" />
-            </Button>
-          }
-        />
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="secondary"
+            className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
+          >
+            <CalendarDays size={14} className="text-dim" />
+            {dateScopeLabel(dateScope)}
+            <ChevronDown size={14} className="text-dim" />
+          </Button>
+        </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {INVOICE_DATE_PRESETS.map((p) => (
             <DropdownMenuItem key={p} onClick={() => onDateScopeChange({ preset: p })}>
@@ -195,18 +193,16 @@ export function InvoicesToolbar({
 
       <div className="ml-auto shrink-0">
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="secondary"
-                className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
-              >
-                <Download size={14} />
-                Export
-                <ChevronDown size={14} className="text-dim" />
-              </Button>
-            }
-          />
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
+            >
+              <Download size={14} />
+              Export
+              <ChevronDown size={14} className="text-dim" />
+            </Button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onExport("csv")}>Export as CSV</DropdownMenuItem>
             <DropdownMenuItem onClick={() => onExport("xlsx")}>Export as Excel</DropdownMenuItem>

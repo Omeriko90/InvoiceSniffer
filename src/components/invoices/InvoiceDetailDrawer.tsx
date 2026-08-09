@@ -6,7 +6,7 @@ import { format } from "date-fns"
 import { Button } from "@/components/ui/components/buttons"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/components/checkbox"
 import {
   Select,
   SelectContent,

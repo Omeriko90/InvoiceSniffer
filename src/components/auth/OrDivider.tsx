@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from auth forms.
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/components/separator"
 
 export function OrDivider() {
   return (

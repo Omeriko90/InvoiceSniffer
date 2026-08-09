@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { format as formatDate } from "date-fns"
 import { FormDialog } from "@/components/ui/form-dialog"
 import { Button } from "@/components/ui/components/buttons"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/components/checkbox"
 import { Input } from "@/components/ui/input"
 import { ToggleChip } from "@/components/ui/toggle-chip"
 import {

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/components/menu"
 
 export function UserCard({ userName, userEmail, userInitials }: {
   userName?: string
