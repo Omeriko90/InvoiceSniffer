@@ -54,8 +54,8 @@ function Button({
     // Fire a named PostHog event when clicked. No-op in dev / when unset.
     analytics?: AnalyticsInput
   }) {
-  const handleClick = analytics
-    ? (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick: ButtonPrimitive.Props["onClick"] = analytics
+    ? (event) => {
         trackInput(analytics)
         onClick?.(event)
       }

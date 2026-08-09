@@ -87,8 +87,8 @@ function DropdownMenuItem({
   // Fire a named PostHog event when selected. No-op in dev / when unset.
   analytics?: AnalyticsInput
 }) {
-  const handleClick = analytics
-    ? (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick: MenuPrimitive.Item.Props["onClick"] = analytics
+    ? (event) => {
         trackInput(analytics)
         onClick?.(event)
       }
