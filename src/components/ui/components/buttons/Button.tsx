@@ -4,7 +4,7 @@ import { cn } from '../utils';
 import { LoadingSpinner } from '../spinner/LoadingSpinner';
 
 const buttonVariants = cva(
-  'relative inline-flex items-center justify-center gap-1.5 px-3 rounded-lg text-2-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+  'relative inline-flex items-center justify-center gap-1.5 px-3 rounded-lg text-2-medium whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
   {
     variants: {
       variant: {

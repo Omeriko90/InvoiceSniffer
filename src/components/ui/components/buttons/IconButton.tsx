@@ -4,7 +4,7 @@ import { type LucideIcon } from 'lucide-react';
 import { cn } from '../utils';
 import { Tooltip, TooltipArrow, TooltipContent, TooltipTrigger } from '../tooltip/Tooltip';
 
-const iconButtonVariants = cva('inline-flex items-center justify-center transition-colors', {
+const iconButtonVariants = cva('inline-flex items-center justify-center transition-colors cursor-pointer', {
   variants: {
     size: {
       sm: 'size-4',
