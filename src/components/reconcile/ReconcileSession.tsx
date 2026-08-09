@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchMatch, reconcileAction } from "@/api/reconcile"
 import { resolveDateRange } from "@/lib/date-range"
+import { track } from "@/lib/analytics"
 import { DateRangeBar } from "@/components/reconcile/DateRangeBar"
 import { AddFilesPanel } from "@/components/reconcile/AddFilesPanel"
 import { ReconcileSummary } from "@/components/reconcile/ReconcileSummary"
@@ -175,6 +176,7 @@ export function ReconcileSession() {
         aiSuggested: false,
         invoice: candidateToInvoice(candidate),
       }))
+      track("reconcile_match_confirmed", { confidence: candidate.confidence ?? 1 })
       setFindFor(null)
     } catch {
       // toast already shown

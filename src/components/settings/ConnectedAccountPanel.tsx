@@ -66,6 +66,7 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
       </Button>
       <Button
         variant="outline"
+        analytics="account_disconnected"
         onClick={onDisconnect}
         disabled={disconnecting}
         className="shrink-0 h-auto text-[13px] font-[600] text-danger bg-surface border-[#FECACA] rounded-[9px] px-[14px] py-[7px] hover:bg-danger-bg hover:text-danger disabled:opacity-60"
