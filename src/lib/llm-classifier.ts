@@ -1,15 +1,12 @@
 import { Type, type Schema } from "@google/genai"
-import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 
 // LLM second opinion for borderline invoice-detection scores. Runs on Google
-// Gemini via Vertex AI (see gemini.ts for auth/project config). The model is
-// picked via env so it can be swapped without code changes:
-//   CLASSIFIER_MODEL   e.g. "gemini-2.5-flash"
-//
-// Unset CLASSIFIER_MODEL (or a non-gemini value) disables the classifier; any
-// runtime error returns null so detection falls back to the heuristic
-// threshold (fail-open).
+// Gemini via Vertex AI (see gemini.ts for auth/project config). The shared
+// LLM_MODEL env var picks the model; unset (or a non-gemini value) disables the
+// classifier. Any runtime error returns null so detection falls back to the
+// heuristic threshold (fail-open).
 
 export type ClassifierExample = {
   subject: string
@@ -46,12 +43,12 @@ export const RESPONSE_SCHEMA: Schema = {
 }
 
 export function classifierEnabled(): boolean {
-  return isGeminiModel(process.env.CLASSIFIER_MODEL)
+  return Boolean(llmModel())
 }
 
 export async function classifyInvoiceEmail(input: ClassifierInput): Promise<ClassifierVerdict | null> {
-  const model = process.env.CLASSIFIER_MODEL
-  if (!isGeminiModel(model)) return null
+  const model = llmModel()
+  if (!model) return null
 
   try {
     const res = await geminiClient().models.generateContent({

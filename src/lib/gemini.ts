@@ -10,9 +10,11 @@ import { GoogleGenAI } from "@google/genai"
 //   GCP_PROJECT_ID   Vertex project (required)
 //   GCP_REGION       Vertex location, e.g. "us-central1" (defaults to us-central1)
 //
-// The model is picked per call site via env (EXTRACTION_MODEL /
-// RECONCILE_ARBITER_MODEL / CLASSIFIER_MODEL), e.g. "gemini-2.5-flash", so it
-// can be swapped without code changes. Callers handle errors (fail-open).
+// One model drives every LLM-backed feature — classification, PDF vision
+// extraction, categorization, reconcile arbitration. Set LLM_MODEL (e.g.
+// "gemini-2.5-flash") and everything runs on it, swappable to any model the
+// Vertex client accepts without code changes. Leaving it unset disables every
+// LLM tier. Callers handle errors (fail-open).
 
 const DEFAULT_LOCATION = "us-central1"
 
@@ -29,8 +31,9 @@ export function geminiClient(): GoogleGenAI {
   return client
 }
 
-// True when `model` names a Gemini model. Gates the LLM tiers the same way the
-// old `startsWith("claude")` check did, so an unset/other model disables them.
-export function isGeminiModel(model: string | undefined): model is string {
-  return Boolean(model && model.startsWith("gemini"))
+// The single model every LLM call site uses, so one LLM_MODEL configures the
+// whole app — any model name the Vertex client accepts. Undefined when unset,
+// which each caller treats as "feature disabled".
+export function llmModel(): string | undefined {
+  return process.env.LLM_MODEL || undefined
 }

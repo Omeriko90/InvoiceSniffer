@@ -119,16 +119,16 @@ async function main() {
     }
   }
 
-  // 4. Tier 2 LLM extraction (only when EXTRACTION_MODEL is set)
+  // 4. Tier 2 LLM extraction (only when LLM_MODEL is set)
   console.log(`\n── Tier 2 LLM extractor ${"─".repeat(40)}`)
   if (!extractorEnabled()) {
-    console.log("(disabled — set EXTRACTION_MODEL=gemini-2.5-flash to test)")
+    console.log("(disabled — set LLM_MODEL=gemini-2.5-flash to test)")
   } else {
     const pdfBytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachments)
     if (!pdfBytes) {
       console.log("(no PDF attachment to send to the LLM)")
     } else {
-      console.log(`Sending ${pdfBytes.length} bytes to ${process.env.EXTRACTION_MODEL} …`)
+      console.log(`Sending ${pdfBytes.length} bytes to ${process.env.LLM_MODEL} …`)
       const llm = await extractInvoiceFromPdf({ pdfBytes, subject, senderEmail })
       console.log(llm ? JSON.stringify(llm, null, 2) : "(extractor returned null / failed — see warnings above)")
     }

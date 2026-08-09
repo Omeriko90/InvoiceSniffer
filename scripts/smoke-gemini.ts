@@ -3,33 +3,25 @@
 //   npx tsx scripts/smoke-gemini.ts
 import "dotenv/config"
 import { Type } from "@google/genai"
-import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 
 function report() {
   console.log("── Gemini smoke test ──────────────────────────────")
   console.log("backend:        Vertex AI (ADC)")
   console.log(`  GCP_PROJECT_ID: ${process.env.GCP_PROJECT_ID ?? "(unset!)"}`)
   console.log(`  GCP_REGION:     ${process.env.GCP_REGION ?? "us-central1 (default)"}`)
-  const feats = {
-    CLASSIFIER_MODEL: process.env.CLASSIFIER_MODEL,
-    EXTRACTION_MODEL: process.env.EXTRACTION_MODEL,
-    RECONCILE_ARBITER_MODEL: process.env.RECONCILE_ARBITER_MODEL,
-  }
-  for (const [k, v] of Object.entries(feats)) {
-    const state = !v ? "disabled (unset)" : isGeminiModel(v) ? `enabled → ${v}` : `DISABLED — not a gemini-* model (${v})`
-    console.log(`${k.padEnd(24)}${state}`)
-  }
-  return feats
+  // One model drives every LLM feature (classifier, extractor, categorizer,
+  // arbitrator); any value enables them all, unset disables them.
+  const model = llmModel()
+  console.log(`LLM_MODEL               ${model ? `enabled → ${model}` : "disabled (unset) — all LLM features off"}`)
+  return model
 }
 
 async function main() {
-  const feats = report()
+  const configured = report()
 
-  // Use a configured feature model if present, else a sensible default, so the
-  // test reflects the model the app will actually call.
-  const model =
-    [feats.EXTRACTION_MODEL, feats.CLASSIFIER_MODEL, feats.RECONCILE_ARBITER_MODEL].find(isGeminiModel) ??
-    "gemini-2.5-flash"
+  // Test the configured model, else a sensible default so the round-trip still runs.
+  const model = configured ?? "gemini-2.5-flash"
 
   console.log(`\nCalling ${model} with a structured-output request …`)
   const res = await geminiClient().models.generateContent({

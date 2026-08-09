@@ -1,7 +1,7 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
 import { differenceInCalendarDays } from "date-fns"
-import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 import {
   DEFAULT_DATE_WINDOW,
@@ -29,12 +29,10 @@ import type { SessionResult, SessionRow } from "@/lib/match-session"
 // obfuscated merchant.
 //
 // Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
-// Config (mirrors llm-extractor.ts):
-//   RECONCILE_ARBITER_MODEL     e.g. "gemini-2.5-flash" — gemini-* only
-//   RECONCILE_ARBITER_MAX_ROWS  per-session cap on rows sent to the model (default 25)
-//
-// Unset RECONCILE_ARBITER_MODEL (or a non-gemini value) disables arbitration;
-// any runtime error returns null so the deterministic result stands (fail-open).
+// The shared LLM_MODEL env var picks the model; unset (or a non-gemini value)
+// disables arbitration. RECONCILE_ARBITER_MAX_ROWS caps rows sent per session
+// (default 25). Any runtime error returns null so the deterministic result
+// stands (fail-open).
 
 // Candidates surfaced per ambiguous row before calling the model. Small so the
 // prompt stays cheap and the model isn't asked to rank a haystack.
@@ -88,7 +86,7 @@ Guardrails:
 - reasoning is one short sentence a user can read to understand the link.`
 
 export function arbiterEnabled(): boolean {
-  return isGeminiModel(process.env.RECONCILE_ARBITER_MODEL)
+  return Boolean(llmModel())
 }
 
 function maxRows(): number {
@@ -160,8 +158,8 @@ export async function arbitrate(
   row: SessionRow,
   candidates: SessionInvoice[]
 ): Promise<ArbitrationVerdict | null> {
-  const model = process.env.RECONCILE_ARBITER_MODEL
-  if (!isGeminiModel(model) || candidates.length === 0) return null
+  const model = llmModel()
+  if (!model || candidates.length === 0) return null
 
   try {
     const res = await geminiClient().models.generateContent({
