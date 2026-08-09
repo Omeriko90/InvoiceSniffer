@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -324,7 +324,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         {editing ? (
           <>
             <Button
-              variant="outline"
+              variant="secondary"
               className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
               disabled={update.isPending}
               onClick={() => {
@@ -347,10 +347,9 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         ) : (
           <>
             <Button
-              variant="outline"
+              variant="secondary"
               className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
-              nativeButton={false}
-              render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
+              link={invoice.gmailLink}
             >
               <ExternalLink size={15} strokeWidth={1.5} />
               Open in Gmail

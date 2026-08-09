@@ -1,6 +1,6 @@
 // Client component by import — only ever rendered from <GmailConnectionCard>.
 import { AlertTriangle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { DangerButton } from "@/components/ui/danger-button"
 import type { GmailConnection } from "@/api-types/settings"
 import { useGmailSync } from "@/hooks/useGmailSync"
@@ -57,7 +57,7 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         </p>
       </div>
       <Button
-        variant="outline"
+        variant="secondary"
         onClick={() => sync.mutate(gmail.id)}
         disabled={syncing}
         className="shrink-0 h-auto text-[13px] font-[600] text-[#047857] bg-surface border-[#BBE7CD] rounded-[9px] px-[14px] py-[7px] hover:bg-success-bg hover:text-[#047857] disabled:opacity-60"

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { format as formatDate } from "date-fns"
 import { Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { fetchExportsHistory, downloadExport, type ExportHistoryItem } from "@/api/exports"
 
 const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; bg: string; color: string }> = {
@@ -78,7 +78,7 @@ export function ExportsHistoryClient() {
                 </td>
                 <td className="px-[16px] py-[12px] text-right">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     disabled={e.status !== "READY"}
                     onClick={() => downloadExport(e.id)}

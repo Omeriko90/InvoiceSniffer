@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from the Alerts page.
 import { ALERT_FILTERS, type AlertFilter } from "@/api-types/alerts"
 import { CHIP_META } from "@/components/alerts/constants"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 
 export function FilterChips({
   filter,

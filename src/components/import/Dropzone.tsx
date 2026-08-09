@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <ImportWizard>.
 import { useRef, useState } from "react"
 import { Upload, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { cn } from "@/lib/utils"
 
 type DropzoneProps = {
@@ -44,7 +44,7 @@ export function Dropzone({ onFile }: DropzoneProps) {
           Export transactions from your bank or card provider, then drop the file here.
         </p>
       </div>
-      <Button variant="outline" size="sm" className="gap-1.5 text-[13px] mt-1 pointer-events-none">
+      <Button variant="secondary" size="sm" className="gap-1.5 text-[13px] mt-1 pointer-events-none">
         <FileText size={14} />
         Browse files
       </Button>

@@ -1,7 +1,6 @@
 // Client component by import — only ever rendered from already-client parents.
 import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import {
   Dialog,
   DialogContent,
@@ -54,7 +53,7 @@ export function ConfirmationDialog({
 
         <DialogFooter className="border-t-0 bg-transparent p-0">
           <Button
-            variant="outline"
+            variant="secondary"
             className="rounded-[10px] text-[13.5px] font-[600]"
             disabled={isPending}
             onClick={() => onOpenChange(false)}
@@ -62,11 +61,8 @@ export function ConfirmationDialog({
             {cancelLabel}
           </Button>
           <Button
-            variant={destructive ? undefined : "default"}
-            className={cn(
-              "rounded-[10px] text-[13.5px] font-[700]",
-              destructive && "border-0 bg-danger text-white hover:opacity-90"
-            )}
+            color={destructive ? "destructive" : "default"}
+            className="rounded-[10px] text-[13.5px] font-[700]"
             disabled={isPending}
             onClick={onConfirm}
           >

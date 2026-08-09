@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { useDisconnectGmail } from "@/hooks/useDisconnectGmail"
 import type { GmailConnection } from "@/api-types/settings"
 import { GoogleGlyph } from "./GoogleGlyph"
@@ -43,7 +43,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               </p>
             ) : (
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => { window.location.href = "/api/gmail/connect" }}
                 className="self-start h-auto text-[13px] font-[600] text-primary bg-surface border-border rounded-[9px] px-[14px] py-[7px] hover:bg-hover"
               >

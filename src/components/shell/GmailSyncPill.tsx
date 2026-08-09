@@ -2,7 +2,7 @@
 import { AlertTriangle } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { queries } from "@/queries"
 
 // Self-fetching Gmail status pill. Shows a red "out of sync" link (to reconnect)

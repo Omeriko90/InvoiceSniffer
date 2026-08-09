@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <ImportWizard>.
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { FIELDS } from "./constants"
 import { FileSummary } from "./FileSummary"
 import { MappingRow } from "./MappingRow"
@@ -54,7 +54,7 @@ export function MapColumnsStep({
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
-          <Button variant="outline" size="lg" className="text-[13.5px] px-4" onClick={onBack}>
+          <Button variant="secondary" size="lg" className="text-[13.5px] px-4" onClick={onBack}>
             Back
           </Button>
           <Button

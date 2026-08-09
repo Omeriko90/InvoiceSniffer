@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { FormDialog } from "@/components/ui/form-dialog"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -231,7 +231,7 @@ export function FixedExpenseFormDialog({
         <>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={onClose}
             disabled={pending || absorb.isPending}
             className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
@@ -422,7 +422,7 @@ export function FixedExpenseFormDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => setConfirmOpen(false)}
               disabled={absorb.isPending}
               className="rounded-[10px] text-[13.5px] font-[600]"

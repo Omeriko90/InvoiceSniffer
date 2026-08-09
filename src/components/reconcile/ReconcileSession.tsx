@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { fetchMatch, reconcileAction } from "@/api/reconcile"
 import { resolveDateRange } from "@/lib/date-range"
 import { DateRangeBar } from "@/components/reconcile/DateRangeBar"
@@ -225,7 +225,7 @@ export function ReconcileSession() {
     <div className="flex flex-col gap-[16px]">
       <div className="flex items-center justify-between">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           className="gap-1.5 text-[13px]"
           onClick={() => setResult(null)}
@@ -236,7 +236,7 @@ export function ReconcileSession() {
         <Button
           size="sm"
           className="text-[13px]"
-          variant="outline"
+          variant="secondary"
           disabled={reconciling}
           onClick={runMatch}
         >

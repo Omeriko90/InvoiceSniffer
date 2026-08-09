@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { format as formatDate } from "date-fns"
 import { FormDialog } from "@/components/ui/form-dialog"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { ToggleChip } from "@/components/ui/toggle-chip"
@@ -166,7 +166,7 @@ export function ExportDialog({
           <span className="text-[12.5px] text-text-secondary mr-auto">
             {selectedIds.size} of {invoices.length} selected
           </span>
-          <Button variant="outline" onClick={onClose} disabled={submitting}>
+          <Button variant="secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
           <Button onClick={handleExport} disabled={submitting || selectedIds.size === 0}>
@@ -243,13 +243,13 @@ export function ExportDialog({
               Invoices
             </p>
             {invoices.length > 0 && (
-              <Button
-                variant="link"
+              <button
+                type="button"
                 onClick={toggleAll}
-                className="h-auto p-0 rounded-none text-[12.5px] font-[600] text-[#3B6FE0] cursor-pointer hover:no-underline"
+                className="h-auto p-0 bg-transparent rounded-none text-[12.5px] font-[600] text-[#3B6FE0] cursor-pointer hover:opacity-80"
               >
                 {allSelected ? "Deselect all" : "Select all"}
-              </Button>
+              </button>
             )}
           </div>
 

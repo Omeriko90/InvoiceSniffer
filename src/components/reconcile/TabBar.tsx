@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import type { TabId } from "@/components/reconcile/types"
 
 export function TabBar({

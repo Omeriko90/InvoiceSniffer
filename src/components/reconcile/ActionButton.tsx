@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { cn } from "@/lib/utils"
 
 // Semantic reconcile actions mapped onto the shared <Button> variants so they
@@ -7,14 +7,14 @@ export type ActionVariant = "outline" | "neutral" | "green" | "blue" | "find"
 
 const VARIANT_MAP: Record<
   ActionVariant,
-  { variant: "outline" | "default" | "success"; className?: string }
+  { variant: "primary" | "secondary"; className?: string }
 > = {
-  outline: { variant: "outline", className: "text-dim" },
-  neutral: { variant: "outline", className: "text-subtle" },
-  green:   { variant: "success" },
-  blue:    { variant: "default" },
+  outline: { variant: "secondary", className: "text-dim" },
+  neutral: { variant: "secondary", className: "text-subtle" },
+  green:   { variant: "primary", className: "bg-success text-primary-foreground hover:bg-success border-0" },
+  blue:    { variant: "primary" },
   // No token for this soft-blue accent yet, so it stays arbitrary but centralized.
-  find:    { variant: "outline", className: "border-[#BFDBFF] text-[#3B6FE0] hover:bg-info-bg" },
+  find:    { variant: "secondary", className: "border-[#BFDBFF] text-[#3B6FE0] hover:bg-info-bg" },
 }
 
 export function ActionButton({

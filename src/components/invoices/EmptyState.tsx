@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import Link from "next/link"
 import { FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { EmptyState as EmptyStateShell } from "@/components/ui/empty-state"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { useSettings } from "@/hooks/useSettings"
@@ -34,14 +34,13 @@ export function EmptyState() {
             {sync.isPending ? "Starting…" : "Run a Gmail sync"}
           </Button>
         ) : (
-          <Button
-            nativeButton={false}
-            render={<Link href="/api/gmail/connect" />}
-            className={ctaClass}
+          <Link
+            href="/api/gmail/connect"
+            className={`inline-flex items-center justify-center ${ctaClass}`}
             style={ctaStyle}
           >
             Connect Gmail
-          </Button>
+          </Link>
         )
       }
     />

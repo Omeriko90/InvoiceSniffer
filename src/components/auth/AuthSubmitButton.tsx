@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from auth forms.
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 
 export function AuthSubmitButton({ disabled, children }: {
   disabled?: boolean

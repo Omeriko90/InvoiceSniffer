@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { addDays, addMonths, format } from "date-fns"
 import { Pause, Play, Pencil, Trash2, Link2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import {
   Dialog,
@@ -196,7 +196,7 @@ export function FixedExpenseDetailDrawer({
       <div className="flex flex-col gap-[10px] px-[22px] py-[16px] border-t border-hover shrink-0">
         <div className="flex gap-[10px]">
           <Button
-            variant="outline"
+            variant="secondary"
             className="flex-1 h-auto py-[10px] rounded-[10px] border-border text-[13.5px] font-[600] text-heading"
             onClick={onEdit}
           >
@@ -204,7 +204,7 @@ export function FixedExpenseDetailDrawer({
             Edit
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             className="flex-1 h-auto py-[10px] rounded-[10px] border-border text-[13.5px] font-[600] text-heading"
             disabled={update.isPending}
             onClick={togglePause}

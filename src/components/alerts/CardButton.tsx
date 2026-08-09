@@ -1,6 +1,6 @@
 // Client component by import — only ever rendered from <AlertCard>.
 // Small pill-shaped button matching the mock's View/Dismiss affordances.
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 
 export function CardButton({
   onClick,
@@ -15,7 +15,7 @@ export function CardButton({
 }) {
   return (
     <Button
-      variant="outline"
+      variant="secondary"
       onClick={onClick}
       disabled={disabled}
       className="h-auto text-[12.5px] font-[600] px-[13px] py-[7px] rounded-[9px] border border-[#E8EDFA] bg-white whitespace-nowrap cursor-pointer transition-colors hover:bg-[#F1F3F8] hover:text-inherit disabled:opacity-50 disabled:cursor-default"

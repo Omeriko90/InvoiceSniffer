@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,7 +142,7 @@ export function InvoicesToolbar({
         <DropdownMenuTrigger
           render={
             <Button
-              variant="outline"
+              variant="secondary"
               className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
             >
               <CalendarDays size={14} className="text-dim" />
@@ -198,7 +198,7 @@ export function InvoicesToolbar({
           <DropdownMenuTrigger
             render={
               <Button
-                variant="outline"
+                variant="secondary"
                 className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary gap-[6px]"
               >
                 <Download size={14} />

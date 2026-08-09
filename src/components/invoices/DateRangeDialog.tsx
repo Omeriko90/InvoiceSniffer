@@ -3,7 +3,7 @@ import { useState } from "react"
 import { format as formatDate } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { FormDialog } from "@/components/ui/form-dialog"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/components/buttons"
 import { Calendar } from "@/components/ui/calendar"
 import { isPreset, type InvoiceDateScope } from "@/lib/invoice-date-filter"
 
@@ -48,7 +48,7 @@ export function DateRangeDialog({
       footer={
         <>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={onClose}
             className="h-auto py-[8px] rounded-[10px] border-border bg-surface text-[13px] font-[600] text-text-primary"
           >
