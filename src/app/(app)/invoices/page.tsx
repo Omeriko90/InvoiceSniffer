@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { InvoicesClient } from "@/components/invoices/InvoicesClient"
 import type { InvoiceRow } from "@/components/invoices/types"
+import { INVOICE_ROW_SELECT, toInvoiceRow } from "@/lib/invoice-row"
 
 async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
   const invoices = await prisma.invoice.findMany({
@@ -10,52 +11,10 @@ async function getInvoices(organizationId: string): Promise<InvoiceRow[]> {
     where: { organizationId, removedAt: null },
     orderBy: { emailDate: "desc" },
     take: 200,
-    select: {
-      id: true,
-      vendorName: true,
-      invoiceNumber: true,
-      totalAmount: true,
-      currency: true,
-      emailDate: true,
-      invoiceDate: true,
-      dueDate: true,
-      extractionConfidence: true,
-      status: true,
-      category: true,
-      gmailLink: true,
-      senderEmail: true,
-      senderName: true,
-      subject: true,
-      attachmentMeta: true,
-      receiptUrl: true,
-      gmailCredential: { select: { email: true, label: true } },
-      fixedExpense: { select: { id: true, name: true } },
-    },
+    select: INVOICE_ROW_SELECT,
   })
 
-  return invoices.map((inv) => ({
-    id: inv.id,
-    vendorName: inv.vendorName,
-    invoiceNumber: inv.invoiceNumber,
-    totalAmount: inv.totalAmount.toString(),
-    currency: inv.currency,
-    emailDate: inv.emailDate.toISOString(),
-    invoiceDate: inv.invoiceDate?.toISOString() ?? null,
-    dueDate: inv.dueDate?.toISOString() ?? null,
-    extractionConfidence: inv.extractionConfidence,
-    status: inv.status as InvoiceRow["status"],
-    category: inv.category,
-    gmailLink: inv.gmailLink,
-    senderEmail: inv.senderEmail,
-    senderName: inv.senderName,
-    subject: inv.subject,
-    attachmentMeta: inv.attachmentMeta as InvoiceRow["attachmentMeta"],
-    receiptUrl: inv.receiptUrl,
-    sourceAccount: inv.gmailCredential
-      ? { email: inv.gmailCredential.email, label: inv.gmailCredential.label }
-      : null,
-    fixedExpense: inv.fixedExpense,
-  }))
+  return invoices.map(toInvoiceRow)
 }
 
 export default async function InvoicesPage() {

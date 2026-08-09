@@ -4,6 +4,26 @@ import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
+import { INVOICE_ROW_SELECT, toInvoiceRow } from "@/lib/invoice-row"
+
+// Fetch a single invoice as a full InvoiceRow — powers the invoice drawer when
+// opened outside the list (e.g. from a fixed-expense period). Org-scoped.
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id } = await params
+  const invoice = await prisma.invoice.findFirst({
+    where: { id, organizationId: session.user.organizationId },
+    select: INVOICE_ROW_SELECT,
+  })
+  if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  return NextResponse.json(toInvoiceRow(invoice))
+}
 
 const MAX_TEXT = 500
 const MAX_AMOUNT = 1e12 // generous per-invoice ceiling; blocks storage/overflow abuse

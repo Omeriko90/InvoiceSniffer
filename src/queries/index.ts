@@ -3,6 +3,7 @@ import { dashboardKeys } from "./dashboard";
 import { fixedExpensesKeys } from "./fixed-expenses";
 import { gmailKeys } from "./gmail";
 import { importKeys } from "./import";
+import { invoicesKeys } from "./invoices";
 import { reconcileKeys } from "./reconcile";
 import { settingsKeys } from "./settings";
 
@@ -12,6 +13,7 @@ export const queries = {
   fixedExpenses: fixedExpensesKeys,
   gmail: gmailKeys,
   import: importKeys,
+  invoices: invoicesKeys,
   reconcile: reconcileKeys,
   settings: settingsKeys,
 };

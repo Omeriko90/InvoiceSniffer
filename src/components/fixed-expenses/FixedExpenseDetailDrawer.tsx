@@ -1,10 +1,11 @@
 // Client component by import — only ever rendered from <FixedExpensesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { addDays, addMonths, format } from "date-fns"
-import { Pause, Play, Pencil, Trash2, Link2 } from "lucide-react"
+import { Pause, Play, Pencil, Trash2, Link2, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import {
   Dialog,
   DialogContent,
@@ -23,8 +24,11 @@ import {
   useFixedExpenseCandidates,
   useLinkInvoiceToFixedExpense,
 } from "@/hooks/useFixedExpenseTimeline"
+import { InvoiceDetailDrawer } from "@/components/invoices/InvoiceDetailDrawer"
+import { useInvoice } from "@/hooks/useInvoice"
+import { queries } from "@/queries"
 import { FixedExpenseStatusBadge } from "./FixedExpenseStatusBadge"
-import type { FixedExpenseRow } from "./types"
+import type { FixedExpenseRow, FixedExpenseTimelineEntry } from "./types"
 
 function periodLabel(startIso: string, frequency: FixedExpenseFrequency): string {
   const d = new Date(startIso)
@@ -49,6 +53,7 @@ export function FixedExpenseDetailDrawer({
   onDismiss: () => void
 }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const update = useUpdateFixedExpense()
   const remove = useDeleteFixedExpense()
   const timeline = useFixedExpenseTimeline(expense.id)
@@ -57,6 +62,10 @@ export function FixedExpenseDetailDrawer({
   // Which period index is picking an invoice to link (null = picker closed).
   const [linkingIndex, setLinkingIndex] = useState<number | null>(null)
   const candidates = useFixedExpenseCandidates(expense.id, linkingIndex !== null)
+  // Invoice drawer opened from a period (null = closed).
+  const [openInvoiceId, setOpenInvoiceId] = useState<string | null>(null)
+  // Period whose multiple invoices are being chosen from (null = chooser closed).
+  const [chooser, setChooser] = useState<FixedExpenseTimelineEntry | null>(null)
 
   const paused = expense.status === "PAUSED"
   // Arrays now — join all vendor titles / senders for display.
@@ -88,6 +97,13 @@ export function FixedExpenseDetailDrawer({
         router.refresh()
       },
     })
+  }
+
+  // Clicking a period jumps to its invoice: straight to the one if there's a
+  // single match, otherwise a chooser so the user picks which invoice to open.
+  function openPeriod(entry: FixedExpenseTimelineEntry) {
+    if (entry.invoices.length === 1) setOpenInvoiceId(entry.invoices[0].id)
+    else if (entry.invoices.length > 1) setChooser(entry)
   }
 
   const entries = timeline.data?.pages.flatMap((p) => p.entries) ?? []
@@ -150,34 +166,61 @@ export function FixedExpenseDetailDrawer({
           <p className="text-[12.5px] text-dim">No periods yet.</p>
         ) : (
           <div className="flex flex-col gap-[8px]">
-            {entries.map((entry) => (
-              <div
-                key={entry.index}
-                className="flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px]"
-              >
-                <div className="min-w-0">
-                  <p className="text-[13px] font-[600] text-text-primary">
-                    {periodLabel(entry.periodStart, expense.frequency)}
-                  </p>
-                  {entry.invoice ? (
-                    <p className="text-[12px] text-text-secondary mt-0.5">
-                      {fmtAmount(entry.invoice.totalAmount, entry.invoice.currency)} ·{" "}
-                      {format(new Date(entry.invoice.emailDate), "MMM d")}
+            {entries.map((entry) => {
+              const hasInvoice = entry.invoices.length > 0
+              const first = entry.invoices[0]
+              return (
+                <div
+                  key={entry.index}
+                  role={hasInvoice ? "button" : undefined}
+                  tabIndex={hasInvoice ? 0 : undefined}
+                  onClick={hasInvoice ? () => openPeriod(entry) : undefined}
+                  onKeyDown={
+                    hasInvoice
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            openPeriod(entry)
+                          }
+                        }
+                      : undefined
+                  }
+                  className={`flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px] ${
+                    hasInvoice ? "cursor-pointer hover:bg-hover transition-colors" : ""
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-[600] text-text-primary">
+                      {periodLabel(entry.periodStart, expense.frequency)}
                     </p>
-                  ) : entry.status === "OVERDUE" ? (
-                    <button
-                      type="button"
-                      onClick={() => setLinkingIndex(entry.index)}
-                      className="flex items-center gap-[5px] text-[12px] font-[600] text-primary hover:underline mt-0.5"
-                    >
-                      <Link2 size={12} strokeWidth={2} />
-                      Link an existing invoice
-                    </button>
-                  ) : null}
+                    {hasInvoice ? (
+                      <p className="text-[12px] text-text-secondary mt-0.5">
+                        {fmtAmount(first.totalAmount, first.currency)} ·{" "}
+                        {format(new Date(first.emailDate), "MMM d")}
+                        {entry.invoices.length > 1 && (
+                          <span className="text-dim"> · +{entry.invoices.length - 1} more</span>
+                        )}
+                      </p>
+                    ) : entry.status === "OVERDUE" ? (
+                      <button
+                        type="button"
+                        onClick={() => setLinkingIndex(entry.index)}
+                        className="flex items-center gap-[5px] text-[12px] font-[600] text-primary hover:underline mt-0.5"
+                      >
+                        <Link2 size={12} strokeWidth={2} />
+                        Link an existing invoice
+                      </button>
+                    ) : (
+                      <p className="text-[12px] text-dim mt-0.5">No invoice yet</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-[8px] shrink-0">
+                    <FixedExpenseStatusBadge status={entry.status} variant="timeline" />
+                    {hasInvoice && <ChevronRight size={15} strokeWidth={2} className="text-dim" />}
+                  </div>
                 </div>
-                <FixedExpenseStatusBadge status={entry.status} variant="timeline" />
-              </div>
-            ))}
+              )
+            })}
             {timeline.hasNextPage && (
               <Button
                 variant="ghost"
@@ -291,6 +334,85 @@ export function FixedExpenseDetailDrawer({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Which invoice to open, when a period holds more than one */}
+      <Dialog open={chooser !== null} onOpenChange={(open) => { if (!open) setChooser(null) }}>
+        {chooser && (
+          <DialogContent className="sm:max-w-[440px]">
+            <DialogHeader>
+              <DialogTitle>Invoices this period</DialogTitle>
+              <DialogDescription>
+                {periodLabel(chooser.periodStart, expense.frequency)} has more than one invoice. Pick one to open.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-[8px] max-h-[50vh] overflow-y-auto">
+              {chooser.invoices.map((inv) => (
+                <button
+                  key={inv.id}
+                  type="button"
+                  onClick={() => { setOpenInvoiceId(inv.id); setChooser(null) }}
+                  className="flex items-center justify-between gap-3 border border-border rounded-[11px] px-[13px] py-[10px] text-left hover:bg-hover"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-[600] text-text-primary truncate">{inv.vendorName ?? "—"}</p>
+                    <p className="text-[12px] text-text-secondary mt-0.5">
+                      {format(new Date(inv.emailDate), "MMM d, yyyy")}
+                    </p>
+                  </div>
+                  <span className="text-[13px] font-[700] text-heading shrink-0">
+                    {fmtAmount(inv.totalAmount, inv.currency)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* Invoice detail, stacked over this drawer when a period is opened */}
+      <Sheet open={openInvoiceId !== null} onOpenChange={(open) => { if (!open) setOpenInvoiceId(null) }}>
+        {openInvoiceId && (
+          <InvoiceDrawerLoader
+            key={openInvoiceId}
+            invoiceId={openInvoiceId}
+            onDismiss={() => setOpenInvoiceId(null)}
+            onSaved={() => {
+              queryClient.invalidateQueries({ queryKey: queries.invoices.detail(openInvoiceId).queryKey })
+              queryClient.invalidateQueries({ queryKey: queries.fixedExpenses.timeline(expense.id).queryKey })
+            }}
+          />
+        )}
+      </Sheet>
     </SheetContent>
   )
+}
+
+// Fetches the full invoice for the stacked drawer. Kept separate so the query
+// only runs while a period's invoice is open.
+function InvoiceDrawerLoader({
+  invoiceId,
+  onDismiss,
+  onSaved,
+}: {
+  invoiceId: string
+  onDismiss: () => void
+  onSaved: () => void
+}) {
+  const { data, isLoading } = useInvoice(invoiceId)
+
+  if (isLoading || !data) {
+    return (
+      <SheetContent
+        side="right"
+        className="w-[440px] sm:max-w-[440px] gap-0 bg-white border-l border-[#E8EDFA]"
+      >
+        <SheetTitle className="sr-only">Invoice</SheetTitle>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-[12.5px] text-dim">Loading invoice…</p>
+        </div>
+      </SheetContent>
+    )
+  }
+
+  return <InvoiceDetailDrawer invoice={data} onSaved={onSaved} onDismiss={onDismiss} />
 }

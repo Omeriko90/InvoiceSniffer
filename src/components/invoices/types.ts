@@ -16,6 +16,7 @@ export type InvoiceRow = {
   invoiceNumber: string | null
   totalAmount: string
   currency: string
+  taxAmount: string | null
   emailDate: string
   invoiceDate: string | null
   dueDate: string | null
