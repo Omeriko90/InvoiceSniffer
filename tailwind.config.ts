@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss"
 import animate from "tailwindcss-animate"
+import plugin from "tailwindcss/plugin"
+import { typographyClassNames } from "./src/components/ui/components/typography"
 
 // ─── Raw palette ───────────────────────────────────────────────────────────
 // Change values here — they propagate everywhere automatically.
@@ -132,7 +134,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [
+    animate,
+    // Register the vendored component library's typography scale (text-1/2/3-*,
+    // heading-sm/md/lg-*) as real utilities so those classes emit CSS.
+    plugin(({ addComponents }) => {
+      addComponents(typographyClassNames)
+    }),
+  ],
 }
 
 export default config
