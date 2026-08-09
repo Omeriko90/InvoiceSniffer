@@ -453,35 +453,25 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </Dialog>
 
       {/* Remove this invoice from its fixed expense */}
-      <Dialog open={unlinkOpen} onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove from fixed expense?</DialogTitle>
-            <DialogDescription>
+      {unlinkOpen && (
+        <ConfirmationDialog
+          open={unlinkOpen}
+          onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}
+          title="Remove from fixed expense?"
+          description={
+            <>
               This invoice will no longer count toward
               {invoice.fixedExpense ? ` “${invoice.fixedExpense.name}”` : " this fixed expense"}.
               The fixed expense keeps its match rules, so a matching invoice can re-link later.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-[10px] text-[13.5px] font-[600]"
-              disabled={unlink.isPending}
-              onClick={() => setUnlinkOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-[#DC2626] hover:bg-[#B91C1C]"
-              disabled={unlink.isPending}
-              onClick={() => unlink.mutate(invoice.id, { onSuccess: () => setUnlinkOpen(false) })}
-            >
-              {unlink.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </>
+          }
+          confirmLabel="Remove"
+          pendingLabel="Removing…"
+          destructive
+          isPending={unlink.isPending}
+          onConfirm={() => unlink.mutate(invoice.id, { onSuccess: () => setUnlinkOpen(false) })}
+        />
+      )}
     </SheetContent>
   )
 }
