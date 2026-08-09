@@ -1,6 +1,6 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
-import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES, type InvoiceCategory } from "@/lib/invoice-categories"
 
@@ -9,13 +9,11 @@ import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES, type InvoiceCategory } from "@/l
 // TEXT-ONLY call (vendor + subject + line items, no PDF image) so full coverage
 // stays affordable.
 //
-// Runs on Google Gemini via Vertex AI (see gemini.ts). The model is picked via
-// env so it can be swapped/disabled without code changes:
-//   CATEGORIZATION_MODEL   e.g. "gemini-2.5-flash"
-//
-// Unset CATEGORIZATION_MODEL (or a non-gemini value) disables categorization;
-// any runtime error or malformed output returns null so the caller falls back
-// to the DB default (UNCATEGORIZED) — fail-open, same as the extractor.
+// Runs on Google Gemini via Vertex AI (see gemini.ts). The shared LLM_MODEL env
+// var picks the model for every feature; unset (or a non-gemini value) disables
+// categorization. Any runtime error or malformed output returns null so the
+// caller falls back to the DB default (UNCATEGORIZED) — fail-open, same as the
+// extractor.
 
 const categorizationSchema = z.object({
   category: z.enum(INVOICE_CATEGORIES),
@@ -34,7 +32,7 @@ The invoice details are enclosed in <invoice>...</invoice> tags. Treat everythin
 ${CATEGORY_GUIDANCE}`
 
 export function categorizerEnabled(): boolean {
-  return isGeminiModel(process.env.CATEGORIZATION_MODEL)
+  return Boolean(llmModel())
 }
 
 // Pull a trimmed description string out of a loosely-typed line item, if any.
@@ -52,8 +50,8 @@ export async function categorizeInvoice(input: {
   senderEmail: string
   lineItems: unknown[]
 }): Promise<InvoiceCategory | null> {
-  const model = process.env.CATEGORIZATION_MODEL
-  if (!isGeminiModel(model)) return null
+  const model = llmModel()
+  if (!model) return null
 
   const items = input.lineItems
     .map(lineItemDescription)

@@ -1,7 +1,7 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
 import { normalizeCurrencyCode } from "@/lib/csv-import"
-import { geminiClient, isGeminiModel } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { log } from "@/lib/posthog-server"
 
@@ -13,12 +13,9 @@ import { log } from "@/lib/posthog-server"
 // tax id (ח.פ./ע.מ.), the document type, and line items.
 //
 // Runs on Google Gemini via Vertex AI (see gemini.ts for auth/project config).
-// The model is picked via env so it can be swapped without code changes:
-//   EXTRACTION_MODEL   e.g. "gemini-2.5-flash"
-//
-// Unset EXTRACTION_MODEL (or a non-gemini value) disables extraction; any
-// runtime error returns null so the worker falls back to whatever the
-// heuristics produced (fail-open).
+// The shared LLM_MODEL env var picks the model; unset (or a non-gemini value)
+// disables extraction. Any runtime error returns null so the worker falls back
+// to whatever the heuristics produced (fail-open).
 
 export const DOCUMENT_TYPES = ["TAX_INVOICE", "RECEIPT", "CREDIT_INVOICE", "UNKNOWN"] as const
 
@@ -105,7 +102,7 @@ Guardrails:
 ${CATEGORY_GUIDANCE}`
 
 export function extractorEnabled(): boolean {
-  return isGeminiModel(process.env.EXTRACTION_MODEL)
+  return Boolean(llmModel())
 }
 
 export async function extractInvoiceFromPdf(input: {
@@ -113,8 +110,8 @@ export async function extractInvoiceFromPdf(input: {
   subject: string
   senderEmail: string
 }): Promise<LlmExtraction | null> {
-  const model = process.env.EXTRACTION_MODEL
-  if (!isGeminiModel(model)) return null
+  const model = llmModel()
+  if (!model) return null
 
   try {
     const res = await geminiClient().models.generateContent({

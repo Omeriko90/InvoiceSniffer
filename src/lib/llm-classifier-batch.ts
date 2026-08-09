@@ -1,5 +1,5 @@
 import { JobState } from "@google/genai"
-import { geminiClient } from "@/lib/gemini"
+import { geminiClient, llmModel } from "@/lib/gemini"
 import { log } from "@/lib/posthog-server"
 import { batchGcsBucket, putBatchObject, readBatchJsonlUnder } from "@/lib/gcs"
 import {
@@ -34,9 +34,9 @@ export function batchClassifierEnabled(): boolean {
 // oversized sync still submits (as several jobs) and each input file stays sane.
 export const MAX_BATCH_REQUESTS = 1000
 
-// batchClassifierEnabled() guarantees CLASSIFIER_MODEL is a valid gemini model.
+// batchClassifierEnabled() guarantees LLM_MODEL is a valid gemini model.
 export function classifierModel(): string {
-  return process.env.CLASSIFIER_MODEL as string
+  return llmModel() as string
 }
 
 // One line of the input JSONL. Vertex Gemini batch wraps each request under

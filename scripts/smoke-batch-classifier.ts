@@ -3,10 +3,10 @@
 // batch job, poll to completion, read the predictions JSONL back, and verify the
 // verdicts. Validates GCS staging + auth + the JSONL request/response format.
 // Does NOT touch Gmail/DB.
-//   CLASSIFIER_MODEL=gemini-2.5-flash CLASSIFIER_BATCH_GCS_BUCKET=<bucket> \
+//   LLM_MODEL=gemini-2.5-flash CLASSIFIER_BATCH_GCS_BUCKET=<bucket> \
 //     npx tsx scripts/smoke-batch-classifier.ts
 import "dotenv/config"
-import { isGeminiModel } from "@/lib/gemini"
+import { llmModel } from "@/lib/gemini"
 import { batchGcsBucket } from "@/lib/gcs"
 import type { ClassifierInput } from "@/lib/llm-classifier"
 import {
@@ -44,9 +44,9 @@ const CASES: { key: string; input: ClassifierInput; expectInvoice: boolean }[] =
 ]
 
 async function main() {
-  const model = process.env.CLASSIFIER_MODEL
-  if (!isGeminiModel(model)) {
-    console.error("CLASSIFIER_MODEL is unset or not a gemini-* model — set it to run this spike.")
+  const model = llmModel()
+  if (!model) {
+    console.error("LLM_MODEL is unset — set it to run this spike.")
     process.exitCode = 1
     return
   }

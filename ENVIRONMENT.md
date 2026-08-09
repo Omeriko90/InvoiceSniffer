@@ -5,13 +5,25 @@ All environment variables used by the project, grouped by function.
 > One var is read **implicitly by the SDK** (not via `process.env`), so it
 > doesn't appear in a code grep: `AUTH_SECRET` (NextAuth v5).
 >
-> All three LLM features (classifier, extractor, arbitrator) run on Google
+> All LLM features (classifier, extractor, categorizer, arbitrator) run on Google
 > Gemini via **Vertex AI**. Auth is GCP Application Default Credentials (the
 > Cloud Run service account in prod, or `gcloud auth application-default login`
 > locally) — no API key. They share `GCP_PROJECT_ID` / `GCP_REGION`, and the
 > runtime service account needs the **Vertex AI User** role
-> (`roles/aiplatform.user`). Each feature is enabled by its own `*_MODEL` var
-> below.
+> (`roles/aiplatform.user`).
+>
+> **One model drives everything: set `LLM_MODEL`** (e.g. `gemini-2.5-flash`) and
+> every LLM feature runs on it — modern Gemini flash models are multimodal, so a
+> single model covers classification, PDF-vision extraction, categorization, and
+> reconcile arbitration. A feature is enabled whenever `LLM_MODEL` is set (any
+> model name the Vertex client accepts); leaving it unset disables every LLM tier
+> (fail-open to heuristics).
+
+## LLM model (shared)
+
+| Var | Purpose |
+|---|---|
+| `LLM_MODEL` | The model for **all** LLM features (e.g. `gemini-2.5-flash`); any model name the Vertex client accepts. Unset disables every LLM tier. |
 
 ## Core (required)
 
@@ -73,8 +85,8 @@ Local: `MODE=fixed-expenses-check npm run worker:batch`.
 
 Second opinion on borderline invoice-detection scores. Runs on Google Gemini
 (backend auto-selected — see the LLM note at the top).
-- Set `CLASSIFIER_MODEL` (e.g. `gemini-2.5-flash`).
-- `CLASSIFIER_MODEL` unset (or non-`gemini-*`) → classifier disabled; falls back to heuristics.
+- Enabled by the shared `LLM_MODEL` (e.g. `gemini-2.5-flash`).
+- `LLM_MODEL` unset → classifier disabled; falls back to heuristics.
 
 ### Batch mode (optional, enabled by setting `CLASSIFIER_BATCH_GCS_BUCKET`)
 
@@ -84,7 +96,7 @@ those emails to the asynchronous [Gemini Batch API](https://cloud.google.com/ver
 (~50% cheaper): the sync submits one batch job and returns; a later
 `MODE=classify-consume` run applies the verdicts and enqueues extractions.
 
-- Enabled when a valid `CLASSIFIER_MODEL` **and** `CLASSIFIER_BATCH_GCS_BUCKET` are set; unset the bucket and the sync uses the inline classifier.
+- Enabled when a valid `LLM_MODEL` **and** `CLASSIFIER_BATCH_GCS_BUCKET` are set; unset the bucket and the sync uses the inline classifier.
 - Vertex batch requires a GCS staging bucket (it rejects inline requests). Input/output JSONL live under `classifier-batches/…` in that bucket. Uses the same Vertex ADC as every other tier — the worker SA needs `roles/aiplatform.user` **and** `roles/storage.objectAdmin` on the bucket. Keep the bucket in the same region as `GCP_REGION`.
 - Cleanup: `classify-consume` deletes each batch's staged objects after applying its verdicts. Add a bucket **lifecycle rule** as a safety net for anything a crash leaves behind, e.g. delete objects after 7 days:
   ```
@@ -105,7 +117,6 @@ those emails to the asynchronous [Gemini Batch API](https://cloud.google.com/ver
 
 | Var | Purpose |
 |---|---|
-| `CLASSIFIER_MODEL` | Which Gemini model to use (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
 | `CLASSIFIER_BATCH_GCS_BUCKET` | Set → classify borderline emails via the async Gemini Batch API, staging JSONL in this bucket (also needs the `classify-consume` scheduler); unset = synchronous inline calls |
 
 ## LLM extractor — Tier 2 structured extraction (optional)
@@ -115,13 +126,13 @@ Structured PDF-vision extraction that captures fields the regex heuristics can't
 items) and cracks mojibake/RTL PDFs. Runs only when it uniquely helps: heuristics
 found no amount, or an Israeli document is missing the allocation number.
 
-- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `EXTRACTION_MODEL` (e.g. `gemini-2.5-flash`).
-- `EXTRACTION_MODEL` unset (or non-`gemini-*`) → extractor disabled; behaviour is heuristics-only, as before.
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Enabled by the shared `LLM_MODEL`.
+- `LLM_MODEL` unset → extractor disabled; behaviour is heuristics-only, as before.
 - Any error falls back to the heuristic result (fail-open).
+- Also classifies the expense category off the full document; that category is preferred over the text-only categorizer below.
 
 | Var | Purpose |
 |---|---|
-| `EXTRACTION_MODEL` | Which Gemini model to use for PDF extraction (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
 | `GCP_PROJECT_ID` / `GCP_REGION` | Vertex AI project + location (shared by all LLM features) |
 
 > Privacy: enabling this sends invoice PDF contents to Google Vertex AI, which
@@ -137,14 +148,17 @@ so full coverage stays affordable. Categories power the invoices-page filter and
 the dashboard's spend-by-category breakdown, and the user can override any
 invoice's category by hand.
 
-- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `CATEGORIZATION_MODEL` (e.g. `gemini-2.5-flash`).
-- `CATEGORIZATION_MODEL` unset (or non-`gemini-*`) → categorizer disabled; every invoice stays `UNCATEGORIZED` until set by hand.
-- Any error (or genuine uncertainty) leaves the invoice `UNCATEGORIZED` (fail-open).
-- Applied only when an invoice is first created — re-extraction never overwrites a category (auto or manual).
+This is the **fallback** categorizer: when a PDF was extracted (attachment or
+linked receipt), the Tier-2 extractor already assigns the category off the full
+document and this call is skipped. It runs for invoices with no PDF to extract
+(HTML-linked or body-only), off text signals alone.
 
-| Var | Purpose |
-|---|---|
-| `CATEGORIZATION_MODEL` | Which Gemini model to use for expense categorization (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Enabled by the shared `LLM_MODEL`.
+- `LLM_MODEL` unset → categorizer disabled; such invoices stay `UNCATEGORIZED` until set by hand.
+- Any error (or genuine uncertainty) leaves the invoice `UNCATEGORIZED` (fail-open).
+- Applied only when an invoice is first created — re-extraction never overwrites a category (auto or manual). Backfill existing rows with `npx tsx scripts/backfill-categories.ts` (see below).
+
+_No dedicated env var — governed by the shared `LLM_MODEL`._
 
 > Privacy: enabling this sends invoice metadata (vendor, subject, line-item text)
 > to Google Vertex AI, which does not use your data to train Google's models.
@@ -160,14 +174,13 @@ purchase, and surfaces its picks as **Possible** (never auto-confirmed). One use
 confirmation then teaches a vendor alias, so that merchant matches deterministically
 afterwards — the model is paid ~once per obfuscated merchant.
 
-- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Set `RECONCILE_ARBITER_MODEL` (e.g. `gemini-2.5-flash`).
-- `RECONCILE_ARBITER_MODEL` unset (or non-`gemini-*`) → disabled; the deterministic result stands, as before.
+- Runs on Google Gemini (backend auto-selected — see the LLM note at the top). Enabled by the shared `LLM_MODEL`.
+- `LLM_MODEL` unset → disabled; the deterministic result stands, as before.
 - Any error falls back to the deterministic result (fail-open).
 - Adds latency to `POST /api/reconcile/match` when on (one model call per ambiguous row, bounded concurrency).
 
 | Var | Purpose |
 |---|---|
-| `RECONCILE_ARBITER_MODEL` | Which Gemini model to arbitrate ambiguous matches (e.g. `gemini-2.5-flash`); unset/non-`gemini-*` = disabled |
 | `RECONCILE_ARBITER_MAX_ROWS` | Max ambiguous rows sent to the model per session (default 25); excess are logged and left deterministic |
 
 > Privacy: enabling this sends charge descriptors + candidate invoice metadata to
