@@ -147,7 +147,7 @@ export function FixedExpensesClient({
       </div>
 
       {/* Create / edit form */}
-      <Dialog open={formOpen} onOpenChange={(open) => { if (!open) setFormOpen(false) }}>
+      <Dialog name="fixed_expense_form" open={formOpen} onOpenChange={(open) => { if (!open) setFormOpen(false) }}>
         {formOpen && (
           <FixedExpenseFormDialog
             expense={editing ?? undefined}

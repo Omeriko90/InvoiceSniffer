@@ -35,6 +35,7 @@ import {
   type InvoiceCategory,
 } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
+import { track } from "@/lib/analytics"
 import type { FixedExpenseRow } from "./types"
 
 // Vendor titles / sender emails are entered comma-separated (the columns are
@@ -199,12 +200,12 @@ export function FixedExpenseFormDialog({
     if (expense) {
       update.mutate(
         { id: expense.id, data: base },
-        { onSuccess: () => { onSaved(); onClose() } },
+        { onSuccess: () => { track("fixed_expense_saved", { mode: "edit" }); onSaved(); onClose() } },
       )
     } else {
       create.mutate(
         { ...base, ...(linkInvoiceId ? { linkInvoiceId } : {}) },
-        { onSuccess: () => { onSaved(); onClose() } },
+        { onSuccess: () => { track("fixed_expense_saved", { mode: "create", linkedInvoice: Boolean(linkInvoiceId) }); onSaved(); onClose() } },
       )
     }
   }
@@ -411,7 +412,7 @@ export function FixedExpenseFormDialog({
       </DialogContent>
 
       {/* Confirm absorbing this invoice into the selected existing expense. */}
-      <Dialog open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
+      <Dialog name="fixed_expense_link_existing_confirm" open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
             <DialogTitle>Link to “{selected?.name}”?</DialogTitle>
