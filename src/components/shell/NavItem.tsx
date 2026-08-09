@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { track } from "@/lib/analytics"
 
 export function NavItem({ label, href, icon: Icon, active, badge }: {
   label: string
@@ -13,6 +14,7 @@ export function NavItem({ label, href, icon: Icon, active, badge }: {
   return (
     <Link
       href={href}
+      onClick={() => track("nav_item_clicked", { label, href })}
       className={cn(
         "flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[14px] transition-colors",
         active
