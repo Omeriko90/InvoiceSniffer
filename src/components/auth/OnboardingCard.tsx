@@ -31,8 +31,8 @@ export function OnboardingCard() {
 
       <Link
         href="/api/gmail/connect"
-        className="w-full h-[46px] gap-[10px] text-[15px] font-[700] rounded-[11px] flex items-center justify-center text-white"
-        style={{ background: "linear-gradient(135deg,#7AA7FF,#88D0FF)", boxShadow: "0 6px 16px rgba(122,167,255,.35)" }}
+        className="w-full h-[46px] gap-[10px] text-[15px] font-[700] rounded-[11px] flex items-center justify-center text-white bg-primary"
+        style={{ boxShadow: "0 6px 16px rgba(122,167,255,.35)" }}
       >
         <GoogleLogo />
         Connect Gmail

@@ -10,8 +10,8 @@ export function AuthSubmitButton({ disabled, children }: {
       type="submit"
       size="lg"
       disabled={disabled}
-      className="w-full text-[15px] font-[700] rounded-[11px] border-none text-white"
-      style={{ background: "linear-gradient(135deg,#7AA7FF,#88D0FF)", boxShadow: "0 6px 16px rgba(122,167,255,.32)" }}
+      className="w-full text-[15px] font-[700] rounded-[11px] border-none text-white bg-primary"
+      style={{ boxShadow: "0 6px 16px rgba(122,167,255,.32)" }}
     >
       {children}
     </Button>

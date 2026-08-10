@@ -6,9 +6,8 @@ import { EmptyState as EmptyStateShell } from "@/components/ui/empty-state"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { useSettings } from "@/hooks/useSettings"
 
-const ctaClass = "h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0"
+const ctaClass = "h-auto px-[18px] py-[10px] rounded-[10px] text-[13.5px] font-[700] text-white border-0 bg-primary"
 const ctaStyle = {
-  background: "linear-gradient(135deg,#7AA7FF,#88D0FF)",
   boxShadow: "0 4px 12px rgba(122,167,255,.3)",
 }
 

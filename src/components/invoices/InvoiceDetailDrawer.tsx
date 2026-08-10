@@ -336,8 +336,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Cancel
             </Button>
             <Button
-              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
-              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-primary"
               disabled={update.isPending || !amountValid}
               onClick={handleSave}
             >
@@ -356,8 +355,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Open in Gmail
             </Button>
             <Button
-              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
-              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0 bg-primary"
               onClick={() => setEditing(true)}
             >
               Edit fields

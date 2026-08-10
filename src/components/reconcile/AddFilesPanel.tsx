@@ -167,8 +167,7 @@ export function AddFilesPanel({
         </p>
         <Button
           size="lg"
-          className="text-[13.5px] px-4 text-white shadow-primary border-0"
-          style={{ background: "linear-gradient(135deg, #7AA7FF, #88D0FF)" }}
+          className="text-[13.5px] px-4 text-white shadow-primary border-0 bg-primary"
           disabled={files.length === 0 || reconciling}
           onClick={onReconcile}
         >

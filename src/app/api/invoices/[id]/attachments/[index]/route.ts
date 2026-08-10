@@ -61,7 +61,7 @@ function errorPage(
     display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px; }
   h1 { font-size:17px; margin:0 0 8px; }
   p { font-size:13.5px; line-height:1.55; color:#64748B; margin:0 0 20px; }
-  .btn { display:inline-block; background:linear-gradient(135deg,#7AA7FF,#88D0FF); color:#fff; text-decoration:none;
+  .btn { display:inline-block; background:#7AA7FF; color:#fff; text-decoration:none;
     font-size:13.5px; font-weight:600; padding:9px 18px; border-radius:10px; }
 </style></head>
 <body><div class="card">
