@@ -1,9 +1,8 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import type { Prisma } from "@prisma/client"
 import { z } from "zod"
-import { dedupeInsensitive } from "@/lib/fixed-expenses"
+import { buildFixedExpenseMatchWhere, dedupeInsensitive } from "@/lib/fixed-expenses"
 
 // Absorb a source invoice into an existing fixed expense (the invoice-drawer
 // "link to an existing expense" flow). Unlike link-invoice (a pure single link),
@@ -56,12 +55,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     })
 
     // Sweep in every unlinked invoice matching the merged signals — no anchorDate
-    // floor, so all PAST invoices "from this sender" are captured too. Sender
-    // matched case-insensitively (one condition per address; `in` can't set mode).
-    const matchOr: Prisma.InvoiceWhereInput[] = []
-    if (mergedNormalized.length > 0) matchOr.push({ vendorNormalized: { in: mergedNormalized } })
-    for (const email of mergedSenders) matchOr.push({ senderEmail: { equals: email, mode: "insensitive" } })
-    if (matchOr.length === 0) return
+    // floor, so all PAST invoices "from this sender" are captured too. A vendor
+    // conflict still blocks a shared-sender-only hit (mirrors matchesExpense).
+    const matchWhere = buildFixedExpenseMatchWhere({
+      vendorNormalized: mergedNormalized,
+      senderEmail: mergedSenders,
+    })
+    if (!matchWhere) return
 
     await tx.invoice.updateMany({
       where: {
@@ -69,7 +69,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         fixedExpenseId: null,
         removedAt: null,
         ...(expense.gmailCredentialId ? { gmailCredentialId: expense.gmailCredentialId } : {}),
-        OR: matchOr,
+        ...matchWhere,
       },
       data: { fixedExpenseId: expense.id },
     })

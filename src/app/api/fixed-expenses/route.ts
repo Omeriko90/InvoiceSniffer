@@ -1,12 +1,11 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import type { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { FIXED_EXPENSE_FREQUENCIES } from "@/lib/fixed-expense-meta"
 import { normalizeVendor } from "@/lib/invoice-detection"
-import { dedupeInsensitive, effectiveAnchor } from "@/lib/fixed-expenses"
+import { buildFixedExpenseMatchWhere, dedupeInsensitive, effectiveAnchor } from "@/lib/fixed-expenses"
 
 const MAX_TEXT = 200
 const MAX_AMOUNT = 1e12
@@ -132,13 +131,8 @@ export async function POST(request: Request) {
     // false alert for the current period. Matching mirrors matchesExpense() —
     // vendor OR sender, narrowed to the pinned mailbox — as a single updateMany.
     const backfillFrom = effectiveAnchor({ anchorDate: new Date(p.anchorDate), frequency: p.frequency })
-    const matchOr: Prisma.InvoiceWhereInput[] = []
-    if (vendorNormalized.length > 0) matchOr.push({ vendorNormalized: { in: vendorNormalized } })
-    // Sender match stays case-insensitive (one condition per address; `in` can't
-    // carry a mode). Invoice sender casing isn't guaranteed to match the stored
-    // lowercased signal.
-    for (const email of senderEmails) matchOr.push({ senderEmail: { equals: email, mode: "insensitive" } })
-    if (matchOr.length > 0) {
+    const matchWhere = buildFixedExpenseMatchWhere({ vendorNormalized, senderEmail: senderEmails })
+    if (matchWhere) {
       await tx.invoice.updateMany({
         where: {
           organizationId,
@@ -146,7 +140,7 @@ export async function POST(request: Request) {
           removedAt: null,
           emailDate: { gte: backfillFrom },
           ...(p.gmailCredentialId ? { gmailCredentialId: p.gmailCredentialId } : {}),
-          OR: matchOr,
+          ...matchWhere,
         },
         data: { fixedExpenseId: expense.id },
       })
