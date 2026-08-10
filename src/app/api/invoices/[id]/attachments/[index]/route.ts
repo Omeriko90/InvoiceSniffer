@@ -9,7 +9,7 @@ import {
   MAX_ATTACHMENT_BYTES,
 } from "@/lib/gmail-attachments"
 import { log } from "@/lib/posthog-server"
-import { type AttachmentErrorReason } from "@/lib/attachment-error"
+import { ATTACHMENT_ERRORS, type AttachmentErrorReason } from "@/lib/attachment-error"
 import { NextResponse } from "next/server"
 
 // Types safe to render inline — PDFs and raster images can't execute script.
@@ -23,10 +23,17 @@ const INLINE_SAFE_TYPES = new Set([
 ])
 
 // This endpoint is opened in a new browser tab (target="_blank"), so a raw JSON
-// error would show as ugly, confusing text. Redirect to the friendly, fully
-// tokenized /attachment-error page instead; the reason code selects the copy
-// and CTA there (e.g. a Reconnect button when Gmail needs re-authorizing).
-function errorRedirect(request: Request, reason: AttachmentErrorReason): NextResponse {
+// error would show as ugly, confusing text. Log the real error (with its true
+// status + context, so monitoring keeps the 4xx/5xx signal) and redirect the
+// browser to the friendly, tokenized /attachment-error page; the reason code
+// selects the copy and CTA there (e.g. a Reconnect button for Gmail).
+function errorRedirect(
+  request: Request,
+  reason: AttachmentErrorReason,
+  context: Record<string, unknown> = {}
+): NextResponse {
+  const { status } = ATTACHMENT_ERRORS[reason]
+  log[status >= 500 ? "error" : "warn"]("Attachment request failed", { reason, status, ...context })
   return NextResponse.redirect(new URL(`/attachment-error?reason=${reason}`, request.url))
 }
 
@@ -42,24 +49,37 @@ export async function GET(
   }
 
   const { id, index } = await params
+  // Attached to every error log below so a failure can be traced to the user,
+  // org, and exact attachment that triggered it.
+  const ctx = {
+    userId: session.user.id,
+    organizationId: session.user.organizationId,
+    invoiceId: id,
+    attachmentIndex: index,
+  }
+
   const invoice = await prisma.invoice.findFirst({
     where: { id, organizationId: session.user.organizationId },
     select: { gmailMessageId: true, gmailCredentialId: true, attachmentMeta: true },
   })
   if (!invoice) {
-    return errorRedirect(request, "invoice-not-found")
+    return errorRedirect(request, "invoice-not-found", ctx)
   }
 
   // Attribution is required to know which mailbox holds this message. Orphaned
   // rows (pre-migration, or whose mailbox was hard-removed) can't be fetched.
   if (!invoice.gmailCredentialId) {
-    return errorRedirect(request, "gmail-not-connected")
+    return errorRedirect(request, "gmail-not-connected", ctx)
   }
 
   const attachments = invoice.attachmentMeta as AttachmentMeta[]
   const meta = attachments[Number(index)]
   if (!meta || meta.size > MAX_ATTACHMENT_BYTES) {
-    return errorRedirect(request, "attachment-unavailable")
+    return errorRedirect(request, "attachment-unavailable", {
+      ...ctx,
+      attachmentSize: meta?.size,
+      attachmentCount: attachments.length,
+    })
   }
 
   try {
@@ -91,16 +111,16 @@ export async function GET(
       },
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     if (error instanceof GmailNotConnectedError) {
-      return errorRedirect(request, "gmail-out-of-sync")
+      return errorRedirect(request, "gmail-out-of-sync", { ...ctx, error: errorMessage })
     }
     if (error instanceof AttachmentNotFoundError) {
-      return errorRedirect(request, "attachment-unavailable")
+      return errorRedirect(request, "attachment-unavailable", { ...ctx, error: errorMessage })
     }
     if (error instanceof AttachmentTooLargeError) {
-      return errorRedirect(request, "too-large")
+      return errorRedirect(request, "too-large", { ...ctx, error: errorMessage })
     }
-    log.error("Attachment fetch failed", { error: error instanceof Error ? error.message : String(error) })
-    return errorRedirect(request, "fetch-failed")
+    return errorRedirect(request, "fetch-failed", { ...ctx, error: errorMessage })
   }
 }
