@@ -18,7 +18,7 @@ import {
   startOfWeek,
   startOfYear,
 } from "date-fns"
-import type { FixedExpenseFrequency } from "@prisma/client"
+import type { FixedExpenseFrequency, Prisma } from "@prisma/client"
 
 export type FixedExpensePeriodStatus = "ARRIVED" | "PENDING" | "OVERDUE"
 
@@ -179,8 +179,11 @@ export function periodTimeline(
 
 /**
  * Does an invoice satisfy a fixed expense? Matches on normalized vendor OR
- * sender email (either is enough); if the expense pins a mailbox, the invoice
- * must also come from it. Used by the ingest linker — see invoice-extract.ts.
+ * sender email (either is enough) — EXCEPT a sender hit is ignored when the
+ * invoice's own known vendor contradicts the expense's vendors (shared invoicing
+ * senders like iCount). If the expense pins a mailbox, the invoice must also come
+ * from it. Used by the ingest linker — see invoice-extract.ts. The SQL twin of
+ * this predicate is buildFixedExpenseMatchWhere below (used by the backfills).
  */
 // Case-insensitive dedup that keeps each value's first-seen spelling. Used to
 // keep a fixed expense's vendor-title / sender-email arrays free of duplicates
@@ -208,7 +211,54 @@ export function matchesExpense(
     !!invoice.vendorNormalized && expense.vendorNormalized.includes(invoice.vendorNormalized)
   const sender = invoice.senderEmail?.toLowerCase()
   const senderMatch = !!sender && expense.senderEmail.some((e) => e.toLowerCase() === sender)
+  // Shared invoicing senders (iCount, Stripe, …) deliver many vendors' invoices
+  // from one address, so a sender hit alone must not absorb an invoice whose OWN
+  // identified vendor contradicts the expense's known vendors. Only guard when we
+  // have both sides to compare — a sender-only expense (no vendorNormalized) or an
+  // invoice with no extracted vendor still falls back to sender matching.
+  const vendorConflict =
+    !!invoice.vendorNormalized && expense.vendorNormalized.length > 0 && !vendorMatch
+  if (vendorConflict) return false
   return vendorMatch || senderMatch
+}
+
+// SQL twin of matchesExpense() for the backfill/absorb sweeps (create route and
+// absorb-invoice route). Returns the invoice-match constraint the caller spreads
+// into its updateMany `where` (alongside org / fixedExpenseId / mailbox filters),
+// or null when the expense carries no match signal at all. `Prisma` is a type-only
+// import, so this stays runtime-pure like the rest of the module. Keep in lockstep
+// with matchesExpense: a sender hit must NOT absorb an invoice whose own known
+// vendor contradicts the expense's vendors (shared invoicing senders like iCount).
+export function buildFixedExpenseMatchWhere(signals: {
+  vendorNormalized: string[]
+  senderEmail: string[]
+}): Prisma.InvoiceWhereInput | null {
+  const vendors = signals.vendorNormalized
+  // One condition per address — `in` can't carry a case-insensitive mode, and
+  // stored senders are lowercased while invoice casing isn't guaranteed.
+  const senderConds: Prisma.InvoiceWhereInput[] = signals.senderEmail.map((e) => ({
+    senderEmail: { equals: e, mode: "insensitive" },
+  }))
+
+  // Sender-only expense: nothing to contradict, so match on sender alone.
+  if (vendors.length === 0) return senderConds.length > 0 ? { OR: senderConds } : null
+
+  const vendorCond: Prisma.InvoiceWhereInput = { vendorNormalized: { in: vendors } }
+  if (senderConds.length === 0) return vendorCond
+
+  // Vendor match, OR a sender match narrowed so an invoice with a KNOWN vendor
+  // outside the expense's list is excluded (a blank/null vendor is still allowed).
+  return {
+    OR: [
+      vendorCond,
+      {
+        AND: [
+          { OR: senderConds },
+          { OR: [{ vendorNormalized: null }, { vendorNormalized: "" }, vendorCond] },
+        ],
+      },
+    ],
+  }
 }
 
 // Structural shapes so both Prisma rows and lighter objects satisfy these — we
