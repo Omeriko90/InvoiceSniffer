@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/shell/Sidebar"
 import { Topbar } from "@/components/shell/Topbar"
 import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
+import { PageViewTracker } from "@/components/shared/PageViewTracker"
 import { ExportsProvider } from "@/components/exports/ExportsProvider"
 import { headers } from "next/headers"
 
@@ -40,6 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         name={session.user.name}
         organizationId={session.user.organizationId}
       />
+      <PageViewTracker />
       <Sidebar
         orgName="My Workspace"
         userName={session.user.name ?? undefined}

@@ -3,6 +3,7 @@ import posthog from "posthog-js"
 // Named, semantic PostHog events layered on top of autocapture. snake_case per
 // PostHog convention — extend this union as new events get instrumented.
 export type AnalyticsEvent =
+  | "page_viewed"
   | "nav_item_clicked"
   | "dialog_opened"
   | "invoice_exported"
