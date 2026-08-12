@@ -1,8 +1,11 @@
 import { PDFDocument } from "pdf-lib"
+import type { gmail_v1 } from "googleapis"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient, GmailNotConnectedError } from "@/lib/gmail"
 import { fetchAttachmentBytes, isPdfAttachment } from "@/lib/gmail-attachments"
-import { loadInvoicesForExport } from "@/lib/export-data"
+import { extractBodyText, type GmailPart } from "@/workers/invoice-extract"
+import { renderBodyInvoicePdf } from "@/lib/html-invoice-pdf"
+import { loadInvoicesForExport, type PdfExportInvoice } from "@/lib/export-data"
 import { putExportObject, getSignedExportUrl, exportObjectKey } from "@/lib/r2"
 import { log } from "@/lib/posthog-server"
 import { format as formatDate } from "date-fns"
@@ -66,9 +69,10 @@ async function buildOne(job: {
   const clientCache = new Map<string, Awaited<ReturnType<typeof getGmailClient>>>()
 
   for (const inv of invoices) {
-    const pdfMeta = inv.attachmentMeta.find(isPdfAttachment)
-    if (!pdfMeta || !inv.gmailCredentialId) {
-      skipped.push({ invoiceId: inv.id, vendorName: inv.vendorName, reason: "no_pdf_attachment" })
+    // Every source we can add — attachment PDF or rendered email body — lives in
+    // the invoice's Gmail mailbox. No credential means nothing to fetch.
+    if (!inv.gmailCredentialId) {
+      skipped.push({ invoiceId: inv.id, vendorName: inv.vendorName, reason: "no_source" })
       continue
     }
 
@@ -78,7 +82,20 @@ async function buildOne(job: {
         gmail = await getGmailClient(inv.gmailCredentialId)
         clientCache.set(inv.gmailCredentialId, gmail)
       }
-      const bytes = await fetchAttachmentBytes(gmail, inv.gmailMessageId, pdfMeta)
+
+      const pdfMeta = inv.attachmentMeta.find(isPdfAttachment)
+      const bytes = pdfMeta
+        ? await fetchAttachmentBytes(gmail, inv.gmailMessageId, pdfMeta)
+        : // Body-only invoice (e.g. Apple/Google receipt sent as email HTML with
+          // no attachment): render the email body itself into a PDF so it's still
+          // part of the export instead of being silently dropped.
+          await renderBodyPdf(gmail, inv)
+
+      if (!bytes) {
+        skipped.push({ invoiceId: inv.id, vendorName: inv.vendorName, reason: "no_source" })
+        continue
+      }
+
       const src = await PDFDocument.load(bytes, { ignoreEncryption: true })
       const pages = await merged.copyPages(src, src.getPageIndices())
       for (const page of pages) merged.addPage(page)
@@ -128,4 +145,22 @@ async function buildOne(job: {
       expiresAt,
     },
   })
+}
+
+// Re-fetch the invoice's Gmail message and render its email body into a PDF.
+// Mirrors how attachment bytes are re-fetched from Gmail at export time (no body
+// is persisted in the DB). Returns null when the message has no usable text body
+// so the caller can record it as skipped rather than merge a blank page.
+async function renderBodyPdf(
+  gmail: gmail_v1.Gmail,
+  inv: PdfExportInvoice
+): Promise<Uint8Array | null> {
+  const msg = await gmail.users.messages.get({
+    userId: "me",
+    id: inv.gmailMessageId,
+    format: "full",
+  })
+  const bodyText = extractBodyText(msg.data.payload as GmailPart).trim()
+  if (!bodyText) return null
+  return renderBodyInvoicePdf(bodyText, inv)
 }

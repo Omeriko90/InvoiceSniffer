@@ -18,9 +18,11 @@ const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; bg: str
 
 // Machine skip reasons (from the PDF build worker) → human copy.
 const SKIP_REASON_LABEL: Record<string, string> = {
+  no_source: "No attachment or email content to include",
+  // Retained so historical exports built before the rename still render.
   no_pdf_attachment: "No PDF attachment on the email",
   gmail_not_connected: "Gmail account no longer connected",
-  fetch_or_parse_failed: "Couldn't fetch or read the PDF",
+  fetch_or_parse_failed: "Couldn't fetch or read the invoice",
 }
 
 function skipReasonLabel(reason: string): string {
