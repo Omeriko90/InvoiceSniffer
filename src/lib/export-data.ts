@@ -56,7 +56,9 @@ export async function loadInvoicesForExport(
 ): Promise<PdfExportInvoice[]> {
   if (invoiceIds.length === 0) return []
   const rows = await prisma.invoice.findMany({
-    where: { organizationId, id: { in: invoiceIds } },
+    // removedAt: null is defense-in-depth — ids come from the (already filtered)
+    // preview, but this stops a stale/crafted id pulling a removed invoice in.
+    where: { organizationId, id: { in: invoiceIds }, removedAt: null },
     select: PDF_SELECT,
   })
   const byId = new Map(rows.map((r) => [r.id, r]))
@@ -75,6 +77,9 @@ export async function loadInvoicesInRange(
   const rows = await prisma.invoice.findMany({
     where: {
       organizationId,
+      // Exclude soft-deleted invoices (marked "not relevant" / "not an invoice"),
+      // matching every other list. Mirrors the invoices page's removedAt filter.
+      removedAt: null,
       status: { not: "IGNORED" },
       OR: [
         { invoiceDate: { gte: range.from, lte: range.to } },
