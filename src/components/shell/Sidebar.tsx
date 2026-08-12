@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Settings } from "lucide-react"
 import { useAlerts } from "@/hooks/useAlerts"
+import { useExports } from "@/components/exports/ExportsProvider"
 import { WORKSPACE_NAV, INSIGHTS_NAV } from "./constants"
 import { Logo } from "./Logo"
 import { NavGroup } from "./NavGroup"
@@ -20,6 +21,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
   const pathname = usePathname()
   const { data: alertsData } = useAlerts("all")
   const alertCount = alertsData?.counts.all ?? 0
+  const { readyCount } = useExports()
 
   return (
     <aside className="w-[248px] shrink-0 h-full bg-surface border-r border-border flex flex-col">
@@ -33,7 +35,7 @@ export function Sidebar({ orgName = "My Workspace", userName, userEmail, userIni
           label="Insights"
           items={INSIGHTS_NAV}
           pathname={pathname}
-          badges={{ "/alerts": alertCount || undefined }}
+          badges={{ "/alerts": alertCount || undefined, "/exports": readyCount || undefined }}
         />
       </nav>
 

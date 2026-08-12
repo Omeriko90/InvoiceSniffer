@@ -22,6 +22,13 @@ export type ExportStatusResponse = {
   ready: boolean
 }
 
+// One invoice left out of a (PDF) export, with the machine reason it was skipped.
+export type ExportSkippedEntry = {
+  invoiceId: string
+  vendorName: string | null
+  reason: string
+}
+
 export type ExportHistoryItem = {
   id: string
   format: "CSV" | "XLSX" | "PDF"
@@ -29,7 +36,9 @@ export type ExportHistoryItem = {
   fileName: string | null
   dateRangeStart: string
   dateRangeEnd: string
+  invoiceCount: number
   skippedCount: number
+  skipped: ExportSkippedEntry[]
   createdAt: string
   expiresAt: string | null
 }
