@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock, Repeat, Trash2, X } from "lucide-react"
+import { Ban, ExternalLink, FileText, Lock, MoreHorizontal, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
@@ -366,41 +373,47 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             >
               Edit fields
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    aria-label="More actions"
+                    className="h-auto py-[10px] px-[12px] rounded-[10px] border-[#E8EDFA] text-heading"
+                  >
+                    <MoreHorizontal size={16} strokeWidth={1.8} />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" side="top" className="w-[220px]">
+                {!invoice.fixedExpense && (
+                  <DropdownMenuItem onClick={() => setMarkFixedOpen(true)}>
+                    <Repeat size={14} strokeWidth={1.8} />
+                    Mark as fixed expense
+                  </DropdownMenuItem>
+                )}
+                {!invoice.fixedExpense && <DropdownMenuSeparator />}
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={remove.isPending}
+                  onClick={() => openConfirm("NOT_RELEVANT")}
+                >
+                  <Trash2 size={14} strokeWidth={1.8} />
+                  Not relevant
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={remove.isPending}
+                  onClick={() => openConfirm("NOT_AN_INVOICE")}
+                >
+                  <Ban size={14} strokeWidth={1.8} />
+                  This isn&apos;t an invoice
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         )}
         </div>
-        {!editing && !invoice.fixedExpense && (
-          <Button
-            variant="ghost"
-            className="h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-primary hover:bg-info-bg"
-            onClick={() => setMarkFixedOpen(true)}
-          >
-            <Repeat size={14} strokeWidth={1.8} />
-            Mark as fixed expense
-          </Button>
-        )}
-        {!editing && (
-          <div className="flex gap-[10px]">
-            <Button
-              variant="destructive"
-              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
-              disabled={remove.isPending}
-              onClick={() => openConfirm("NOT_RELEVANT")}
-            >
-              <Trash2 size={14} strokeWidth={1.8} />
-              Not relevant
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
-              disabled={remove.isPending}
-              onClick={() => openConfirm("NOT_AN_INVOICE")}
-            >
-              <Ban size={14} strokeWidth={1.8} />
-              This isn&apos;t an invoice
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* Removal confirmation */}
