@@ -10,11 +10,19 @@ import { fetchExportStatus, downloadExport } from "@/api/exports"
 // persisted to localStorage and rehydrated on mount.
 
 const STORAGE_KEY = "invoicesniffer.activeExports"
+// Exports that finished (READY) but the user hasn't looked at yet — drives the
+// unread badge on the Exports nav item, so a completed export is discoverable
+// even after the transient toast is gone or the tab was closed at the time.
+const READY_KEY = "invoicesniffer.readyExports"
 const TERMINAL = new Set(["READY", "EXPIRED", "FAILED"])
 
 type ExportsContextValue = {
   // Begin tracking a newly-created PDF export job (shows a loading toast).
   trackExport: (id: string) => void
+  // Count of finished-but-unviewed exports (nav badge).
+  readyCount: number
+  // Clear the unviewed set — called when the user opens the Exports page.
+  markReadyViewed: () => void
 }
 
 const ExportsContext = createContext<ExportsContextValue | null>(null)
@@ -25,10 +33,10 @@ export function useExports(): ExportsContextValue {
   return ctx
 }
 
-function readStored(): string[] {
+function readStored(key: string): string[] {
   if (typeof window === "undefined") return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const raw = window.localStorage.getItem(key)
     const parsed = raw ? JSON.parse(raw) : []
     return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : []
   } catch {
@@ -36,24 +44,39 @@ function readStored(): string[] {
   }
 }
 
+function writeStored(key: string, ids: string[]): void {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(key, JSON.stringify(ids))
+  } catch {
+    /* ignore quota / private-mode errors */
+  }
+}
+
 export function ExportsProvider({ children }: { children: React.ReactNode }) {
   // Lazy init from localStorage. Safe against SSR (readStored returns [] when
   // there's no window) and against hydration mismatch, since this provider
   // renders no DOM derived from activeIds.
-  const [activeIds, setActiveIds] = useState<string[]>(readStored)
+  const [activeIds, setActiveIds] = useState<string[]>(() => readStored(STORAGE_KEY))
+  // Finished-but-unviewed export ids; drives the nav badge, persisted so it
+  // survives reloads until the user opens the Exports page.
+  const [readyIds, setReadyIds] = useState<string[]>(() => readStored(READY_KEY))
   // Ids we've already resolved (toasted) this session — guards double toasts.
   const resolved = useRef<Set<string>>(new Set())
 
   const persist = useCallback((ids: string[]) => {
     setActiveIds(ids)
-    if (typeof window !== "undefined") {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
-      } catch {
-        /* ignore quota / private-mode errors */
-      }
-    }
+    writeStored(STORAGE_KEY, ids)
   }, [])
+
+  const persistReady = useCallback((ids: string[]) => {
+    setReadyIds(ids)
+    writeStored(READY_KEY, ids)
+  }, [])
+
+  const markReadyViewed = useCallback(() => {
+    persistReady([])
+  }, [persistReady])
 
   const trackExport = useCallback(
     (id: string) => {
@@ -62,7 +85,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
         id: `export-${id}`,
         description: "This can take a moment while we gather your invoices.",
       })
-      persist(Array.from(new Set([...readStored(), id])))
+      persist(Array.from(new Set([...readStored(STORAGE_KEY), id])))
     },
     [persist]
   )
@@ -83,6 +106,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let changed = false
     const remaining = [...activeIds]
+    const newlyReady: string[] = []
 
     results.forEach((r) => {
       const data = r.data
@@ -90,6 +114,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
       resolved.current.add(data.id)
 
       if (data.status === "READY") {
+        newlyReady.push(data.id)
         const skippedNote =
           data.skippedCount > 0
             ? ` ${data.skippedCount} invoice${data.skippedCount === 1 ? "" : "s"} had no PDF and ${data.skippedCount === 1 ? "was" : "were"} skipped.`
@@ -118,7 +143,14 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
     })
 
     if (changed) persist(remaining)
-  }, [results, activeIds, persist])
+    if (newlyReady.length > 0) {
+      persistReady(Array.from(new Set([...readStored(READY_KEY), ...newlyReady])))
+    }
+  }, [results, activeIds, persist, persistReady])
 
-  return <ExportsContext.Provider value={{ trackExport }}>{children}</ExportsContext.Provider>
+  return (
+    <ExportsContext.Provider value={{ trackExport, readyCount: readyIds.length, markReadyViewed }}>
+      {children}
+    </ExportsContext.Provider>
+  )
 }
