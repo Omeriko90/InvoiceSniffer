@@ -382,8 +382,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         {!editing && (
           <div className="flex gap-[10px]">
             <Button
-              variant="ghost"
-              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
+              variant="destructive"
+              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_RELEVANT")}
             >
@@ -391,8 +391,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Not relevant
             </Button>
             <Button
-              variant="ghost"
-              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600] text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2]"
+              variant="destructive"
+              className="flex-1 h-auto py-[8px] rounded-[10px] text-[13px] font-[600]"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_AN_INVOICE")}
             >
