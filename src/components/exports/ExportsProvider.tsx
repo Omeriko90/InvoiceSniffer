@@ -123,7 +123,10 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
           id: `export-${data.id}`,
           description: `Download ${data.fileName ?? "your export"}.${skippedNote}`,
           action: { label: "Download", onClick: () => downloadExport(data.id) },
-          duration: 15000,
+          // Stay until dismissed — a completion that auto-hides after a few
+          // seconds is easy to miss. The unread nav badge is the fallback for
+          // when the tab wasn't open at completion.
+          duration: Infinity,
         })
       } else {
         toast.error("Export failed", {
