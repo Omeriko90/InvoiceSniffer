@@ -5,6 +5,7 @@ import { Sheet } from "@/components/ui/sheet"
 import { Dialog } from "@/components/ui/dialog"
 import type { InvoiceRow, UIState } from "./types"
 import type { ExportFormat } from "@/api/exports"
+import { belongsToDate } from "./helpers"
 import { InvoicesToolbar } from "./InvoicesToolbar"
 import { InvoicesTable } from "./InvoicesTable"
 import { InvoiceDetailDrawer } from "./InvoiceDetailDrawer"
@@ -66,7 +67,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         accountFilter === "all" || inv.sourceAccount?.email === accountFilter
       const matchDate = (() => {
         if (!range) return true
-        const d = new Date(inv.emailDate)
+        const d = belongsToDate(inv)
         return d >= range.from && d <= range.to
       })()
       return matchSearch && matchStatus && matchCategory && matchAccount && matchDate
