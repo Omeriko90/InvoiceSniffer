@@ -28,4 +28,5 @@ export const STATUS_OPTIONS = [
   { value: "REVIEWED", label: "Reviewed" },
 ]
 
-export const TABLE_GRID_COLUMNS = "1.6fr 1fr 0.8fr 0.7fr 0.9fr 1fr 40px"
+// Vendor · Invoice # · Amount · Issue date · Received · Status · Category · Gmail link
+export const TABLE_GRID_COLUMNS = "1.5fr 0.9fr 0.8fr 0.75fr 0.75fr 0.8fr 0.95fr 40px"
