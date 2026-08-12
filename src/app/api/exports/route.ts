@@ -70,11 +70,20 @@ export async function GET() {
       fileName: true,
       dateRangeStart: true,
       dateRangeEnd: true,
+      invoiceIds: true,
       skippedCount: true,
+      skipped: true,
       createdAt: true,
       expiresAt: true,
     },
   })
 
-  return NextResponse.json({ exports: jobs })
+  // Expose the count (not the raw id array) plus the per-file skip detail so the
+  // history accordion can explain what was left out of each export.
+  const exports = jobs.map(({ invoiceIds, ...job }) => ({
+    ...job,
+    invoiceCount: invoiceIds.length,
+  }))
+
+  return NextResponse.json({ exports })
 }
