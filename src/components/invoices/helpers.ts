@@ -18,6 +18,12 @@ export function fmtAmount(amount: string, currency: string): string {
   return fmtMoney(amount, currency)
 }
 
+// The date an invoice "belongs to" for month scoping: its issue date when known,
+// else the email received date. Lets a Jul-issued/Aug-received invoice count as July.
+export function belongsToDate(inv: Pick<InvoiceRow, "invoiceDate" | "emailDate">): Date {
+  return new Date(inv.invoiceDate ?? inv.emailDate)
+}
+
 export function fmtSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
