@@ -14,11 +14,11 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
-  DATE_RANGE_PRESETS,
-  PRESET_LABELS,
-  resolveDateRange,
-  type DateRangePreset,
-} from "@/lib/date-range"
+  INVOICE_DATE_PRESETS,
+  INVOICE_DATE_PRESET_LABELS,
+  resolveInvoiceDateRange,
+  type InvoiceDatePreset,
+} from "@/lib/invoice-date-filter"
 import { EXPORT_COLUMNS, EXPORT_COLUMN_LABELS, type ExportColumn } from "@/lib/export-columns"
 import {
   fetchExportPreview,
@@ -29,11 +29,15 @@ import {
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
 
-type Scope = { preset: DateRangePreset } | { from: string; to: string }
+type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
 
-function isPreset(s: Scope): s is { preset: DateRangePreset } {
+function isPreset(s: Scope): s is { preset: InvoiceDatePreset } {
   return "preset" in s
 }
+
+// Calendar-aware presets shared with the Invoices list, minus "All time" — an
+// unbounded export isn't offered (the server caps custom ranges anyway).
+const EXPORT_PRESETS = INVOICE_DATE_PRESETS.filter((p) => p !== "all")
 
 const FORMAT_LABELS: Record<ExportFormat, string> = { csv: "CSV", xlsx: "Excel", pdf: "PDF" }
 
@@ -56,7 +60,7 @@ export function ExportDialog({
   const { trackExport } = useExports()
   const isSpreadsheet = format === "csv" || format === "xlsx"
 
-  const [scope, setScope] = useState<Scope>({ preset: "month" })
+  const [scope, setScope] = useState<Scope>({ preset: "thisMonth" })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [columns, setColumns] = useState<Set<ExportColumn>>(new Set(EXPORT_COLUMNS))
   const [submitting, setSubmitting] = useState(false)
@@ -66,7 +70,8 @@ export function ExportDialog({
 
   const range = useMemo(() => {
     if (!rangeValid) return null
-    return resolveDateRange(scope, new Date())
+    // None of the offered presets is "all", so this never returns null here.
+    return resolveInvoiceDateRange(scope, new Date())
   }, [scope, rangeValid])
 
   const fromISO = range?.from.toISOString() ?? ""
@@ -178,7 +183,7 @@ export function ExportDialog({
             Date range
           </p>
           <div className="flex flex-wrap items-center gap-[6px]">
-            {DATE_RANGE_PRESETS.map((p) => {
+            {EXPORT_PRESETS.map((p) => {
               const on = isPreset(scope) && scope.preset === p
               return (
                 <button
@@ -187,7 +192,7 @@ export function ExportDialog({
                   className="px-[13px] py-[7px] rounded-full text-[13px] font-[600] transition-colors cursor-pointer"
                   style={{ background: on ? "#EEF3FF" : "#F1F3F8", color: on ? "#3B6FE0" : "#64748B" }}
                 >
-                  {PRESET_LABELS[p]}
+                  {INVOICE_DATE_PRESET_LABELS[p]}
                 </button>
               )
             })}
