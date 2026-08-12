@@ -117,7 +117,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
         newlyReady.push(data.id)
         const skippedNote =
           data.skippedCount > 0
-            ? ` ${data.skippedCount} invoice${data.skippedCount === 1 ? "" : "s"} had no PDF and ${data.skippedCount === 1 ? "was" : "were"} skipped.`
+            ? ` ${data.skippedCount} invoice${data.skippedCount === 1 ? "" : "s"} couldn't be included and ${data.skippedCount === 1 ? "was" : "were"} skipped.`
             : ""
         toast.success("Your PDF is ready", {
           id: `export-${data.id}`,
