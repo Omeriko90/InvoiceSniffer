@@ -37,8 +37,13 @@ export function InvoiceRow({ invoice, onSelect }: {
         {fmtAmount(invoice.totalAmount, invoice.currency)}
       </span>
 
-      {/* Date */}
+      {/* Issue date */}
       <span className="text-[13px] text-[#64748B]">
+        {invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d") : "—"}
+      </span>
+
+      {/* Received date */}
+      <span className="text-[13px] text-[#94A3B8]">
         {format(new Date(invoice.emailDate), "MMM d")}
       </span>
 
