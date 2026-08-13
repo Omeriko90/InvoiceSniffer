@@ -345,36 +345,34 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               </button>
             )}
 
-            <div className="rounded-[11px] overflow-hidden border border-[#FBDCDC] bg-[#FEF6F6]">
-              <button
-                type="button"
-                disabled={remove.isPending}
-                onClick={() => openConfirm("NOT_RELEVANT")}
-                className="w-full flex items-center gap-[11px] p-[11px_13px] border-b border-[#FBDCDC] hover:bg-[#FDECEC] transition disabled:opacity-50"
-              >
-                <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
-                  <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not relevant</p>
-                  <p className="text-[11.5px] text-[#D08A8A]">Hide from reconciliation and exports</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                disabled={remove.isPending}
-                onClick={() => openConfirm("NOT_AN_INVOICE")}
-                className="w-full flex items-center gap-[11px] p-[11px_13px] hover:bg-[#FDECEC] transition disabled:opacity-50"
-              >
-                <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
-                  <FileX size={16} strokeWidth={1.8} className="text-[#DC2626]" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not an invoice</p>
-                  <p className="text-[11.5px] text-[#D08A8A]">Reclassify this email as something else</p>
-                </div>
-              </button>
-            </div>
+            <button
+              type="button"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_RELEVANT")}
+              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] mb-[10px] hover:bg-[#FDECEC] transition disabled:opacity-50"
+            >
+              <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+                <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not relevant</p>
+                <p className="text-[11.5px] text-[#D08A8A]">Hide from reconciliation and exports</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_AN_INVOICE")}
+              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] hover:bg-[#FDECEC] transition disabled:opacity-50"
+            >
+              <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+                <FileX size={16} strokeWidth={1.8} className="text-[#DC2626]" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not an invoice</p>
+                <p className="text-[11.5px] text-[#D08A8A]">Reclassify this email as something else</p>
+              </div>
+            </button>
           </div>
         )}
       </div>
