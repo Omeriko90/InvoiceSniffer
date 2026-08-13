@@ -146,6 +146,51 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         </div>
       </div>
 
+      {/* Overflow actions — sits just left of the Sheet's built-in close (top-3 right-3) */}
+      {!editing && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="More actions"
+                className="absolute top-3 right-[42px] text-[#94A3B8] hover:text-heading"
+              >
+                <MoreHorizontal size={17} strokeWidth={1.8} />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" side="bottom" className="w-[220px]">
+            {!invoice.fixedExpense && (
+              <>
+                <DropdownMenuItem onClick={() => setMarkFixedOpen(true)}>
+                  <Repeat size={14} strokeWidth={1.8} />
+                  Mark as fixed expense
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_RELEVANT")}
+            >
+              <Trash2 size={14} strokeWidth={1.8} />
+              Not relevant
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={remove.isPending}
+              onClick={() => openConfirm("NOT_AN_INVOICE")}
+            >
+              <Ban size={14} strokeWidth={1.8} />
+              This isn&apos;t an invoice
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-[22px]">
         {/* Amount */}
@@ -373,44 +418,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             >
               Edit fields
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    aria-label="More actions"
-                    className="h-auto py-[10px] px-[12px] rounded-[10px] border-[#E8EDFA] text-heading"
-                  >
-                    <MoreHorizontal size={16} strokeWidth={1.8} />
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="end" side="top" className="w-[220px]">
-                {!invoice.fixedExpense && (
-                  <DropdownMenuItem onClick={() => setMarkFixedOpen(true)}>
-                    <Repeat size={14} strokeWidth={1.8} />
-                    Mark as fixed expense
-                  </DropdownMenuItem>
-                )}
-                {!invoice.fixedExpense && <DropdownMenuSeparator />}
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={remove.isPending}
-                  onClick={() => openConfirm("NOT_RELEVANT")}
-                >
-                  <Trash2 size={14} strokeWidth={1.8} />
-                  Not relevant
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={remove.isPending}
-                  onClick={() => openConfirm("NOT_AN_INVOICE")}
-                >
-                  <Ban size={14} strokeWidth={1.8} />
-                  This isn&apos;t an invoice
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </>
         )}
         </div>
