@@ -1,4 +1,7 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib"
+import { readFileSync } from "fs"
+import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib"
+import fontkit from "@pdf-lib/fontkit"
+import bidiFactory from "bidi-js"
 import { format as formatDate } from "date-fns"
 
 // Renders a "body-only" invoice — one that arrived as email HTML with no PDF
@@ -8,9 +11,13 @@ import { format as formatDate } from "date-fns"
 //
 // Deliberately lightweight: pdf-lib text layout, no headless browser. The goal
 // is a legible document of record (vendor, amount, date, invoice #, plus the
-// email's text content), not a pixel copy of the Gmail render. If exact visual
-// fidelity is ever required we can swap in a real HTML renderer behind this
-// same signature.
+// email's text content), not a pixel copy of the Gmail render.
+//
+// These receipts are typically Israeli, so the body mixes English and Hebrew.
+// We embed Heebo (a Hebrew+Latin OFL font) instead of pdf-lib's WinAnsi-only
+// standard fonts, and run each line through the Unicode bidi algorithm so RTL
+// (Hebrew) runs are reordered logical→visual and right-aligned. Characters the
+// font lacks a glyph for render as .notdef rather than throwing.
 
 export type BodyInvoiceMeta = {
   vendorName: string | null
@@ -36,42 +43,46 @@ const INK = rgb(0.1, 0.1, 0.12)
 const MUTED = rgb(0.42, 0.42, 0.46)
 const RULE = rgb(0.85, 0.85, 0.88)
 
-// pdf-lib's StandardFonts use WinAnsi encoding and THROW on any character they
-// can't encode (e.g. Hebrew, emoji). We keep the meaningful ASCII/Latin content
-// and map a handful of common symbols; anything else becomes a space so a
-// receipt with mixed-script text never crashes the whole export.
-const SYMBOL_MAP: Record<string, string> = {
-  "₪": "NIS ", // ₪
-  "€": "EUR ", // €
-  "£": "GBP ", // £
-  "‘": "'",
-  "’": "'",
-  "“": '"',
-  "”": '"',
-  "–": "-", // en dash
-  "—": "-", // em dash
-  "•": "*", // bullet
-  " ": " ", // nbsp
-  "…": "...",
-}
-
-function sanitize(input: string): string {
-  let out = ""
-  for (const ch of input) {
-    if (ch in SYMBOL_MAP) {
-      out += SYMBOL_MAP[ch]
-      continue
+// Load the vendored Heebo TTFs lazily and memoize. Lazy (not top-level) so that
+// merely importing this module — e.g. when Next traces the dynamically-imported
+// export builder into the standalone web bundle — never touches the filesystem;
+// the read happens only when we actually render, which is the tsx Cloud Run Job
+// / dev-inline path where the source files are present on disk.
+// `new URL(..., import.meta.url)` resolves next to the compiled module in every
+// runtime.
+let fontCache: { regular: Buffer; bold: Buffer } | null = null
+function loadFonts(): { regular: Buffer; bold: Buffer } {
+  if (!fontCache) {
+    fontCache = {
+      regular: readFileSync(new URL("./fonts/Heebo-Regular.ttf", import.meta.url)),
+      bold: readFileSync(new URL("./fonts/Heebo-Bold.ttf", import.meta.url)),
     }
-    const code = ch.codePointAt(0) ?? 0
-    // Printable ASCII + Latin-1 supplement (covers WinAnsi's common range).
-    // Tab/newline are handled by the caller before this runs.
-    out += code >= 0x20 && code <= 0xff ? ch : " "
   }
-  return out
+  return fontCache
 }
 
-// Break a single (already-sanitized) line into pieces that each fit CONTENT_WIDTH,
-// splitting on spaces and hard-breaking any word longer than the content width.
+const bidi = bidiFactory()
+
+// A line reordered into visual (left-to-right draw) order, plus whether its base
+// paragraph direction is RTL — which decides right- vs left-alignment.
+type VisualLine = { text: string; rtl: boolean }
+
+// Collapse the whitespace that trips up layout without touching script content:
+// non-breaking spaces confuse word-splitting, and a BOM would render as .notdef.
+function normalizeWhitespace(input: string): string {
+  return input.replace(/[  ]/g, " ").replace(/﻿/g, "")
+}
+
+function toVisual(logical: string): VisualLine {
+  const levels = bidi.getEmbeddingLevels(logical, "auto")
+  const rtl = (levels.paragraphs[0]?.level ?? 0) % 2 === 1
+  const text = bidi.getReorderedString(logical, levels, 0, logical.length)
+  return { text, rtl }
+}
+
+// Break a logical line into pieces that each fit CONTENT_WIDTH, splitting on
+// spaces and hard-breaking any single word wider than the content width. Width
+// is order-independent (sum of advances), so we measure the logical form.
 function wrapLine(line: string, font: PDFFont, size: number): string[] {
   if (line.trim() === "") return [""]
   const words = line.split(/\s+/).filter(Boolean)
@@ -127,12 +138,16 @@ class Cursor {
     }
   }
 
+  // Draw one logical line: wrap to width, then reorder each wrapped piece to
+  // visual order and align by its base direction (RTL hugs the right margin).
   text(value: string, font: PDFFont, size: number, color = INK) {
-    for (const wrapped of wrapLine(value, font, size)) {
+    for (const piece of wrapLine(value, font, size)) {
+      const { text, rtl } = toVisual(piece)
       const lineHeight = size * LINE_GAP
       this.ensure(lineHeight)
       this.y -= lineHeight
-      this.page.drawText(wrapped, { x: MARGIN, y: this.y, size, font, color })
+      const x = rtl ? PAGE_WIDTH - MARGIN - font.widthOfTextAtSize(text, size) : MARGIN
+      this.page.drawText(text, { x, y: this.y, size, font, color })
     }
   }
 
@@ -162,12 +177,15 @@ export async function renderBodyInvoicePdf(
   meta: BodyInvoiceMeta
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create()
-  const regular = await doc.embedFont(StandardFonts.Helvetica)
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+  doc.registerFontkit(fontkit)
+  const fonts = loadFonts()
+  // subset: only the glyphs we actually use are embedded, keeping the PDF small.
+  const regular = await doc.embedFont(fonts.regular, { subset: true })
+  const bold = await doc.embedFont(fonts.bold, { subset: true })
 
   const cursor = new Cursor(doc)
 
-  cursor.text(sanitize(meta.vendorName || "Invoice"), bold, TITLE_SIZE)
+  cursor.text(normalizeWhitespace(meta.vendorName || "Invoice"), bold, TITLE_SIZE)
   cursor.gap(6)
 
   const fields: Array<[string, string | null]> = [
@@ -179,7 +197,7 @@ export async function renderBodyInvoicePdf(
   ]
   for (const [label, value] of fields) {
     if (value == null || value === "") continue
-    cursor.text(`${label}:  ${sanitize(value)}`, regular, LABEL_SIZE, MUTED)
+    cursor.text(`${label}:  ${normalizeWhitespace(value)}`, regular, LABEL_SIZE, MUTED)
   }
 
   cursor.rule()
@@ -188,11 +206,11 @@ export async function renderBodyInvoicePdf(
 
   // Preserve paragraph breaks from the source; collapse runs of blank lines so
   // a marketing footer full of spacing doesn't balloon the page count.
-  const normalized = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n")
+  const normalized = normalizeWhitespace(bodyText).replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n")
   const lines = normalized.split("\n")
   let blankRun = 0
   for (const raw of lines) {
-    const clean = sanitize(raw).replace(/\t/g, "    ").trimEnd()
+    const clean = raw.replace(/\t/g, "    ").trimEnd()
     if (clean.trim() === "") {
       blankRun += 1
       if (blankRun > 1) continue
