@@ -332,7 +332,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               <button
                 type="button"
                 onClick={() => setMarkFixedOpen(true)}
-                className="w-full flex items-center gap-[11px] bg-info-bg border border-transparent rounded-[11px] p-[11px_13px] mb-[10px] hover:brightness-[0.98] transition"
+                className="w-full flex items-center gap-[11px] bg-info-bg border border-transparent rounded-[11px] p-[11px_13px] mb-[10px] cursor-pointer hover:brightness-[0.98] transition"
               >
                 <div className="w-[34px] h-[34px] rounded-lg bg-white/70 flex items-center justify-center shrink-0">
                   <Clock size={16} strokeWidth={1.8} className="text-primary" />
@@ -349,7 +349,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               type="button"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_RELEVANT")}
-              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] mb-[10px] hover:bg-[#FDECEC] transition disabled:opacity-50"
+              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] mb-[10px] cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
                 <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
@@ -363,7 +363,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               type="button"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_AN_INVOICE")}
-              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] hover:bg-[#FDECEC] transition disabled:opacity-50"
+              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
                 <FileX size={16} strokeWidth={1.8} className="text-[#DC2626]" />
@@ -407,7 +407,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <>
             <Button
               variant="outline"
-              className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
+              className="flex-1 h-auto py-2.5 rounded-[10px] border-[#E8EDFA] text-[13.5px] font-semibold text-heading"
               nativeButton={false}
               render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
             >
@@ -415,8 +415,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Open in Gmail
             </Button>
             <Button
-              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
-              style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
+
+              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-[13.5px] font-bold border-0"
               onClick={() => setEditing(true)}
             >
               Edit fields
@@ -427,9 +427,9 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </div>
 
       {/* Removal confirmation */}
-      <Dialog
+      {confirmReason !== null && <Dialog
         name="invoice_remove_confirm"
-        open={confirmReason !== null}
+        open
         onOpenChange={(open) => { if (!open) setConfirmReason(null) }}
       >
         <DialogContent>
@@ -476,10 +476,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
       {/* Mark as fixed expense — pre-filled from this invoice, links it on save */}
-      <Dialog name="invoice_mark_fixed" open={markFixedOpen} onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
+      {markFixedOpen && <Dialog name="invoice_mark_fixed" open onOpenChange={(open) => { if (!open) setMarkFixedOpen(false) }}>
         {markFixedOpen && (
           <FixedExpenseFormDialog
             prefill={{
@@ -499,10 +499,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             }}
           />
         )}
-      </Dialog>
+      </Dialog>}
 
       {/* Remove this invoice from its fixed expense */}
-      <Dialog name="invoice_unlink" open={unlinkOpen} onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
+      {unlinkOpen && <Dialog name="invoice_unlink" open onOpenChange={(open) => { if (!open) setUnlinkOpen(false) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Remove from fixed expense?</DialogTitle>
@@ -533,7 +533,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </SheetContent>
   )
 }
