@@ -170,11 +170,11 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         )}
 
         {/* Extracted fields */}
-        <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+        <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
           Extracted fields
         </p>
         {editing ? (
-        <div className="flex flex-col gap-[13px] border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[22px]">
+        <div className="flex flex-col gap-3.25 border border-[#E8EDFA] rounded-[11px] p-3.25 mb-5.5">
           {[
             { field: "vendorName" as const,    label: "Vendor",       type: "text" },
             { field: "invoiceNumber" as const, label: "Invoice #",    type: "text" },
@@ -182,10 +182,10 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             { field: "invoiceDate" as const,   label: "Invoice date", type: "date" },
             { field: "dueDate" as const,       label: "Due date",     type: "date" },
           ].map((f) => (
-            <div key={f.field} className="flex flex-col gap-[5px]">
+            <div key={f.field} className="flex flex-col gap-1.25">
               <Label
                 htmlFor={`edit-${f.field}`}
-                className="text-[12px] font-[600] text-[#64748B]"
+                className="text-[12px] font-semibold text-text-secondary"
               >
                 {f.label}
               </Label>
@@ -196,19 +196,19 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
                 min={f.type === "number" ? "0" : undefined}
                 value={draft[f.field]}
                 onChange={(e) => setField(f.field, e.target.value)}
-                className="h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]"
+                className="h-auto px-2.75 py-1.75 text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]"
               />
             </div>
           ))}
           {/* Category */}
-          <div className="flex flex-col gap-[5px]">
-            <Label className="text-[12px] font-[600] text-[#64748B]">Category</Label>
+          <div className="flex flex-col gap-1.25">
+            <Label className="text-[12px] font-semibold text-text-secondary">Category</Label>
             <Select
               items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
               value={categoryDraft}
               onValueChange={(v) => setCategoryDraft(v as InvoiceCategory)}
             >
-              <SelectTrigger className="h-auto px-[11px] py-[7px] text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]">
+              <SelectTrigger className="h-auto px-2.75 py-1.75 text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent side="bottom" align="start" className="w-fit">
@@ -220,7 +220,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </div>
         </div>
         ) : (
-        <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-[22px]">
+        <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-5.5">
           {[
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
             { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
@@ -234,12 +234,12 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           ].map((row, i, arr) => (
             <div
               key={row.label}
-              className="flex items-center justify-between px-[13px] py-[10px] text-[13px]"
+              className="flex items-center justify-between px-3.25 py-2.5 text-[13px]"
               style={{ borderBottom: i < arr.length - 1 ? "1px solid #F1F3F8" : undefined }}
             >
               <span className="text-[#64748B]">{row.label}</span>
               <span
-                className="font-[600] text-[#334155]"
+                className="font-semibold text-text-primary"
                 style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
               >
                 {row.value}
@@ -250,18 +250,18 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         )}
 
         {/* Source email */}
-        <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+        <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
           Source email
         </p>
-        <div className="border border-[#E8EDFA] rounded-[11px] p-[13px] mb-[22px]">
-          <p className="text-[13px] font-[600] text-[#334155] leading-snug">{invoice.subject}</p>
-          <p className="text-[12.5px] text-[#64748B] mt-1">{invoice.senderEmail}</p>
-          <p className="text-[12px] text-[#94A3B8] mt-0.5">
+        <div className="border border-[#E8EDFA] rounded-[11px] p-3.25 mb-5.5">
+          <p className="text-[13px] font-semibold text-text-primary leading-snug">{invoice.subject}</p>
+          <p className="text-[12.5px] text-text-secondary mt-1">{invoice.senderEmail}</p>
+          <p className="text-[12px] text-text-secondary mt-0.5">
             {format(new Date(invoice.emailDate), "MMM d, yyyy")}
           </p>
-          <p className="text-[12px] text-[#94A3B8] mt-[6px] pt-[8px] border-t border-[#F1F5F9]">
+          <p className="text-[12px] text-text-secondary mt-1.5 pt-2 border-t border-[#F1F5F9]">
             Received in{" "}
-            <span className="font-[600] text-[#64748B]">
+            <span className="font-semibold text-primary">
               {invoice.sourceAccount?.label ?? invoice.sourceAccount?.email ?? "Unknown mailbox"}
             </span>
           </p>
@@ -269,7 +269,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
         {/* Attachments — served on demand from Gmail, never stored */}
         {invoice.attachmentMeta.length > 0 && (
-          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
             Attached documents
           </p>
         )}
@@ -279,13 +279,13 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             href={`/api/invoices/${invoice.id}/attachments/${i}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px] hover:bg-[#EFF6FF] transition-colors"
+            className="flex items-center gap-2.75 bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-[#EFF6FF] transition-colors"
           >
-            <div className="w-[34px] h-[34px] rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
+            <div className="w-8.5 h-8.5 rounded-lg bg-[#FEF2F2] flex items-center justify-center shrink-0">
               <FileText size={16} strokeWidth={1.5} className="text-[#FB7171]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[600] text-[#334155] truncate">{att.filename}</p>
+              <p className="text-[13px] font-semibold text-[#334155] truncate">{att.filename}</p>
               <p className="text-[11.5px] text-[#94A3B8]">{fmtSize(att.size)}</p>
             </div>
             <ExternalLink size={14} strokeWidth={1.5} className="text-[#94A3B8] shrink-0" />
@@ -294,7 +294,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
         {/* Hosted receipt link */}
         {invoice.receiptUrl && (
-          <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
             Receipt link
           </p>
         )}
@@ -303,28 +303,28 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             href={invoice.receiptUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-[10px] bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-[14px] hover:bg-[#EFF6FF] transition-colors"
+            className="flex items-center gap-2.75 bg-[#F8FAFF] border border-[#E8EDFA] rounded-[11px] p-[11px_13px] mb-3.5 hover:bg-[#EFF6FF] transition-colors"
           >
-            <div className="w-[34px] h-[34px] rounded-lg bg-[#EFF6FF] flex items-center justify-center shrink-0">
+            <div className="w-8.5 h-8.5 rounded-lg bg-[#EFF6FF] flex items-center justify-center shrink-0">
               <ExternalLink size={16} strokeWidth={1.5} className="text-[#3B6FE0]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[600] text-[#334155]">View hosted receipt</p>
+              <p className="text-[13px] font-semibold text-[#334155]">View hosted receipt</p>
               <p className="text-[11.5px] text-[#94A3B8] truncate">{new URL(invoice.receiptUrl).hostname}</p>
             </div>
           </a>
         )}
 
         {/* Privacy note */}
-        <div className="flex items-center gap-[7px] text-[11.5px] text-[#94A3B8]">
+        <div className="flex items-center gap-1.75 text-[11.5px] text-[#94A3B8]">
           <Lock size={13} strokeWidth={1.5} className="shrink-0" />
           <span>The file itself is never stored — it&apos;s fetched from Gmail only during an export.</span>
         </div>
 
         {/* Actions */}
         {!editing && (
-          <div className="mt-[22px]">
-            <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+          <div className="mt-5.5">
+            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
               Actions
             </p>
 
@@ -332,13 +332,13 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               <button
                 type="button"
                 onClick={() => setMarkFixedOpen(true)}
-                className="w-full flex items-center gap-[11px] bg-info-bg border border-transparent rounded-[11px] p-[11px_13px] mb-[10px] cursor-pointer hover:brightness-[0.98] transition"
+                className="w-full flex items-center gap-2.75 bg-info-bg border border-transparent rounded-[11px] p-[11px_13px] mb-2.5 cursor-pointer hover:brightness-[0.98] transition"
               >
-                <div className="w-[34px] h-[34px] rounded-lg bg-white/70 flex items-center justify-center shrink-0">
+                <div className="w-8.5 h-8.5 rounded-lg bg-white/70 flex items-center justify-center shrink-0">
                   <Clock size={16} strokeWidth={1.8} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-[600] text-heading">Mark as fixed expense</p>
+                  <p className="text-[13px] font-semibold text-heading">Mark as fixed expense</p>
                   <p className="text-[11.5px] text-[#94A3B8]">Track this vendor on a recurring schedule</p>
                 </div>
                 <ChevronRight size={16} strokeWidth={1.8} className="text-[#94A3B8] shrink-0" />
@@ -349,13 +349,13 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               type="button"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_RELEVANT")}
-              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] mb-[10px] cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-2.75 rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] mb-2.5 cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+              <div className="w-8.5 h-8.5 rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
                 <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not relevant</p>
+                <p className="text-[13px] font-semibold text-[#DC2626]">Mark as not relevant</p>
                 <p className="text-[11.5px] text-[#D08A8A]">Hide from reconciliation and exports</p>
               </div>
             </button>
@@ -363,13 +363,13 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               type="button"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_AN_INVOICE")}
-              className="w-full flex items-center gap-[11px] rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-2.75 rounded-[11px] border border-[#FBDCDC] bg-[#FEF6F6] p-[11px_13px] cursor-pointer hover:bg-[#FDECEC] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
-                <FileX size={16} strokeWidth={1.8} className="text-[#DC2626]" />
+              <div className="w-8.5 h-8.5 rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+                <FileX size={13} strokeWidth={1.8} className="text-[#DC2626]" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not an invoice</p>
+                <p className="text-[13px] font-semibold text-[#DC2626]">Mark as not an invoice</p>
                 <p className="text-[11.5px] text-[#D08A8A]">Reclassify this email as something else</p>
               </div>
             </button>
@@ -378,13 +378,13 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       </div>
 
       {/* Footer */}
-      <div className="flex flex-col gap-[10px] px-[22px] py-[16px] border-t border-[#F1F3F8] shrink-0">
-        <div className="flex gap-[10px]">
+      <div className="flex flex-col gap-2.5 px-5.5 py-4 border-t border-[#F1F3F8] shrink-0">
+        <div className="flex gap-2.5">
         {editing ? (
           <>
             <Button
               variant="outline"
-              className="flex-1 h-auto py-[10px] rounded-[10px] border-[#E8EDFA] text-[13.5px] font-[600] text-heading"
+              className="flex-1 h-auto py-2.5 rounded-[10px] border-[#E8EDFA] text-[13.5px] font-semibold text-heading"
               disabled={update.isPending}
               onClick={() => {
                 setDraft(toDraft(invoice))
@@ -395,7 +395,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Cancel
             </Button>
             <Button
-              className="flex-1 h-auto py-[10px] rounded-[10px] text-white text-[13.5px] font-[700] border-0"
+              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-[13.5px] font-bold border-0"
               style={{ background: "linear-gradient(135deg,#7AA7FF,#A78BFA)" }}
               disabled={update.isPending || !amountValid}
               onClick={handleSave}
