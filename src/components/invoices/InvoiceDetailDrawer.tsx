@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, ExternalLink, FileText, Lock, MoreHorizontal, Repeat, Trash2, X } from "lucide-react"
+import { ChevronRight, Clock, ExternalLink, EyeOff, FileText, FileX, Lock, Repeat, X } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,13 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
@@ -145,51 +138,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </div>
         </div>
       </div>
-
-      {/* Overflow actions — sits just left of the Sheet's built-in close (top-3 right-3) */}
-      {!editing && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="More actions"
-                className="absolute top-3 right-[42px] text-[#94A3B8] hover:text-heading"
-              >
-                <MoreHorizontal size={17} strokeWidth={1.8} />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end" side="bottom" className="w-[220px]">
-            {!invoice.fixedExpense && (
-              <>
-                <DropdownMenuItem onClick={() => setMarkFixedOpen(true)}>
-                  <Repeat size={14} strokeWidth={1.8} />
-                  Mark as fixed expense
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem
-              variant="destructive"
-              disabled={remove.isPending}
-              onClick={() => openConfirm("NOT_RELEVANT")}
-            >
-              <Trash2 size={14} strokeWidth={1.8} />
-              Not relevant
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              disabled={remove.isPending}
-              onClick={() => openConfirm("NOT_AN_INVOICE")}
-            >
-              <Ban size={14} strokeWidth={1.8} />
-              This isn&apos;t an invoice
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-[22px]">
@@ -372,6 +320,63 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <Lock size={13} strokeWidth={1.5} className="shrink-0" />
           <span>The file itself is never stored — it&apos;s fetched from Gmail only during an export.</span>
         </div>
+
+        {/* Actions */}
+        {!editing && (
+          <div className="mt-[22px]">
+            <p className="text-[11px] font-[700] text-[#64748B] uppercase tracking-[0.05em] mb-2">
+              Actions
+            </p>
+
+            {!invoice.fixedExpense && (
+              <button
+                type="button"
+                onClick={() => setMarkFixedOpen(true)}
+                className="w-full flex items-center gap-[11px] bg-info-bg border border-transparent rounded-[11px] p-[11px_13px] mb-[10px] hover:brightness-[0.98] transition"
+              >
+                <div className="w-[34px] h-[34px] rounded-lg bg-white/70 flex items-center justify-center shrink-0">
+                  <Clock size={16} strokeWidth={1.8} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-[13px] font-[600] text-heading">Mark as fixed expense</p>
+                  <p className="text-[11.5px] text-[#94A3B8]">Track this vendor on a recurring schedule</p>
+                </div>
+                <ChevronRight size={16} strokeWidth={1.8} className="text-[#94A3B8] shrink-0" />
+              </button>
+            )}
+
+            <div className="rounded-[11px] overflow-hidden border border-[#FBDCDC] bg-[#FEF6F6]">
+              <button
+                type="button"
+                disabled={remove.isPending}
+                onClick={() => openConfirm("NOT_RELEVANT")}
+                className="w-full flex items-center gap-[11px] p-[11px_13px] border-b border-[#FBDCDC] hover:bg-[#FDECEC] transition disabled:opacity-50"
+              >
+                <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+                  <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not relevant</p>
+                  <p className="text-[11.5px] text-[#D08A8A]">Hide from reconciliation and exports</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                disabled={remove.isPending}
+                onClick={() => openConfirm("NOT_AN_INVOICE")}
+                className="w-full flex items-center gap-[11px] p-[11px_13px] hover:bg-[#FDECEC] transition disabled:opacity-50"
+              >
+                <div className="w-[34px] h-[34px] rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
+                  <FileX size={16} strokeWidth={1.8} className="text-[#DC2626]" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-[13px] font-[600] text-[#DC2626]">Mark as not an invoice</p>
+                  <p className="text-[11.5px] text-[#D08A8A]">Reclassify this email as something else</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
