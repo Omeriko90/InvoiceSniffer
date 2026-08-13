@@ -32,11 +32,6 @@ export function InvoiceRow({ invoice, onSelect }: {
         {invoice.invoiceNumber ?? "—"}
       </span>
 
-      {/* Amount */}
-      <span className="text-[13.5px] font-[700] text-heading text-right">
-        {fmtAmount(invoice.totalAmount, invoice.currency)}
-      </span>
-
       {/* Issue date */}
       <span className="text-[13px] text-[#64748B]">
         {invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d") : "—"}
@@ -56,6 +51,11 @@ export function InvoiceRow({ invoice, onSelect }: {
       <div className="min-w-0">
         <CategoryBadge category={invoice.category} />
       </div>
+
+      {/* Amount */}
+      <span className="text-[13.5px] font-[700] text-heading text-right">
+        {fmtAmount(invoice.totalAmount, invoice.currency)}
+      </span>
 
       {/* Gmail link */}
       <GmailLinkButton gmailLink={invoice.gmailLink} />
