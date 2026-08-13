@@ -37,6 +37,13 @@ const nextConfig: NextConfig = {
   // ("asset is not placeable in ESM chunks"), so keep these as runtime
   // requires instead of bundling them into the server output.
   serverExternalPackages: ["@napi-rs/canvas", "pdf-parse"],
+  // The PDF export builder embeds vendored Heebo TTFs (for Hebrew receipts) via
+  // readFileSync. On self-hosted (non-cloudrun) deployments POST /api/exports
+  // runs that builder inline, so trace the font files into the standalone output
+  // — dependency tracing doesn't follow a runtime file read on its own.
+  outputFileTracingIncludes: {
+    "/api/exports": ["src/lib/fonts/*.ttf"],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

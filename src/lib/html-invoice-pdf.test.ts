@@ -23,8 +23,8 @@ test("renders a valid, loadable PDF", async () => {
 })
 
 // The Apple/Google receipts this feature targets are Israeli — the body mixes
-// English with Hebrew and the ₪ symbol, none of which pdf-lib's WinAnsi fonts
-// can encode. Sanitization must keep it from throwing.
+// English with Hebrew and the ₪ symbol. The embedded Heebo font + bidi layout
+// must render (and reorder) these without throwing.
 test("does not throw on Hebrew + currency symbols", async () => {
   const body = "Billing\n5230205 רמת גן ישראל\nMasterCard •••• 1291\n₪49.90"
   const bytes = await renderBodyInvoicePdf(body, meta())
