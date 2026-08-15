@@ -1,6 +1,6 @@
-import { format } from "date-fns"
 import type { AnomalySeverity } from "@prisma/client"
 import { fmtMoney } from "@/lib/money"
+import { fmtDateShort } from "@/lib/date"
 import type { AnomalyDetails } from "@/types/alert"
 
 // Type pill — the human name + tint shown next to the vendor on each card.
@@ -40,7 +40,7 @@ function money(amount: number | undefined, currency = "USD"): string {
 }
 
 function day(iso: string | undefined): string {
-  return iso ? format(new Date(iso), "MMM d") : ""
+  return iso ? fmtDateShort(iso) : ""
 }
 
 // Right-aligned metric block on each card: a small uppercase label + big value.

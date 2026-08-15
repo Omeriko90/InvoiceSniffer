@@ -4,12 +4,12 @@ import { unlinkFixedExpense } from "@/api/invoices"
 
 // Detach an invoice from its fixed expense. `onChanged` runs after success so the
 // caller can refresh the list / close the drawer (e.g. router.refresh()).
-export function useUnlinkFixedExpense(onChanged?: () => void) {
+export function useUnlinkFixedExpense(onSuccess?: () => void) {
   return useMutation({
     mutationFn: unlinkFixedExpense,
     onSuccess: () => {
       toast.success("Removed from fixed expense")
-      onChanged?.()
+      onSuccess?.()
     },
     onError: (error) => toast.error(error.message),
   })

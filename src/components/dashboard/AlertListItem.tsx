@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <RecentAlertsCard>.
-import { Badge } from "@/components/ui/badge"
+import { StatusPill } from "@/components/ui/status-pill"
 import { ALERT_META, alertDescription } from "@/lib/alert-helpers"
 import type { AlertItem } from "@/types/alert"
 
@@ -12,12 +12,9 @@ export function AlertListItem({ alert }: { alert: AlertItem }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap leading-none mb-[3px]">
           <span className="text-[13.5px] font-[600] text-heading">{vendor}</span>
-          <Badge
-            className="h-auto rounded-full text-[10px] font-[700] px-[7px] py-[1.5px] shrink-0"
-            style={{ background: meta.bg, color: meta.color }}
-          >
+          <StatusPill bg={meta.bg} color={meta.color} size="xs" className="shrink-0">
             {meta.label}
-          </Badge>
+          </StatusPill>
         </div>
         <p className="text-[12.5px] text-text-secondary line-clamp-1 leading-[1.5]">
           {alertDescription(alert.type, alert.details)}

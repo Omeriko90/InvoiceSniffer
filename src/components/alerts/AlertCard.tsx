@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from the Alerts page.
 import { AlertTriangle } from "lucide-react"
+import { StatusPill } from "@/components/ui/status-pill"
 import type { AlertItem } from "@/types/alert"
 import {
   ALERT_META,
@@ -42,12 +43,9 @@ export function AlertCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-[10px] mb-[3px] flex-wrap">
           <span className="text-[14.5px] font-[700] text-heading">{vendor}</span>
-          <span
-            className="text-[11px] font-[700] px-[9px] py-[2px] rounded-full"
-            style={{ background: meta.bg, color: meta.color }}
-          >
+          <StatusPill bg={meta.bg} color={meta.color} className="text-[11px] px-[9px]">
             {meta.label}
-          </span>
+          </StatusPill>
         </div>
         <p className="text-[13px] text-text-secondary leading-[1.5]">
           {alertDescription(alert.type, alert.details)}

@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { format } from "date-fns"
+import { fmtDateShort } from "@/lib/date"
 import { STATUS_META, TABLE_GRID_COLUMNS } from "./constants"
 import { fmtAmount } from "./helpers"
 import type { InvoiceRow as InvoiceRowType } from "./types"
@@ -34,12 +34,12 @@ export function InvoiceRow({ invoice, onSelect }: {
 
       {/* Issue date */}
       <span className="text-[13px] text-[#64748B]">
-        {invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d") : "—"}
+        {invoice.invoiceDate ? fmtDateShort(invoice.invoiceDate) : "—"}
       </span>
 
-      {/* Received date */}
-      <span className="text-[13px] text-[#94A3B8]">
-        {format(new Date(invoice.emailDate), "MMM d")}
+      {/* Date */}
+      <span className="text-[13px] text-[#64748B]">
+        {fmtDateShort(invoice.emailDate)}
       </span>
 
       {/* Status */}

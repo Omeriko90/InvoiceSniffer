@@ -119,11 +119,12 @@ export function FixedExpensesClient({
           <EmptyState onCreate={openCreate} hasAny={expenses.length > 0} />
         ) : (
           filtered.map((expense) => (
-            <button
+            <Button
               key={expense.id}
               type="button"
+              variant="ghost"
               onClick={() => setSelected(expense)}
-              className="grid w-full items-center px-[18px] py-[13px] border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
+              className="grid w-full h-auto justify-normal rounded-none items-center px-[18px] py-[13px] border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
               style={{ gridTemplateColumns: GRID, gap: "12px" }}
             >
               <span className="min-w-0">
@@ -141,7 +142,7 @@ export function FixedExpensesClient({
                 {expense.expectedAmount ? fmtAmount(expense.expectedAmount, expense.currency) : "—"}
               </span>
               <span className="min-w-0"><FixedExpenseStatusBadge status={expense.currentStatus} /></span>
-            </button>
+            </Button>
           ))
         )}
       </div>

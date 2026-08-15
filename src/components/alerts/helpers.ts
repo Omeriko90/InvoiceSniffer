@@ -1,5 +1,5 @@
-import { format } from "date-fns"
 import { fmtMoney } from "@/lib/money"
+import { fmtDate } from "@/lib/date"
 import type { AlertItem } from "@/types/alert"
 
 // Turn the details JSON into a labelled key/value list for the drawer body.
@@ -21,8 +21,8 @@ export function detailFields(alert: AlertItem): { label: string; value: string }
   if (d.pct !== undefined) push("Deviation", `${d.pct}%`)
   if (d.multiple !== undefined) push("Spike factor", `${d.multiple}×`)
   if (d.overdueDays !== undefined) push("Overdue", `${d.overdueDays} days`)
-  if (d.expectedDate) push("Expected", format(new Date(d.expectedDate), "MMM d, yyyy"))
-  if (d.firstSeenDate) push("First seen", format(new Date(d.firstSeenDate), "MMM d, yyyy"))
+  if (d.expectedDate) push("Expected", fmtDate(d.expectedDate))
+  if (d.firstSeenDate) push("First seen", fmtDate(d.firstSeenDate))
 
   return fields
 }
