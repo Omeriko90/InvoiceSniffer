@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { STATUS_OPTIONS } from "./constants"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
+import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import type { UIState } from "./types"
 import type { ExportFormat } from "@/api/exports"
 import {
@@ -31,6 +32,11 @@ import {
 const CATEGORY_OPTIONS = [
   { value: "all", label: "All categories" },
   ...INVOICE_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] })),
+]
+
+const DOCUMENT_TYPE_OPTIONS = [
+  { value: "all", label: "All types" },
+  ...DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] })),
 ]
 
 function dateScopeLabel(scope: InvoiceDateScope): string {
@@ -49,6 +55,8 @@ export function InvoicesToolbar({
   onStatusChange,
   categoryFilter,
   onCategoryChange,
+  documentTypeFilter,
+  onDocumentTypeChange,
   accountFilter,
   onAccountChange,
   accounts,
@@ -68,6 +76,8 @@ export function InvoicesToolbar({
   onStatusChange: (value: string) => void
   categoryFilter: string
   onCategoryChange: (value: string) => void
+  documentTypeFilter: string
+  onDocumentTypeChange: (value: string) => void
   accountFilter: string
   onAccountChange: (value: string) => void
   accounts: { email: string; label: string }[]
@@ -131,6 +141,25 @@ export function InvoicesToolbar({
         </SelectTrigger>
         <SelectContent className="w-fit min-w-(--anchor-width)">
           {CATEGORY_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      </div>
+
+      {/* Document type filter */}
+      <div className="relative flex items-center gap-2">
+      <span className="text-sm font-medium text-text-primary">Type:</span>
+      <Select
+        items={DOCUMENT_TYPE_OPTIONS}
+        value={documentTypeFilter}
+        onValueChange={(v) => onDocumentTypeChange(v as string)}
+      >
+        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="w-fit min-w-(--anchor-width)">
+          {DOCUMENT_TYPE_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
           ))}
         </SelectContent>

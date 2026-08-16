@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import type { DateRange } from "@/lib/matching-data"
+import type { DocumentType } from "@/lib/document-types"
 import type { AttachmentMeta } from "@/workers/invoice-extract"
 
 // Data loaders for the export flow. Shared by the spreadsheet route (sync) and
@@ -20,6 +21,7 @@ export type ExportInvoiceRow = {
   id: string
   vendorName: string | null
   invoiceNumber: string | null
+  documentType: DocumentType
   invoiceDate: Date | null
   dueDate: Date | null
   totalAmount: number
@@ -38,6 +40,7 @@ const PDF_SELECT = {
   id: true,
   vendorName: true,
   invoiceNumber: true,
+  documentType: true,
   invoiceDate: true,
   dueDate: true,
   totalAmount: true,
@@ -72,7 +75,9 @@ export async function loadInvoicesForExport(
 // powers the export dialog's preview list. Excludes IGNORED.
 export async function loadInvoicesInRange(
   organizationId: string,
-  range: DateRange
+  range: DateRange,
+  // Optional document-type filter from the export dialog. Omit / undefined = all.
+  documentType?: DocumentType
 ): Promise<ExportInvoiceRow[]> {
   const rows = await prisma.invoice.findMany({
     where: {
@@ -81,6 +86,7 @@ export async function loadInvoicesInRange(
       // matching every other list. Mirrors the invoices page's removedAt filter.
       removedAt: null,
       status: { not: "IGNORED" },
+      ...(documentType ? { documentType } : {}),
       OR: [
         { invoiceDate: { gte: range.from, lte: range.to } },
         { invoiceDate: null, emailDate: { gte: range.from, lte: range.to } },
@@ -94,6 +100,7 @@ export async function loadInvoicesInRange(
       id: true,
       vendorName: true,
       invoiceNumber: true,
+      documentType: true,
       invoiceDate: true,
       dueDate: true,
       totalAmount: true,
@@ -108,6 +115,7 @@ function toExportRow(r: {
   id: string
   vendorName: string | null
   invoiceNumber: string | null
+  documentType: DocumentType
   invoiceDate: Date | null
   dueDate: Date | null
   totalAmount: { toString(): string }
@@ -118,6 +126,7 @@ function toExportRow(r: {
     id: r.id,
     vendorName: r.vendorName,
     invoiceNumber: r.invoiceNumber,
+    documentType: r.documentType,
     invoiceDate: r.invoiceDate,
     dueDate: r.dueDate,
     totalAmount: Number(r.totalAmount),
@@ -130,6 +139,7 @@ function toPdfExportInvoice(r: {
   id: string
   vendorName: string | null
   invoiceNumber: string | null
+  documentType: DocumentType
   invoiceDate: Date | null
   dueDate: Date | null
   totalAmount: { toString(): string }

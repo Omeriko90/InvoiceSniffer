@@ -86,7 +86,8 @@ export function detectInvoiceCandidate(
 
 // ── Metadata extraction ──────────────────────────────────────────
 
-export type DocumentType = "TAX_INVOICE" | "RECEIPT" | "CREDIT_INVOICE" | "UNKNOWN"
+import type { DocumentType } from "@/lib/document-types"
+export type { DocumentType }
 
 export type ExtractedInvoice = {
   vendorName: string | null

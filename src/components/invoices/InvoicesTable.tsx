@@ -23,11 +23,11 @@ export function InvoicesTable({
         className="grid px-4 py-3 bg-surface border-b border-border"
         style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
       >
-        {["Vendor", "Invoice #", "Issue date", "Received", "Status", "Category", "Amount", ""].map((h, i) => (
+        {["Vendor", "Invoice #", "Issue date", "Received", "Status", "Type", "Category", "Amount", ""].map((h, i) => (
           <span
             key={i}
             className="text-sm font-bold uppercase tracking-tight text-text-secondary"
-            style={i === 6 ? { textAlign: "right" } : undefined}
+            style={i === 7 ? { textAlign: "right" } : undefined}
           >
             {h}
           </span>

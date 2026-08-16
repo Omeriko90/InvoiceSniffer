@@ -6,6 +6,7 @@ import type { InvoiceRow as InvoiceRowType } from "./types"
 import { VendorCell } from "./VendorCell"
 import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
+import { DocumentTypeBadge } from "./DocumentTypeBadge"
 import { GmailLinkButton } from "./GmailLinkButton"
 
 export function InvoiceRow({ invoice, onSelect }: {
@@ -45,6 +46,11 @@ export function InvoiceRow({ invoice, onSelect }: {
       {/* Status */}
       <div>
         <StatusBadge status={status} />
+      </div>
+
+      {/* Type */}
+      <div className="min-w-0">
+        <DocumentTypeBadge documentType={invoice.documentType} />
       </div>
 
       {/* Category */}

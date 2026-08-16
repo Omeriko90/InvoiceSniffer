@@ -17,6 +17,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
   const [statusFilter, setStatus]   = useState<string>("all")
   const [categoryFilter, setCategory] = useState<string>("all")
+  const [documentTypeFilter, setDocumentType] = useState<string>("all")
   const [accountFilter, setAccount] = useState<string>("all")
   const [dateScope, setDateScope]   = useState<InvoiceDateScope>({ preset: "thisMonth" })
   const [customDateOpen, setCustomDateOpen] = useState(false)
@@ -39,6 +40,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     search !== "" ||
     statusFilter !== "all" ||
     categoryFilter !== "all" ||
+    documentTypeFilter !== "all" ||
     accountFilter !== "all" ||
     !(isPreset(dateScope) && dateScope.preset === "thisMonth")
 
@@ -46,6 +48,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     setSearch("")
     setStatus("all")
     setCategory("all")
+    setDocumentType("all")
     setAccount("all")
     setDateScope({ preset: "thisMonth" })
   }
@@ -63,6 +66,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         statusFilter === "all" || inv.status === statusFilter
       const matchCategory =
         categoryFilter === "all" || inv.category === categoryFilter
+      const matchDocumentType =
+        documentTypeFilter === "all" || inv.documentType === documentTypeFilter
       const matchAccount =
         accountFilter === "all" || inv.sourceAccount?.email === accountFilter
       const matchDate = (() => {
@@ -70,9 +75,9 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         const d = belongsToDate(inv)
         return d >= range.from && d <= range.to
       })()
-      return matchSearch && matchStatus && matchCategory && matchAccount && matchDate
+      return matchSearch && matchStatus && matchCategory && matchDocumentType && matchAccount && matchDate
     })
-  }, [invoices, search, statusFilter, categoryFilter, accountFilter, dateScope])
+  }, [invoices, search, statusFilter, categoryFilter, documentTypeFilter, accountFilter, dateScope])
 
   return (
     <div className="flex flex-col gap-4">
@@ -83,6 +88,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         onStatusChange={setStatus}
         categoryFilter={categoryFilter}
         onCategoryChange={setCategory}
+        documentTypeFilter={documentTypeFilter}
+        onDocumentTypeChange={setDocumentType}
         accountFilter={accountFilter}
         onAccountChange={setAccount}
         accounts={accounts}

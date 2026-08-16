@@ -8,6 +8,7 @@ import {
   type ExportColumn,
   type ExportInvoiceRow,
 } from "@/lib/export-data"
+import { DOCUMENT_TYPE_LABELS } from "@/lib/document-types"
 import { putExportObject, getSignedExportUrl, exportObjectKey } from "@/lib/r2"
 import { log } from "@/lib/posthog-server"
 import { format as formatDate } from "date-fns"
@@ -122,6 +123,8 @@ function cellValue(row: ExportInvoiceRow, col: ExportColumn): string | number | 
       return row.vendorName ?? ""
     case "invoiceNumber":
       return row.invoiceNumber ?? ""
+    case "documentType":
+      return DOCUMENT_TYPE_LABELS[row.documentType]
     case "invoiceDate":
       return row.invoiceDate ? formatDate(row.invoiceDate, "yyyy-MM-dd") : ""
     case "dueDate":

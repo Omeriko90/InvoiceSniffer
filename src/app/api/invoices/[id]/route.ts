@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
+import { DOCUMENT_TYPES } from "@/lib/document-types"
 import { INVOICE_ROW_SELECT, toInvoiceRow } from "@/lib/invoice-row"
 
 // Fetch a single invoice as a full InvoiceRow — powers the invoice drawer when
@@ -50,6 +51,7 @@ const patchSchema = z
     invoiceDate: dateField,
     dueDate: dateField,
     category: z.enum(INVOICE_CATEGORIES),
+    documentType: z.enum(DOCUMENT_TYPES),
   })
   .partial()
   .strict()
@@ -92,6 +94,9 @@ export async function PATCH(
   }
   if (p.category !== undefined) {
     data.category = p.category
+  }
+  if (p.documentType !== undefined) {
+    data.documentType = p.documentType
   }
 
   if (Object.keys(data).length === 0) {

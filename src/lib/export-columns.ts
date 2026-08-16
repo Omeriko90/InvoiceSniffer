@@ -7,6 +7,7 @@
 export const EXPORT_COLUMNS = [
   "vendorName",
   "invoiceNumber",
+  "documentType",
   "invoiceDate",
   "dueDate",
   "totalAmount",
@@ -19,6 +20,7 @@ export type ExportColumn = (typeof EXPORT_COLUMNS)[number]
 export const EXPORT_COLUMN_LABELS: Record<ExportColumn, string> = {
   vendorName: "Vendor",
   invoiceNumber: "Invoice #",
+  documentType: "Document Type",
   invoiceDate: "Invoice Date",
   dueDate: "Due Date",
   totalAmount: "Amount",
