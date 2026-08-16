@@ -16,6 +16,17 @@ export const DOCUMENT_TYPES = ["TAX_INVOICE", "RECEIPT", "CREDIT_INVOICE", "UNKN
 
 export type DocumentType = (typeof DOCUMENT_TYPES)[number]
 
+// The document-type rubric handed to the LLM. Used by the text-only classifier
+// (llm-doctype-classifier.ts) that powers the backfill. The Tier-2 vision
+// extractor (llm-extractor.ts) keeps its own terser inline phrasing, but both
+// classify against the same enum contract above.
+export const DOCUMENT_TYPE_GUIDANCE = `Classify the financial document type, by what the document IS:
+- TAX_INVOICE (חשבונית מס): a tax invoice / demand for payment issued by a vendor.
+- RECEIPT (קבלה): confirms a payment was actually made (a "paid" acknowledgement).
+- CREDIT_INVOICE (חשבונית זיכוי): a credit note that reverses or reduces a prior charge (refund/credit).
+- UNKNOWN: only when there is genuinely not enough signal to decide.
+Return UNKNOWN rather than guessing when unsure.`
+
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   TAX_INVOICE: "Invoice",
   RECEIPT: "Receipt",
