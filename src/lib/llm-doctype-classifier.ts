@@ -81,7 +81,10 @@ export async function classifyDocumentType(input: {
       ],
       config: {
         systemInstruction: INSTRUCTIONS,
-        maxOutputTokens: 32,
+        // Small, but with headroom: the structured reply is a single short JSON
+        // object, yet a 32-token cap truncates it mid-string on some models
+        // (e.g. gemini-3.1-flash-lite), yielding unparseable JSON.
+        maxOutputTokens: 128,
         // No "thinking" — this is a cheap one-shot classification.
         thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
