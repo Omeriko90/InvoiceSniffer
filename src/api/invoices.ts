@@ -1,4 +1,5 @@
 import type { InvoiceCategory } from "@/lib/invoice-categories"
+import type { DocumentType } from "@/lib/document-types"
 import type { InvoiceRow } from "@/components/invoices/types"
 
 export type UpdateInvoicePayload = {
@@ -8,6 +9,7 @@ export type UpdateInvoicePayload = {
   invoiceDate?: string | null
   dueDate?: string | null
   category?: InvoiceCategory
+  documentType?: DocumentType
 }
 
 export type RemovalReason = "NOT_RELEVANT" | "NOT_AN_INVOICE"

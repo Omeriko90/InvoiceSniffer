@@ -28,7 +28,7 @@ export const STATUS_OPTIONS = [
   { value: "REVIEWED", label: "Reviewed" },
 ]
 
-// Vendor · Invoice # · Issue date · Received · Status · Category · Amount · Gmail link
+// Vendor · Invoice # · Issue date · Received · Status · Type · Category · Amount · Gmail link
 // Amount is last (before the Gmail-link icon) so its right-alignment hugs the
 // table's right edge.
-export const TABLE_GRID_COLUMNS = "1.5fr 0.9fr 0.75fr 0.75fr 0.8fr 0.95fr 0.8fr 40px"
+export const TABLE_GRID_COLUMNS = "1.5fr 0.9fr 0.75fr 0.75fr 0.8fr 0.85fr 0.95fr 0.8fr 40px"

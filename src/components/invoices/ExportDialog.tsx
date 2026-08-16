@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
+import {
   INVOICE_DATE_PRESETS,
   resolveInvoiceDateRange,
   type InvoiceDatePreset,
@@ -36,6 +44,11 @@ const EXPORT_PRESETS = INVOICE_DATE_PRESETS.filter((p) => p !== "all")
 
 const FORMAT_LABELS: Record<ExportFormat, string> = { csv: "CSV", xlsx: "Excel", pdf: "PDF" }
 
+const DOCUMENT_TYPE_OPTIONS = [
+  { value: "all", label: "All types" },
+  ...DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] })),
+]
+
 function triggerBrowserDownload(url: string) {
   const a = document.createElement("a")
   a.href = url
@@ -56,6 +69,7 @@ export function ExportDialog({
   const isSpreadsheet = format === "csv" || format === "xlsx"
 
   const [scope, setScope] = useState<Scope>({ preset: "thisMonth" })
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string>("all")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [columns, setColumns] = useState<Set<ExportColumn>>(new Set(EXPORT_COLUMNS))
   const [submitting, setSubmitting] = useState(false)
@@ -73,8 +87,8 @@ export function ExportDialog({
   const toISO = range?.to.toISOString() ?? ""
 
   const preview = useQuery({
-    queryKey: ["export-preview", fromISO, toISO],
-    queryFn: () => fetchExportPreview(fromISO, toISO),
+    queryKey: ["export-preview", fromISO, toISO, documentTypeFilter],
+    queryFn: () => fetchExportPreview(fromISO, toISO, documentTypeFilter),
     enabled: Boolean(range),
   })
 
@@ -238,6 +252,27 @@ export function ExportDialog({
               </label>
             </div>
           )}
+        </div>
+
+        {/* Document type filter */}
+        <div className="flex flex-col gap-2.5">
+          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+            Document type
+          </p>
+          <Select
+            items={DOCUMENT_TYPE_OPTIONS}
+            value={documentTypeFilter}
+            onValueChange={(v) => setDocumentTypeFilter(v as string)}
+          >
+            <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="w-fit min-w-(--anchor-width)">
+              {DOCUMENT_TYPE_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Columns (spreadsheet only) */}

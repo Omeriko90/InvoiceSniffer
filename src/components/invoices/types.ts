@@ -1,3 +1,4 @@
+import type { DocumentType } from "@/lib/document-types"
 import type { InvoiceCategory } from "@/lib/invoice-categories"
 
 export type InvoiceStatus = "DETECTED" | "MATCHED" | "UNMATCHED" | "REVIEWED" | "IGNORED"
@@ -23,6 +24,7 @@ export type InvoiceRow = {
   extractionConfidence: number
   status: InvoiceStatus
   category: InvoiceCategory
+  documentType: DocumentType
   gmailLink: string
   senderEmail: string
   senderName: string | null

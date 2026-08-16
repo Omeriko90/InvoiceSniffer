@@ -28,7 +28,9 @@ import type { InvoiceRow } from "./types"
 import { VendorCell } from "./VendorCell"
 import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
+import { DocumentTypeBadge } from "./DocumentTypeBadge"
 import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
+import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE, type DocumentType } from "@/lib/document-types"
 import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog"
 import { track } from "@/lib/analytics"
 
@@ -42,6 +44,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(() => toDraft(invoice))
   const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(invoice.category)
+  const [documentTypeDraft, setDocumentTypeDraft] = useState<DocumentType>(invoice.documentType)
   // Which removal is awaiting confirmation (null = dialog closed), and whether
   // the user opted to also mute the sender (only offered for "not relevant").
   const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(null)
@@ -101,6 +104,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
       invoiceDate: draft.invoiceDate || null,
       dueDate: draft.dueDate || null,
       category: categoryDraft,
+      documentType: documentTypeDraft,
     }
     update.mutate(
       { id: invoice.id, data },
@@ -115,6 +119,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             invoiceDate: data.invoiceDate ? new Date(data.invoiceDate).toISOString() : null,
             dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
             category: data.category,
+            documentType: data.documentType,
           })
           router.refresh()
         },
@@ -149,6 +154,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             {fmtAmount(invoice.totalAmount, invoice.currency)}
           </span>
           <StatusBadge status={status} />
+          <DocumentTypeBadge documentType={invoice.documentType} />
           <CategoryBadge category={invoice.category} />
         </div>
 
@@ -202,6 +208,24 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               />
             </div>
           ))}
+          {/* Document type */}
+          <div className="flex flex-col gap-1.25">
+            <Label className="text-[12px] font-semibold text-text-secondary">Type</Label>
+            <Select
+              items={DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] }))}
+              value={documentTypeDraft}
+              onValueChange={(v) => setDocumentTypeDraft(v as DocumentType)}
+            >
+              <SelectTrigger className="h-auto px-2.75 py-1.75 text-[13px] text-text-primary border-[#E8EDFA] rounded-[9px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="bottom" align="start" className="w-fit">
+                {DOCUMENT_TYPE_SELECTABLE.map((t) => (
+                  <SelectItem key={t} value={t}>{DOCUMENT_TYPE_LABELS[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {/* Category */}
           <div className="flex flex-col gap-1.25">
             <Label className="text-[12px] font-semibold text-text-secondary">Category</Label>
@@ -393,6 +417,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               onClick={() => {
                 setDraft(toDraft(invoice))
                 setCategoryDraft(invoice.category)
+                setDocumentTypeDraft(invoice.documentType)
                 setEditing(false)
               }}
             >

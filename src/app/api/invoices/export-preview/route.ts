@@ -1,7 +1,14 @@
 import { auth } from "@/lib/auth"
 import { loadInvoicesInRange } from "@/lib/export-data"
+import { DOCUMENT_TYPES, type DocumentType } from "@/lib/document-types"
 import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import { NextRequest, NextResponse } from "next/server"
+
+function parseDocumentType(value: string | null): DocumentType | undefined {
+  return value && (DOCUMENT_TYPES as readonly string[]).includes(value)
+    ? (value as DocumentType)
+    : undefined
+}
 
 // GET /api/invoices/export-preview?from=<iso>&to=<iso>
 // Lists invoices whose effective date falls in the range, for the export dialog's
@@ -26,13 +33,15 @@ export async function GET(req: NextRequest) {
     }
     throw e
   }
-  const invoices = await loadInvoicesInRange(session.user.organizationId, range)
+  const documentType = parseDocumentType(req.nextUrl.searchParams.get("documentType"))
+  const invoices = await loadInvoicesInRange(session.user.organizationId, range, documentType)
 
   return NextResponse.json({
     invoices: invoices.map((inv) => ({
       id: inv.id,
       vendorName: inv.vendorName,
       invoiceNumber: inv.invoiceNumber,
+      documentType: inv.documentType,
       invoiceDate: inv.invoiceDate,
       dueDate: inv.dueDate,
       totalAmount: inv.totalAmount,

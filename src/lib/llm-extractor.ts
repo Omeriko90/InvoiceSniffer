@@ -1,6 +1,7 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
 import { normalizeCurrencyCode } from "@/lib/csv-import"
+import { DOCUMENT_TYPES } from "@/lib/document-types"
 import { geminiClient, llmModel } from "@/lib/gemini"
 import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { log } from "@/lib/posthog-server"
@@ -16,8 +17,6 @@ import { log } from "@/lib/posthog-server"
 // The shared LLM_MODEL env var picks the model; unset (or a non-gemini value)
 // disables extraction. Any runtime error returns null so the worker falls back
 // to whatever the heuristics produced (fail-open).
-
-export const DOCUMENT_TYPES = ["TAX_INVOICE", "RECEIPT", "CREDIT_INVOICE", "UNKNOWN"] as const
 
 const lineItemSchema = z.object({
   description: z.string().nullable(),

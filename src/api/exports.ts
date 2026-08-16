@@ -1,11 +1,14 @@
 // Client-side fetchers for the export flow.
 
+import type { DocumentType } from "@/lib/document-types"
+
 export type ExportFormat = "csv" | "xlsx" | "pdf"
 
 export type ExportPreviewInvoice = {
   id: string
   vendorName: string | null
   invoiceNumber: string | null
+  documentType: DocumentType
   invoiceDate: string | null
   dueDate: string | null
   totalAmount: number
@@ -50,9 +53,13 @@ async function parseError(res: Response, fallback: string): Promise<never> {
 
 export async function fetchExportPreview(
   from: string,
-  to: string
+  to: string,
+  // Optional document-type filter; "all"/undefined means no filter.
+  documentType?: string
 ): Promise<ExportPreviewInvoice[]> {
-  const res = await fetch(`/api/invoices/export-preview?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+  const params = new URLSearchParams({ from, to })
+  if (documentType && documentType !== "all") params.set("documentType", documentType)
+  const res = await fetch(`/api/invoices/export-preview?${params.toString()}`)
   if (!res.ok) await parseError(res, "Failed to load invoices")
   const body = (await res.json()) as { invoices: ExportPreviewInvoice[] }
   return body.invoices
