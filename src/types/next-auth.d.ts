@@ -11,12 +11,14 @@ declare module "next-auth" {
       image?: string | null
       organizationId: string
       role: UserRole
+      language: string
     }
   }
 
   interface User {
     organizationId: string
     role: UserRole
+    language: string
   }
 }
 
@@ -24,5 +26,6 @@ declare module "next-auth/adapters" {
   interface AdapterUser {
     organizationId: string
     role: UserRole
+    language: string
   }
 }

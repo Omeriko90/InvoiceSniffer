@@ -165,6 +165,7 @@ model User {
   image          String?
   googleId       String?   @unique
   role           UserRole  @default(MEMBER)
+  language       String    @default("en")
   organizationId String
   createdAt      DateTime  @default(now())
 

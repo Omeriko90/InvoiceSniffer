@@ -1,0 +1,989 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "saveChanges": "Save changes",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "remove": "Remove",
+      "removing": "Removing…",
+      "edit": "Edit",
+      "close": "Close",
+      "done": "Done",
+      "back": "Back",
+      "apply": "Apply",
+      "retry": "Retry",
+      "undo": "Undo",
+      "link": "Link",
+      "linking": "Linking…",
+      "download": "Download",
+      "view": "View",
+      "dismiss": "Dismiss",
+      "resume": "Resume",
+      "pause": "Pause"
+    },
+    "states": {
+      "loading": "Loading…",
+      "noResults": "No results",
+      "empty": "Nothing here yet"
+    },
+    "confirm": {
+      "areYouSure": "Are you sure?",
+      "cannotBeUndone": "This action can't be undone."
+    },
+    "errors": {
+      "somethingWentWrong": "Something went wrong",
+      "genericTryAgain": "Something went wrong. Please try again.",
+      "notFoundTitle": "Page not found",
+      "notFoundDescription": "The page you're looking for doesn't exist or has moved."
+    },
+    "labels": {
+      "unknownVendor": "Unknown vendor",
+      "emptyValue": "—"
+    }
+  },
+  "shell": {
+    "brand": {
+      "appName": "InvoiceSniffer",
+      "defaultOrgName": "My Workspace"
+    },
+    "nav": {
+      "groupWorkspace": "Workspace",
+      "groupInsights": "Insights",
+      "dashboard": "Dashboard",
+      "invoices": "Invoices",
+      "reconcile": "Reconcile",
+      "fixedExpenses": "Fixed Expenses",
+      "alerts": "Alerts",
+      "exports": "Exports",
+      "settings": "Settings"
+    },
+    "pageTitles": {
+      "dashboard": "Dashboard",
+      "invoices": "Invoices",
+      "import": "Import CSV",
+      "reconcile": "Reconcile",
+      "fixedExpenses": "Fixed Expenses",
+      "alerts": "Alerts",
+      "exports": "Exports",
+      "settings": "Settings",
+      "fallback": "InvoiceSniffer"
+    },
+    "topbar": {
+      "gmailOutOfSyncReconnect": "Gmail out of sync · reconnect",
+      "gmailReconnectTooltip": "Reconnect Gmail to resume detecting invoices"
+    },
+    "userMenu": {
+      "defaultUserName": "User",
+      "logOut": "Log out"
+    },
+    "meta": {
+      "title": "InvoiceSniffer",
+      "description": "Manage invoices from email and reconcile against bank transactions"
+    }
+  },
+  "auth": {
+    "brand": {
+      "name": "InvoiceSniffer"
+    },
+    "signIn": {
+      "heading": "Welcome back",
+      "subheading": "Sign in to your workspace.",
+      "noAccountPrompt": "New to InvoiceSniffer?",
+      "createAccountLink": "Create an account",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "forgotPassword": "Forgot?"
+    },
+    "signUp": {
+      "heading": "Create your account",
+      "subheading": "Start reconciling invoices in minutes.",
+      "haveAccountPrompt": "Already have an account?",
+      "signInLink": "Sign in",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "termsNotice": "By creating an account you agree to our Terms & Privacy Policy."
+    },
+    "fields": {
+      "workEmailLabel": "Work email",
+      "emailPlaceholder": "you@company.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Jordan Maye"
+    },
+    "google": {
+      "continueWithGoogle": "Continue with Google"
+    },
+    "divider": {
+      "or": "or"
+    },
+    "brandPanel": {
+      "heading": "Invoices in. Transactions matched. Books done.",
+      "description": "Connect Gmail, upload a statement, and let InvoiceSniffer match every charge to its invoice — flagging anomalies and building your accountant export automatically.",
+      "features": {
+        "autoDetect": "Auto-detects invoices & receipts from your inbox",
+        "learnsFromCorrections": "Learns from your corrections over time",
+        "neverStoresFiles": "Never stores your invoice files"
+      }
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "nameRequired": "Enter your full name"
+    }
+  },
+  "onboarding": {
+    "connectGmail": {
+      "brandName": "InvoiceSniffer",
+      "heading": "Connect your Gmail",
+      "description": "We scan your inbox for invoices & receipts and store only the details — sender, amount, date, and a link back to the original email.",
+      "filesNeverStored": "Your invoice files are never stored.",
+      "connectButton": "Connect Gmail",
+      "accessNotice": "Read-only access · encrypted · revoke anytime",
+      "skipForNow": "Skip for now"
+    }
+  },
+  "dashboard": {
+    "stats": {
+      "unmatchedLabel": "Unmatched",
+      "unmatchedDelta": "needs review",
+      "possibleMatchesLabel": "Possible matches",
+      "possibleMatchesDelta": "awaiting confirm",
+      "matchedThisMonthLabel": "Matched this month",
+      "matchedDeltaPositive": "+{count} this week",
+      "matchedDeltaNegative": "{count} vs last month",
+      "openAlertsLabel": "Open alerts",
+      "openAlertsCritical": "{count} critical",
+      "openAlertsNoCritical": "No critical alerts"
+    },
+    "reconciliation": {
+      "title": "Reconciliation status — {monthLabel}",
+      "reviewLink": "Review →",
+      "legendMatched": "Matched",
+      "legendPossible": "Possible",
+      "legendMissing": "Missing",
+      "legendNoInvoice": "No invoice"
+    },
+    "needsAttention": {
+      "heading": "Needs your attention",
+      "possibleMatchesPrefix": "{count} possible matches",
+      "possibleMatchesSuffix": "waiting for confirmation",
+      "unmatchedPrefix": "{count} transactions",
+      "unmatchedSuffix": "with no matching invoice",
+      "reviewLink": "Review →",
+      "allReconciled": "All transactions reconciled"
+    },
+    "recentAlerts": {
+      "title": "Recent alerts",
+      "allLink": "All →",
+      "empty": "No active alerts"
+    },
+    "categorySpend": {
+      "title": "Spend by category — {monthLabel}",
+      "empty": "No categorized spend yet this month."
+    },
+    "taxPaid": {
+      "title": "Tax paid — {monthLabel}",
+      "empty": "No tax recorded on this month's invoices.",
+      "invoiceCount": {
+        "_one": "· {count} invoice",
+        "_other": "· {count} invoices"
+      },
+      "footnote": "Reclaimable VAT from tax invoices this month. Not a guaranteed-complete total."
+    },
+    "alertTypes": {
+      "amountHigh": "Unusually high",
+      "amountLow": "Unusually low",
+      "spendSpike": "Monthly spike",
+      "missingRecurring": "Missing recurring",
+      "newVendor": "New vendor"
+    },
+    "alertDescriptions": {
+      "amountHigh": "This invoice is {actual} — {pct}% above the median of {expected}.",
+      "amountHighRange": " Normal range is {rangeLow}–{rangeHigh}.",
+      "amountLow": "{actual} received — lower than the usual {expected}.",
+      "spendSpike": "This month's vendor spend reached {actual} versus a trailing average of {expected}.",
+      "missingRecurring": "A recurring invoice (~{expected}) was expected{when} based on prior cadence, but none has been detected within the grace period.",
+      "missingRecurringWhen": " around {date}",
+      "newVendor": "First invoice ever from this vendor: {actual}{when}. We started a spend baseline for future comparisons.",
+      "newVendorWhen": " on {date}",
+      "default": "Review this alert."
+    }
+  },
+  "invoices": {
+    "table": {
+      "headerVendor": "Vendor",
+      "headerInvoiceNumber": "Invoice #",
+      "headerIssueDate": "Issue date",
+      "headerReceived": "Received",
+      "headerStatus": "Status",
+      "headerType": "Type",
+      "headerCategory": "Category",
+      "headerAmount": "Amount",
+      "noResults": "No results match your search"
+    },
+    "filters": {
+      "searchPlaceholder": "Search vendor, amount, invoice #…",
+      "statusLabel": "Status:",
+      "categoryLabel": "Category:",
+      "typeLabel": "Type:",
+      "customRange": "Custom range…",
+      "countDetected": "{count} detected",
+      "clearAll": "Clear all",
+      "allAccounts": "All accounts",
+      "allCategories": "All categories",
+      "allTypes": "All types",
+      "status": {
+        "all": "All",
+        "detected": "Detected",
+        "confirmed": "Confirmed",
+        "review": "Review",
+        "reviewed": "Reviewed"
+      },
+      "datePresets": {
+        "all": "All time",
+        "thisMonth": "Current month",
+        "lastMonth": "Last month",
+        "3m": "Last 3 months",
+        "6m": "Last 6 months",
+        "ytd": "Year to date",
+        "year": "Last 12 months"
+      }
+    },
+    "status": {
+      "matched": "Confirmed",
+      "unmatched": "Review",
+      "detected": "Detected",
+      "reviewed": "Reviewed",
+      "ignored": "Ignored"
+    },
+    "documentType": {
+      "taxInvoice": "Invoice",
+      "receipt": "Receipt",
+      "creditInvoice": "Credit Note",
+      "unknown": "Unknown"
+    },
+    "category": {
+      "marketing": "Marketing",
+      "equipment": "Equipment",
+      "software": "Software",
+      "travel": "Travel",
+      "officeSupplies": "Office Supplies",
+      "professionalServices": "Professional Services",
+      "utilities": "Utilities",
+      "other": "Other",
+      "uncategorized": "Uncategorized"
+    },
+    "emptyState": {
+      "title": "No invoices yet",
+      "description": "Once your Gmail is connected, detected invoices will appear here automatically. Nothing has been scanned yet.",
+      "runSync": "Run a Gmail sync",
+      "startingSync": "Starting…",
+      "connectGmail": "Connect Gmail"
+    },
+    "gmailLink": {
+      "openInGmail": "Open in Gmail"
+    },
+    "dateRangeDialog": {
+      "title": "Custom date range",
+      "pickRange": "Pick a start and end day."
+    },
+    "drawer": {
+      "fixedExpensePrefix": "Fixed expense · {name}",
+      "extractedFields": "Extracted fields",
+      "fieldVendor": "Vendor",
+      "fieldInvoiceNumber": "Invoice #",
+      "fieldAmount": "Amount",
+      "fieldAmountWithCurrency": "Amount ({currency})",
+      "fieldInvoiceDate": "Invoice date",
+      "fieldDueDate": "Due date",
+      "fieldTax": "Tax",
+      "fieldType": "Type",
+      "fieldCategory": "Category",
+      "sourceEmail": "Source email",
+      "receivedIn": "Received in",
+      "unknownMailbox": "Unknown mailbox",
+      "attachedDocuments": "Attached documents",
+      "receiptLink": "Receipt link",
+      "viewHostedReceipt": "View hosted receipt",
+      "privacyNote": "The file itself is never stored — it's fetched from Gmail only during an export.",
+      "actions": "Actions",
+      "markAsFixedExpense": "Mark as fixed expense",
+      "markAsFixedExpenseDescription": "Track this vendor on a recurring schedule",
+      "markNotRelevant": "Mark as not relevant",
+      "markNotRelevantDescription": "Hide from reconciliation and exports",
+      "markNotAnInvoice": "Mark as not an invoice",
+      "markNotAnInvoiceDescription": "Reclassify this email as something else",
+      "editFields": "Edit fields",
+      "notRelevant": "Not relevant",
+      "notAnInvoice": "This isn't an invoice",
+      "removeFromFixedExpenseAria": "Remove from fixed expense"
+    },
+    "removeDialog": {
+      "notAnInvoiceTitle": "Mark as not an invoice?",
+      "removeTitle": "Remove this invoice?",
+      "notAnInvoiceDescription": "It's removed from your list and similar emails from this sender are detected less often. You can undo this.",
+      "removeDescription": "It genuinely is an invoice but won't appear in your list. You can undo this.",
+      "muteSender": "Also stop showing invoices from this sender"
+    },
+    "unlinkDialog": {
+      "title": "Remove from fixed expense?",
+      "descriptionNamed": "This invoice will no longer count toward “{name}”. The fixed expense keeps its match rules, so a matching invoice can re-link later.",
+      "descriptionUnnamed": "This invoice will no longer count toward this fixed expense. The fixed expense keeps its match rules, so a matching invoice can re-link later."
+    },
+    "export": {
+      "menuCsv": "Export as CSV",
+      "menuExcel": "Export as Excel",
+      "menuPdf": "Export as PDF (merged)",
+      "dialogTitle": "Export invoices as {format}",
+      "pdfDescription": "The selected invoices' PDFs are merged into a single document. You'll get a notification when it's ready to download.",
+      "spreadsheetDescription": "Choose a date range, deselect any invoices you don't want, and pick which columns to include.",
+      "selectedCount": "{selected} of {total} selected",
+      "working": "Working…",
+      "buildPdf": "Build PDF",
+      "exportFormat": "Export {format}",
+      "dateRange": "Date range",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To",
+      "documentType": "Document type",
+      "columns": "Columns",
+      "invoices": "Invoices",
+      "deselectAll": "Deselect all",
+      "selectAll": "Select all",
+      "loadFailed": "Failed to load invoices.",
+      "noneInRange": "No invoices in this range.",
+      "formatCsv": "CSV",
+      "formatExcel": "Excel",
+      "formatPdf": "PDF",
+      "presets": {
+        "week": "Last 7 days",
+        "month": "Last month",
+        "3m": "Last 3 months",
+        "6m": "Last 6 months",
+        "year": "Last 12 months",
+        "ytd": "Year to date"
+      },
+      "columnLabels": {
+        "vendorName": "Vendor",
+        "invoiceNumber": "Invoice #",
+        "documentType": "Document Type",
+        "invoiceDate": "Invoice Date",
+        "dueDate": "Due Date",
+        "totalAmount": "Amount",
+        "currency": "Currency",
+        "taxAmount": "Tax Amount"
+      }
+    },
+    "toasts": {
+      "selectAtLeastOneInvoice": "Select at least one invoice",
+      "selectAtLeastOneColumn": "Select at least one column",
+      "exportReady": "{format} export ready",
+      "exportReadyDescription": {
+        "_one": "{count} invoice exported.",
+        "_other": "{count} invoices exported."
+      },
+      "exportFailed": "Export failed"
+    }
+  },
+  "reconcile": {
+    "emptyState": {
+      "title": "Nothing to reconcile yet",
+      "description": "Import a bank or credit-card CSV and we'll match every charge against your detected invoices automatically.",
+      "importCta": "Import a CSV"
+    },
+    "dateRange": {
+      "heading": "Match against invoices from",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To",
+      "presets": {
+        "week": "Last 7 days",
+        "month": "Last month",
+        "3m": "Last 3 months",
+        "6m": "Last 6 months",
+        "year": "Last 12 months",
+        "ytd": "Year to date"
+      }
+    },
+    "upload": {
+      "parseErrorInvalid": "Couldn't parse that file — make sure it's a valid CSV.",
+      "parseErrorEmpty": "That file looks empty — no data rows found.",
+      "noUsableRows": "No usable rows — check that the date and amount columns are mapped correctly.",
+      "duplicateColumnsTitle": "Duplicate columns in this file",
+      "duplicateColumnsDescription": "{names} appears more than once — repeats were renamed so you can pick the right column.",
+      "rowsSkipped": {
+        "_one": "{count} row skipped (unreadable date or amount).",
+        "_other": "{count} rows skipped (unreadable date or amount)."
+      },
+      "addChargesSubmit": "Add {count} charges",
+      "chargesCount": "{count} charges",
+      "removeFile": "Remove {fileName}",
+      "hintEmpty": "Add one or more CSVs — from several cards if you like.",
+      "filesReady": {
+        "_one": "{fileCount} file · {totalCharges} charges ready",
+        "_other": "{fileCount} files · {totalCharges} charges ready"
+      },
+      "reconciling": "Reconciling…",
+      "reconcileCta": "Reconcile {totalCharges} charges →"
+    },
+    "session": {
+      "backToFiles": "Files & date range",
+      "reRunning": "Re-running…",
+      "reRunMatch": "Re-run match"
+    },
+    "summary": {
+      "matched": "Matched",
+      "possibleMatches": "Possible matches",
+      "chargesMissingInvoice": "Charges missing an invoice",
+      "invoicesMissingCharge": "Invoices missing a charge",
+      "alreadyReconciled": "Already reconciled"
+    },
+    "tabs": {
+      "all": "All",
+      "matched": "Matched",
+      "possible": "Possible",
+      "missing": "Missing invoice",
+      "none": "No invoice",
+      "invoices": "Invoices w/o charge",
+      "collisions": "Already reconciled"
+    },
+    "table": {
+      "columns": {
+        "date": "Date",
+        "merchant": "Merchant",
+        "amount": "Amount",
+        "matchedInvoice": "Matched invoice",
+        "confidence": "Confidence",
+        "actions": "Actions"
+      },
+      "emptyView": "No transactions in this view"
+    },
+    "row": {
+      "reviewLabel": "Review {merchant} — {amount}",
+      "alreadyReconciled": "Already reconciled",
+      "reject": "✕ Reject",
+      "confirm": "✓ Confirm",
+      "change": "Change",
+      "noInvoice": "No invoice",
+      "findInvoice": "Find invoice"
+    },
+    "status": {
+      "matched": "Matched",
+      "possible": "Possible",
+      "missing": "Missing",
+      "noInvoice": "No invoice",
+      "confirmed": "Confirmed"
+    },
+    "statusCell": {
+      "aiSuggestedTooltip": "Suggested by AI — please review",
+      "aiBadge": "AI"
+    },
+    "matchedInvoiceCell": {
+      "noInvoiceRequired": "No invoice required",
+      "noInvoiceFound": "No invoice found"
+    },
+    "unreconciledInvoices": {
+      "emptyTitle": "Every invoice is accounted for",
+      "emptyDescription": "Each invoice in this window matched a charge in your uploaded files.",
+      "columns": {
+        "vendor": "Vendor",
+        "invoiceNumber": "Invoice #",
+        "amount": "Amount",
+        "date": "Date"
+      },
+      "emailLink": "Email"
+    },
+    "drawer": {
+      "confirmTitle": "Confirm this match",
+      "detailTitle": "Transaction detail",
+      "confirmDescription": "Check that the invoice matches this charge before confirming.",
+      "noInvoiceDescription": "No invoice is linked to this charge yet.",
+      "collisionTitle": "Already reconciled",
+      "collisionBody": "This invoice was matched{sourceFile}{reconciledAt}. Confirming again may mean a duplicate charge or a re-uploaded statement.",
+      "collisionAgainstFile": " against {sourceFile}",
+      "collisionOnDate": " on {date}",
+      "matchConfidence": "Match confidence",
+      "bankChargeTitle": "Bank charge",
+      "importedTransaction": "Imported transaction",
+      "fieldMerchant": "Merchant",
+      "fieldAmount": "Amount",
+      "fieldDate": "Date",
+      "fieldCurrency": "Currency",
+      "fieldInvoiceNumber": "Invoice #",
+      "fieldInvoiceDate": "Invoice date",
+      "fieldDueDate": "Due date",
+      "noInvoiceLinked": "No invoice linked",
+      "viewSourceEmail": "View source email",
+      "amountsMatch": "Amounts match",
+      "amountsDiffer": "Amounts differ",
+      "currenciesDiffer": "Currencies differ"
+    },
+    "actions": {
+      "rejectMatch": "✕ Reject match",
+      "confirmMatch": "✓ Confirm match",
+      "undoConfirmation": "Undo confirmation",
+      "changeInvoice": "Change invoice",
+      "confirmMatchPlain": "Confirm match",
+      "noInvoiceNeeded": "No invoice needed",
+      "findInvoice": "Find invoice"
+    },
+    "candidates": {
+      "modalTitle": "Find invoice",
+      "modalDescription": "Matching {merchant} · {amount} · {date}",
+      "searchPlaceholder": "Search vendor or invoice #…",
+      "suggestedMatches": "Suggested matches",
+      "searching": "Searching…",
+      "noMatches": "No invoices match — try a different search.",
+      "learningHint": "Linking teaches a vendor alias, so future charges from this merchant match automatically."
+    },
+    "toasts": {
+      "confirm": "Match confirmed",
+      "reject": "Match rejected — alias learned",
+      "noInvoice": "Marked as no invoice needed",
+      "undo": "Reverted",
+      "link": "Invoice linked — alias learned"
+    },
+    "rowReasons": {
+      "rejected": "You rejected the suggested match",
+      "markedNoInvoice": "You marked this — won’t be flagged",
+      "linkedByYou": "Linked by you — alias learned"
+    }
+  },
+  "fixedExpenses": {
+    "toolbar": {
+      "searchPlaceholder": "Search fixed expenses…",
+      "newExpense": "New fixed expense"
+    },
+    "statusFilter": {
+      "all": "All",
+      "active": "Active",
+      "paused": "Paused"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "source": "Source",
+        "category": "Category",
+        "frequency": "Frequency",
+        "expected": "Expected",
+        "thisPeriod": "This period"
+      },
+      "pausedBadge": "Paused"
+    },
+    "emptyState": {
+      "noMatchTitle": "No matching fixed expenses",
+      "noMatchBody": "Try a different search or filter.",
+      "firstTitle": "Track your recurring bills",
+      "firstBody": "Add a fixed expense and we'll tell you each period whether its invoice has arrived.",
+      "newExpense": "New fixed expense"
+    },
+    "frequency": {
+      "weekly": "Weekly",
+      "biweekly": "Bi-weekly",
+      "monthly": "Monthly",
+      "bimonthly": "Bi-monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "periodNoun": {
+      "weekly": "week",
+      "biweekly": "two weeks",
+      "monthly": "month",
+      "bimonthly": "two months",
+      "quarterly": "quarter",
+      "yearly": "year"
+    },
+    "status": {
+      "arrived": "Arrived",
+      "pending": "Pending",
+      "overdue": "Overdue",
+      "missing": "Missing"
+    },
+    "detail": {
+      "pausedBadge": "Paused",
+      "sectionDetails": "Details",
+      "rowSource": "Source",
+      "rowSender": "Sender",
+      "rowFrequency": "Frequency",
+      "rowExpectedAmount": "Expected amount",
+      "rowMailbox": "Mailbox",
+      "sectionInvoiceHistory": "Invoice history",
+      "noPeriods": "No periods yet.",
+      "linkExistingInvoice": "Link an existing invoice",
+      "noInvoiceYet": "No invoice yet",
+      "moreCount": " · +{count} more",
+      "loadOlderPeriods": "Load older periods",
+      "periodLabel": {
+        "weekOf": "Week of {date}",
+        "range": "{start} – {end}",
+        "year": "{year}",
+        "quarter": "Q{quarter} {year}",
+        "month": "{month}"
+      }
+    },
+    "actions": {
+      "deleteExpense": "Delete fixed expense"
+    },
+    "deleteConfirm": {
+      "title": "Delete this fixed expense?",
+      "description": "Its arrival history is removed. The linked invoices themselves are kept — only the tracking is deleted."
+    },
+    "linkPicker": {
+      "title": "Link an existing invoice",
+      "description": "Pick an invoice that belongs to this expense. It attaches to whichever period it falls in.",
+      "noCandidates": "No unlinked invoices match this vendor or sender."
+    },
+    "periodChooser": {
+      "title": "Invoices this period",
+      "description": "{period} has more than one invoice. Pick one to open."
+    },
+    "invoiceDrawer": {
+      "loading": "Loading invoice…"
+    },
+    "form": {
+      "titleEdit": "Edit fixed expense",
+      "titleCreate": "New fixed expense",
+      "description": "Track whether the expected invoice arrives each period.",
+      "create": "Create",
+      "linkExistingLabel": "Link to an existing fixed expense",
+      "createNewOption": "— Create a new one —",
+      "createNewPlaceholder": "Create a new one",
+      "linkExistingHelp": "Pick one to attach this invoice to it instead of creating a new expense.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. AWS, Office rent",
+      "categoryLabel": "Category",
+      "vendorLabel": "Vendor name",
+      "vendorPlaceholder": "Who bills you (comma-separate several)",
+      "senderLabel": "Sender email",
+      "senderPlaceholder": "billing@vendor.com (comma-separate several)",
+      "mailboxLabel": "Mailbox (optional)",
+      "anyMailbox": "Any mailbox",
+      "expectedAmountLabel": "Expected amount",
+      "expectedAmountPlaceholder": "0.00",
+      "currencyLabel": "Currency",
+      "frequencyLabel": "Frequency",
+      "firstExpectedOnLabel": "First expected on",
+      "gracePeriodLabel": "Grace period (days)",
+      "gracePeriodHelp": "Days after the period ends before it counts as overdue."
+    },
+    "linkExistingConfirm": {
+      "title": "Link to “{name}”?",
+      "description": "This adds the sender{sender}{title} to “{name}”, and marks past and future invoices from that sender as this fixed expense.",
+      "descriptionSenderPart": " {sender}",
+      "descriptionTitlePart": " and title “{title}”",
+      "linkInvoice": "Link invoice"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "pickStartDate": "Pick a start date",
+      "vendorOrSenderRequired": "Add a vendor name or a sender email so we can match invoices",
+      "invalidEmails": "Enter valid email(s), comma-separated",
+      "invalidAmount": "Enter a valid amount"
+    }
+  },
+  "alerts": {
+    "drawer": {
+      "typeSeverity": "{type} · {severity}",
+      "detailsHeading": "Details",
+      "dismissAlertButton": "Dismiss alert"
+    },
+    "filters": {
+      "all": "All",
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "severity": {
+      "high": "Critical",
+      "medium": "Warning",
+      "low": "Info"
+    },
+    "types": {
+      "amountHigh": "Unusually high",
+      "amountLow": "Unusually low",
+      "spendSpike": "Monthly spike",
+      "missingRecurring": "Missing recurring",
+      "newVendor": "New vendor"
+    },
+    "metric": {
+      "amountHigh": {
+        "label": "vs median",
+        "valuePct": "+{pct}%",
+        "valueFallback": "High"
+      },
+      "amountLow": {
+        "label": "vs median",
+        "valuePct": "-{pct}%",
+        "valueFallback": "Low"
+      },
+      "spendSpike": {
+        "label": "this month",
+        "valueMultiple": "{multiple}×",
+        "valueFallback": "Spike"
+      },
+      "missingRecurring": {
+        "label": "overdue",
+        "valueDays": "{overdueDays}d",
+        "valueFallback": "Due"
+      },
+      "newVendor": {
+        "label": "first seen",
+        "value": "New"
+      },
+      "default": {
+        "label": "alert",
+        "value": "—"
+      }
+    },
+    "description": {
+      "amountHigh": "This invoice is {actual} — {pct}% above the median of {expected}.",
+      "amountHighWellAbove": "This invoice is {actual} — well above the median of {expected}.",
+      "amountHighNormalRange": " Normal range is {rangeLow}–{rangeHigh}.",
+      "amountLow": "{actual} received — lower than the usual {expected}.",
+      "spendSpike": "This month's vendor spend reached {actual} versus a trailing average of {expected}.",
+      "missingRecurring": "A recurring invoice (~{expected}) was expected{when} based on prior cadence, but none has been detected within the grace period.",
+      "missingRecurringWhen": " around {date}",
+      "newVendor": "First invoice ever from this vendor: {actual}{when}. We started a spend baseline for future comparisons.",
+      "newVendorWhen": " on {date}",
+      "default": "Review this alert."
+    },
+    "details": {
+      "observedAmount": "Observed amount",
+      "baseline": "Baseline",
+      "normalRange": "Normal range",
+      "normalRangeValue": "{rangeLow} – {rangeHigh}",
+      "deviation": "Deviation",
+      "deviationValue": "{pct}%",
+      "spikeFactor": "Spike factor",
+      "spikeFactorValue": "{multiple}×",
+      "overdue": "Overdue",
+      "overdueValue": "{overdueDays} days",
+      "expected": "Expected",
+      "firstSeen": "First seen"
+    },
+    "emptyState": {
+      "titleFiltered": "No alerts in this category",
+      "titleDefault": "No alerts right now",
+      "descriptionFiltered": "Try a different severity filter — you're all caught up here.",
+      "descriptionDefault": "We'll flag unusual spend, spikes, missing recurring invoices, and new vendors as they come in."
+    }
+  },
+  "exports": {
+    "page": {
+      "description": "Your invoice exports. Files stay available for re-download until they expire."
+    },
+    "history": {
+      "loading": "Loading exports…",
+      "loadError": "Failed to load exports.",
+      "emptyState": "No exports yet. Create one from the Invoices page.",
+      "columnFormat": "Format",
+      "columnDateRange": "Date range",
+      "columnCreated": "Created",
+      "columnStatus": "Status",
+      "columnDownload": "Download",
+      "skippedCount": {
+        "_one": "{count} skipped",
+        "_other": "{count} skipped"
+      }
+    },
+    "status": {
+      "queued": "Queued",
+      "building": "Building…",
+      "ready": "Ready",
+      "expired": "Expired",
+      "failed": "Failed"
+    },
+    "detail": {
+      "invoices": "Invoices",
+      "skipped": "Skipped",
+      "file": "File",
+      "expires": "Expires",
+      "skippedFiles": "Skipped files"
+    },
+    "skipReason": {
+      "noSource": "No attachment or email content to include",
+      "noPdfAttachment": "No PDF attachment on the email",
+      "gmailNotConnected": "Gmail account no longer connected",
+      "fetchOrParseFailed": "Couldn't fetch or read the invoice"
+    },
+    "toast": {
+      "buildingTitle": "Building your PDF…",
+      "buildingDescription": "This can take a moment while we gather your invoices.",
+      "readyTitle": "Your PDF is ready",
+      "readyDescription": "Download {fileName}.",
+      "readyDescriptionFallback": "your export",
+      "skippedNote": {
+        "_one": " {count} invoice couldn't be included and was skipped.",
+        "_other": " {count} invoices couldn't be included and were skipped."
+      },
+      "failedTitle": "Export failed",
+      "failedExpiredDescription": "The export expired before it could be downloaded.",
+      "failedGenericDescription": "We couldn't build this export. Please try again."
+    }
+  },
+  "import": {
+    "steps": {
+      "upload": "Upload",
+      "mapColumns": "Map columns",
+      "previewConfirm": "Preview & confirm"
+    },
+    "upload": {
+      "dropTitle": "Drag & drop your CSV here",
+      "dropSubtitle": "Export transactions from your bank or card provider, then drop the file here.",
+      "browseFiles": "Browse files"
+    },
+    "fileSummary": {
+      "rowsColumnsDetected": {
+        "_one": "{rowCount} row · {columnCount} columns detected",
+        "_other": "{rowCount} rows · {columnCount} columns detected"
+      },
+      "savedMappingApplied": "Saved mapping for <strong>{label}</strong> applied automatically."
+    },
+    "mapping": {
+      "heading": "Map your columns",
+      "description": "Tell us which CSV columns hold the date, merchant, and amount.",
+      "notMapped": "— not mapped —",
+      "fields": {
+        "date": {
+          "label": "Transaction date",
+          "hint": "When the charge posted"
+        },
+        "merchant": {
+          "label": "Merchant",
+          "hint": "Who was paid"
+        },
+        "amount": {
+          "label": "Amount",
+          "hint": "Charge amount"
+        },
+        "currency": {
+          "label": "Currency (optional)",
+          "hint": "Defaults to USD"
+        }
+      }
+    },
+    "preview": {
+      "title": "Preview (first 3 rows)",
+      "columns": {
+        "date": "Date",
+        "merchant": "Merchant",
+        "amount": "Amount"
+      }
+    },
+    "actions": {
+      "adding": "Adding…",
+      "importTransactions": {
+        "_one": "Import {count} transaction",
+        "_other": "Import {count} transactions"
+      }
+    }
+  },
+  "settings": {
+    "gmail": {
+      "cardTitle": "Gmail connection",
+      "notConnectedTitle": "Not connected",
+      "notConnectedDescription": "Connect Gmail to detect invoices automatically",
+      "connect": "Connect",
+      "addAccount": "+ Add account",
+      "reconnect": "Reconnect",
+      "remove": "Remove",
+      "removing": "Removing…",
+      "disconnect": "Disconnect",
+      "disconnecting": "Disconnecting…",
+      "syncNow": "Sync now",
+      "syncing": "Syncing…",
+      "connectedStatus": "Connected · read-only · {syncedLabel}",
+      "outOfSync": "Out of sync — Gmail access expired. Reconnect to resume detecting invoices.",
+      "planLimit": {
+        "_one": "You've reached your plan's limit of {count} mailbox.",
+        "_other": "You've reached your plan's limit of {count} mailboxes."
+      },
+      "privacyNotice": "Invoice files are never stored. We keep sender, subject, amount, date and a link to the original email — files are downloaded only during an export, then deleted.",
+      "syncedLabel": {
+        "notSyncedYet": "not synced yet",
+        "syncedAgo": "synced {distance} ago"
+      },
+      "connectedToast": {
+        "title": "Gmail connected",
+        "description": "We'll start detecting invoices shortly."
+      },
+      "syncStartedToast": {
+        "title": "Gmail sync started",
+        "description": "Detected invoices will appear here shortly."
+      },
+      "errors": {
+        "accountLimit": {
+          "title": "Mailbox limit reached",
+          "description": "Disconnect a mailbox or upgrade your plan to connect another."
+        },
+        "accessDenied": {
+          "title": "Gmail connection cancelled",
+          "description": "You declined the permission request, so nothing was connected."
+        },
+        "tokenExchangeFailed": {
+          "title": "Couldn't connect Gmail",
+          "description": "Google sign-in didn't complete. Please try again."
+        },
+        "noTokens": {
+          "title": "Couldn't connect Gmail",
+          "description": "Google didn't grant offline access. Try again and allow it when asked."
+        },
+        "missingParams": {
+          "title": "Couldn't connect Gmail",
+          "description": "The sign-in link was incomplete. Please start over."
+        },
+        "invalidState": {
+          "title": "Couldn't connect Gmail",
+          "description": "The sign-in link expired or was invalid. Please try again."
+        },
+        "fallback": {
+          "title": "Couldn't connect Gmail",
+          "description": "Something went wrong connecting the mailbox. Please try again."
+        }
+      }
+    },
+    "members": {
+      "cardTitle": "Workspace & members",
+      "inviteMember": "+ Invite member",
+      "inviteComingSoon": "Member invites are coming soon",
+      "removeRuleLabel": "Remove rule for {merchantPattern}",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member"
+      }
+    },
+    "reconcile": {
+      "cardTitle": "Reconcile settings",
+      "description": "Credit-card settlement lag — how many days a charge may post after its invoice date. Increase this if your card bills 30, 60, or 90 days after purchase.",
+      "settlementLagLabel": "Settlement lag:",
+      "days": "days",
+      "savedToast": "Reconcile settings saved",
+      "saveErrorFallback": "Failed to save"
+    },
+    "aliases": {
+      "cardTitle": "Learned rules & aliases",
+      "description": "These power smarter matching over time. Remove any that look wrong.",
+      "builtFrom": {
+        "_one": "Built from your corrections · {count} rule",
+        "_other": "Built from your corrections · {count} rules"
+      },
+      "empty": "No rules yet — they appear as you confirm and correct matches.",
+      "target": {
+        "noInvoice": "no invoice",
+        "notVendor": "≠ {vendorName}"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose the language for the interface.",
+      "saved": "Language updated"
+    }
+  }
+}
