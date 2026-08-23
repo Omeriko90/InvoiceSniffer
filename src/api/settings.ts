@@ -32,4 +32,16 @@ async function updateSettlementLag(settlementLagDays: number): Promise<void> {
   }
 }
 
-export { fetchSettings, deleteAlias, disconnectGmail, updateSettlementLag }
+async function updateDisplayCurrency(displayCurrency: string): Promise<void> {
+  const res = await fetch("/api/settings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ displayCurrency }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to update settings")
+  }
+}
+
+export { fetchSettings, deleteAlias, disconnectGmail, updateSettlementLag, updateDisplayCurrency }
