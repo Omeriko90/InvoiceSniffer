@@ -7,6 +7,8 @@ import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/l
 import { categorizerEnabled, categorizeInvoice } from "@/lib/llm-categorizer"
 import type { InvoiceCategory } from "@/lib/invoice-categories"
 import { linkInvoiceToMatchingFixedExpense } from "@/lib/link-fixed-expense"
+import { normalizeCurrencyCode } from "@/lib/currency"
+import { convertForDisplay } from "@/lib/fx"
 import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
 import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
@@ -200,6 +202,30 @@ async function extractInvoice(
       })) ?? undefined
   }
 
+  // Convert the total to the org display currency, locking the rate at arrival.
+  // Fail-open: on any FX/lookup error the converted fields stay null and display
+  // falls back to the original amount. When the invoice is already in the display
+  // currency the rate is 1, so displayAmount mirrors totalAmount.
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { displayCurrency: true },
+  })
+  const displayCurrency = org?.displayCurrency ?? "USD"
+  const originalCurrency = normalizeCurrencyCode(extracted.currency)
+  const conversion = await convertForDisplay(
+    extracted.totalAmount ?? 0,
+    originalCurrency,
+    displayCurrency
+  )
+  const convertedFields = conversion
+    ? {
+        displayAmount: conversion.displayAmount,
+        displayCurrency: conversion.displayCurrency,
+        fxRate: conversion.fxRate,
+        fxAsOf: conversion.fxAsOf,
+      }
+    : {}
+
   const invoice = await prisma.invoice.upsert({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
     create: {
@@ -230,6 +256,7 @@ async function extractInvoice(
       receiptUrl,
       extractionMethod,
       extractionConfidence: extracted.confidence,
+      ...convertedFields,
       // create-only: never overwrite a user's manual category on re-extraction.
       ...(category ? { category } : {}),
     },
@@ -250,6 +277,7 @@ async function extractInvoice(
       receiptUrl,
       extractionMethod,
       extractionConfidence: extracted.confidence,
+      ...convertedFields,
     },
   })
 
