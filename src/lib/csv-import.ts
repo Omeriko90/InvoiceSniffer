@@ -129,7 +129,10 @@ export function buildImportRows(
     const date = normalizeDate(record[mapping.date] ?? "")
     const merchant = (record[mapping.merchant] ?? "").trim()
     const amount = normalizeAmount(record[mapping.amount] ?? "")
-    if (!date || !merchant || amount === null) {
+    // Silently drop rows that aren't payments: missing/unparseable required
+    // fields, or a zero amount (balance/summary/empty rows). These are noise,
+    // not import failures, so they never surface to the user.
+    if (!date || !merchant || amount === null || amount === 0) {
       skipped++
       continue
     }
