@@ -1,10 +1,9 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { fmtDateShort } from "@/lib/date"
-import { STATUS_META, TABLE_GRID_COLUMNS } from "./constants"
+import { TABLE_GRID_COLUMNS } from "./constants"
 import { fmtAmount } from "./helpers"
 import type { InvoiceRow as InvoiceRowType } from "./types"
 import { VendorCell } from "./VendorCell"
-import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
 import { DocumentTypeBadge } from "./DocumentTypeBadge"
 import { GmailLinkButton } from "./GmailLinkButton"
@@ -14,7 +13,6 @@ export function InvoiceRow({ invoice, onSelect }: {
   onSelect: (invoice: InvoiceRowType) => void
 }) {
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
-  const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
 
   return (
     <div
@@ -42,16 +40,6 @@ export function InvoiceRow({ invoice, onSelect }: {
       <span className="text-sm text-text-secondary">
         {fmtDateShort(invoice.emailDate)}
       </span>
-
-      {/* Status */}
-      <div>
-        <StatusBadge status={status} />
-      </div>
-
-      {/* Type */}
-      <div className="min-w-0">
-        <DocumentTypeBadge documentType={invoice.documentType} />
-      </div>
 
       {/* Category */}
       <div className="min-w-0">

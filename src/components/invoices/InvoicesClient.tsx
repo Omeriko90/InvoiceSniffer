@@ -15,7 +15,6 @@ import { isPreset, resolveInvoiceDateRange, type InvoiceDateScope } from "@/lib/
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
-  const [statusFilter, setStatus]   = useState<string>("all")
   const [categoryFilter, setCategory] = useState<string>("all")
   const [documentTypeFilter, setDocumentType] = useState<string>("all")
   const [accountFilter, setAccount] = useState<string>("all")
@@ -34,11 +33,10 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     return Array.from(map, ([email, label]) => ({ email, label }))
   }, [invoices])
 
-  // The baseline (unfiltered) view: no search, all statuses/accounts, current
+  // The baseline (unfiltered) view: no search, all categories/accounts, current
   // month. "Clear all" resets to this and is disabled while already here.
   const canClear =
     search !== "" ||
-    statusFilter !== "all" ||
     categoryFilter !== "all" ||
     documentTypeFilter !== "all" ||
     accountFilter !== "all" ||
@@ -46,7 +44,6 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
   function clearAll() {
     setSearch("")
-    setStatus("all")
     setCategory("all")
     setDocumentType("all")
     setAccount("all")
@@ -62,8 +59,6 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         (inv.vendorName ?? "").toLowerCase().includes(q) ||
         (inv.invoiceNumber ?? "").toLowerCase().includes(q) ||
         inv.totalAmount.includes(q)
-      const matchStatus =
-        statusFilter === "all" || inv.status === statusFilter
       const matchCategory =
         categoryFilter === "all" || inv.category === categoryFilter
       const matchDocumentType =
@@ -75,17 +70,15 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         const d = belongsToDate(inv)
         return d >= range.from && d <= range.to
       })()
-      return matchSearch && matchStatus && matchCategory && matchDocumentType && matchAccount && matchDate
+      return matchSearch && matchCategory && matchAccount && matchDate
     })
-  }, [invoices, search, statusFilter, categoryFilter, documentTypeFilter, accountFilter, dateScope])
+  }, [invoices, search, categoryFilter, accountFilter, dateScope])
 
   return (
     <div className="flex flex-col gap-4">
       <InvoicesToolbar
         search={search}
         onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusChange={setStatus}
         categoryFilter={categoryFilter}
         onCategoryChange={setCategory}
         documentTypeFilter={documentTypeFilter}

@@ -10,6 +10,8 @@ export const VENDOR_GRADIENTS = [
   "linear-gradient(135deg,#22D3EE,#7AA7FF)",
 ]
 
+// Still used by the invoice detail drawer's status badge (the invoices table no
+// longer shows a Status column).
 export const STATUS_META: Record<string, StatusMeta> = {
   MATCHED:   { label: "Confirmed",  badge: "bg-success-bg text-success-fg" },
   UNMATCHED: { label: "Review",     badge: "bg-danger-bg text-danger-fg" },
@@ -18,17 +20,4 @@ export const STATUS_META: Record<string, StatusMeta> = {
   IGNORED:   { label: "Ignored",    badge: "bg-hover text-dim" },
 }
 
-// No "Ignored" option: removed invoices (marked "not an invoice" / "not relevant")
-// are filtered out of the list entirely, so the status is never shown here.
-export const STATUS_OPTIONS = [
-  { value: "all",      label: "All" },
-  { value: "DETECTED", label: "Detected" },
-  { value: "MATCHED",  label: "Confirmed" },
-  { value: "UNMATCHED",label: "Review" },
-  { value: "REVIEWED", label: "Reviewed" },
-]
-
-// Vendor · Invoice # · Issue date · Received · Status · Type · Category · Amount · Gmail link
-// Amount is last (before the Gmail-link icon) so its right-alignment hugs the
-// table's right edge.
-export const TABLE_GRID_COLUMNS = "1.5fr 0.9fr 0.75fr 0.75fr 0.8fr 0.85fr 0.95fr 0.8fr 40px"
+export const TABLE_GRID_COLUMNS = "1.5fr 0.9fr 0.75fr 0.75fr 0.95fr 0.8fr 40px"

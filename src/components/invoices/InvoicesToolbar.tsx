@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { STATUS_OPTIONS } from "./constants"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import type { UIState } from "./types"
@@ -51,8 +50,6 @@ function dateScopeLabel(scope: InvoiceDateScope): string {
 export function InvoicesToolbar({
   search,
   onSearchChange,
-  statusFilter,
-  onStatusChange,
   categoryFilter,
   onCategoryChange,
   documentTypeFilter,
@@ -72,8 +69,6 @@ export function InvoicesToolbar({
 }: {
   search: string
   onSearchChange: (value: string) => void
-  statusFilter: string
-  onStatusChange: (value: string) => void
   categoryFilter: string
   onCategoryChange: (value: string) => void
   documentTypeFilter: string
@@ -107,25 +102,6 @@ export function InvoicesToolbar({
           placeholder="Search vendor, amount, invoice #…"
           className="h-auto ps-[34px] pe-3 py-2 text-sm text-text-primary border-border rounded-[10px] bg-surface"
         />
-      </div>
-
-      {/* Status filter */}
-      <div className="relative flex items-center gap-2">
-      <span className="text-sm font-medium text-text-primary">Status:</span>
-      <Select
-        items={STATUS_OPTIONS}
-        value={statusFilter}
-        onValueChange={(v) => onStatusChange(v as string)}
-      >
-        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
       </div>
 
       {/* Category filter */}
