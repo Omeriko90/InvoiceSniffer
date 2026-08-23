@@ -83,16 +83,15 @@ export function AddFilesPanel({
       amount: mapping.amount,
       currency: mapping.currency,
     }
-    const { rows, skipped } = buildImportRows(parsed.records, fullMapping)
+    // Empty/non-payment rows (blank fields, zero amounts) are dropped silently
+    // inside buildImportRows — they're noise, not something to notify about.
+    const { rows } = buildImportRows(parsed.records, fullMapping)
     if (rows.length === 0) {
       setParseError("No usable rows — check that the date and amount columns are mapped correctly.")
       return
     }
 
     onAddFile({ fileName: parsed.fileName, rows })
-    if (skipped > 0) {
-      toast.info(`${skipped} row${skipped === 1 ? "" : "s"} skipped (unreadable date or amount).`)
-    }
     // Remember the mapping for next time (best-effort).
     saveMapping.mutate({
       mappingLabel: savedMappingLabel ?? labelFromFileName(parsed.fileName),
