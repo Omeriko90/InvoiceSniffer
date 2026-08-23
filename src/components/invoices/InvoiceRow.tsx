@@ -46,7 +46,7 @@ export function InvoiceRow({ invoice, onSelect }: {
         <CategoryBadge category={invoice.category} />
       </div>
 
-      {/* Amount (shown in the org display currency) */}
+      {/* Amount */}
       <span className="text-sm font-bold text-heading text-right">
         {fmtDisplayMoney(invoice)}
       </span>

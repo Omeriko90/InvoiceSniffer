@@ -253,7 +253,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           {[
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
             { label: "Amount",    value: fmtDisplayMoney(invoice) },
-            // Original amount only when its currency differs from the display one.
             ...(hasDistinctOriginal(invoice)
               ? [{ label: "Original amount", value: fmtMoney(invoice.totalAmount, invoice.currency) }]
               : []),

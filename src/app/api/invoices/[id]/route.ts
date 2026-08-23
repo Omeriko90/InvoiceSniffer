@@ -86,9 +86,6 @@ export async function PATCH(
   }
   if (p.totalAmount !== undefined) {
     data.totalAmount = p.totalAmount
-    // Keep the display-currency amount in sync with a manual edit, reusing the
-    // FX rate locked at arrival (the currency itself isn't editable here). No
-    // stored rate (older/unconverted invoice) → leave converted fields untouched.
     const existing = await prisma.invoice.findFirst({
       where: { id, organizationId: session.user.organizationId },
       select: { fxRate: true },

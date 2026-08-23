@@ -83,8 +83,6 @@ export function AddFilesPanel({
       amount: mapping.amount,
       currency: mapping.currency,
     }
-    // Empty/non-payment rows (blank fields, zero amounts) are dropped silently
-    // inside buildImportRows — they're noise, not something to notify about.
     const { rows } = buildImportRows(parsed.records, fullMapping)
     if (rows.length === 0) {
       setParseError("No usable rows — check that the date and amount columns are mapped correctly.")

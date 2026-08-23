@@ -155,10 +155,6 @@ export async function extractInvoiceFromPdf(input: {
     if (!text) return null
     const parsed = extractionSchema.safeParse(JSON.parse(text))
     if (!parsed.success) return null
-    // The model is now asked for an ISO 4217 code directly (see INSTRUCTIONS /
-    // the currency schema description). This normalize is a safety net for the
-    // occasional slip (a returned "₪"/"שקל") so a symbol can never reach the DB
-    // and later crash Intl.NumberFormat wherever the invoice is rendered.
     return { ...parsed.data, currency: parsed.data.currency ? normalizeCurrencyCode(parsed.data.currency) : null }
   } catch (err) {
     log.warn("llm-extractor failed, falling back to heuristics", { model, err: String(err) })

@@ -11,9 +11,6 @@ export function fmtMoney(amount: number | string, currency: string): string {
   }
 }
 
-// An invoice-like value carrying both its original amount/currency and the
-// amount converted to the org display currency (locked at arrival). Older or
-// unconverted invoices have null converted fields and fall back to the original.
 export type Convertible = {
   totalAmount: string | number
   currency: string
@@ -21,9 +18,6 @@ export type Convertible = {
   displayCurrency?: string | null
 }
 
-// The amount to present: the display-currency conversion when available, else
-// the original. Use this everywhere amounts are shown so cross-currency figures
-// (tables, dashboard totals) are comparable.
 export function displayAmount(o: Convertible): { amount: string | number; currency: string } {
   if (o.displayAmount != null && o.displayCurrency) {
     return { amount: o.displayAmount, currency: o.displayCurrency }
@@ -36,8 +30,6 @@ export function fmtDisplayMoney(o: Convertible): string {
   return fmtMoney(d.amount, d.currency)
 }
 
-// True when the original currency differs from the display currency, i.e. there
-// is a meaningful second (original) amount worth showing alongside the converted.
 export function hasDistinctOriginal(o: Convertible): boolean {
   return (
     o.displayCurrency != null &&

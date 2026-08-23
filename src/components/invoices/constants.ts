@@ -10,8 +10,6 @@ export const VENDOR_GRADIENTS = [
   "linear-gradient(135deg,#22D3EE,#7AA7FF)",
 ]
 
-// Still used by the invoice detail drawer's status badge (the invoices table no
-// longer shows a Status column).
 export const STATUS_META: Record<string, StatusMeta> = {
   MATCHED:   { label: "Confirmed",  badge: "bg-success-bg text-success-fg" },
   UNMATCHED: { label: "Review",     badge: "bg-danger-bg text-danger-fg" },

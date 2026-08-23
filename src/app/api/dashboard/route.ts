@@ -36,12 +36,6 @@ export async function GET() {
       where: { organizationId, status: { not: "IGNORED" }, emailDate: { gte: monthStart, lte: monthEnd } },
       _count: true,
     }),
-    // Spend by category for the current month. Fetched as rows (not a groupBy)
-    // so each invoice contributes its display-currency amount when converted,
-    // falling back to the original for older/unconverted invoices. Aggregated by
-    // (category, effective currency) below so converted invoices collapse into a
-    // single display-currency total while any leftover originals stay separate.
-    // Excludes soft-deleted and IGNORED invoices to match every other aggregate.
     prisma.invoice.findMany({
       where: {
         organizationId,
@@ -90,10 +84,6 @@ export async function GET() {
   const byStatus = Object.fromEntries(invoicesByStatus.map((r) => [r.status, r._count]))
   const total    = invoicesByStatus.reduce((s, r) => s + r._count, 0) || 1
 
-  // Aggregate spend per (category, effective currency), using each invoice's
-  // display-currency amount when it has one, else its original. UNCATEGORIZED is
-  // dropped from the headline breakdown. Sorted by spend desc so the biggest
-  // expense types lead.
   const catTotals = new Map<string, { category: string; currency: string; total: number; count: number }>()
   for (const r of invoicesByCategory) {
     if (r.category === "UNCATEGORIZED") continue

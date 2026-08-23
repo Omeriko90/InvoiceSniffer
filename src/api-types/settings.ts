@@ -30,7 +30,6 @@ export interface SettingsData {
   rules: LearnedRule[]
   // Max days a card charge may post after its invoice (reconcile match window).
   settlementLagDays: number
-  // Org-wide display currency (ISO 4217) all amounts are presented in.
   displayCurrency: string
   // Max number of *connected* Gmail mailboxes this org's plan allows.
   maxGmailAccounts: number
