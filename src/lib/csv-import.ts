@@ -1,6 +1,7 @@
 import { parse } from "csv-parse/browser/esm/sync"
 import { parse as parseDate, isValid } from "date-fns"
 import type { ColumnMapping, ImportRow } from "@/api-types/import"
+import { normalizeCurrencyCode } from "@/lib/currency"
 
 export interface ParsedCsv {
   fileName: string
@@ -116,16 +117,6 @@ export function normalizeAmount(value: string): number | null {
   const n = Number(v)
   if (Number.isNaN(n)) return null
   return negative ? -n : n
-}
-
-// Bank CSVs often carry a symbol ("₪") or local alias ("NIS") instead of an ISO code
-const CURRENCY_ALIASES: Record<string, string> = {
-  "₪": "ILS", NIS: "ILS", "$": "USD", US$: "USD", "€": "EUR", "£": "GBP", "¥": "JPY",
-}
-
-export function normalizeCurrencyCode(value: string): string {
-  const v = value.trim().toUpperCase()
-  return CURRENCY_ALIASES[v] ?? v
 }
 
 export function buildImportRows(

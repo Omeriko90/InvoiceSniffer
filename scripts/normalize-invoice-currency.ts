@@ -4,7 +4,7 @@
 // raw symbol crashes Intl.NumberFormat wherever the invoice is rendered.
 //   npx tsx scripts/normalize-invoice-currency.ts
 import "dotenv/config"
-import { normalizeCurrencyCode } from "@/lib/csv-import"
+import { normalizeCurrencyCode } from "@/lib/currency"
 import { prisma } from "@/lib/prisma"
 
 async function main() {
