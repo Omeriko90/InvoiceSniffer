@@ -47,8 +47,6 @@ export async function GET() {
   })
 }
 
-// PATCH /api/settings — update org-level settings (privileged only). Accepts a
-// partial body: settlementLagDays and/or displayCurrency.
 export async function PATCH(request: Request) {
   const { session, response } = await requirePrivileged()
   if (response) return response

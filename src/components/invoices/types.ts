@@ -17,9 +17,6 @@ export type InvoiceRow = {
   invoiceNumber: string | null
   totalAmount: string
   currency: string
-  // Amount converted to the org display currency at arrival; null on older/
-  // unconverted invoices (fall back to totalAmount/currency). displayCurrency
-  // is the display currency that was in effect when this invoice arrived.
   displayAmount: string | null
   displayCurrency: string | null
   taxAmount: string | null

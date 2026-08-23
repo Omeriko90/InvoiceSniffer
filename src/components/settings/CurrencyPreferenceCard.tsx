@@ -13,9 +13,6 @@ import {
 import { SUPPORTED_DISPLAY_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/currency";
 import { useUpdateDisplayCurrency } from "@/hooks/useUpdateDisplayCurrency";
 
-// Org-level display currency: every amount across the app is presented in this
-// currency. Invoices in another currency are converted at arrival and stored, so
-// changing this only affects invoices that arrive afterwards.
 export function CurrencyPreferenceCard({
   displayCurrency,
 }: {

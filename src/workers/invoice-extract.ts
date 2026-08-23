@@ -202,10 +202,6 @@ async function extractInvoice(
       })) ?? undefined
   }
 
-  // Convert the total to the org display currency, locking the rate at arrival.
-  // Fail-open: on any FX/lookup error the converted fields stay null and display
-  // falls back to the original amount. When the invoice is already in the display
-  // currency the rate is 1, so displayAmount mirrors totalAmount.
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
     select: { displayCurrency: true },

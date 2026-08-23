@@ -264,9 +264,6 @@ function largestCurrencyAmount(text: string): number | null {
   return max
 }
 
-// Heuristic currency detection from free invoice text. Kept aligned with the
-// ISO codes produced by normalizeCurrencyCode (@/lib/currency) so heuristic and
-// LLM/CSV paths agree. Scans for symbols and local spellings; defaults to USD.
 function detectCurrency(text: string): string {
   if (/₪|ש"ח|ש״ח|שקל|\bILS\b|\bNIS\b/.test(text)) return "ILS"
   if (text.includes("£") || /\bGBP\b/.test(text)) return "GBP"
