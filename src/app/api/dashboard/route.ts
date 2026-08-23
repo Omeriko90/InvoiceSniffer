@@ -36,19 +36,26 @@ export async function GET() {
       where: { organizationId, status: { not: "IGNORED" }, emailDate: { gte: monthStart, lte: monthEnd } },
       _count: true,
     }),
-    // Spend by category for the current month. Grouped by category AND currency
-    // so mixed-currency orgs aren't summed into a meaningless total. Excludes
-    // soft-deleted and IGNORED invoices to match every other list/aggregate.
-    prisma.invoice.groupBy({
-      by: ["category", "currency"],
+    // Spend by category for the current month. Fetched as rows (not a groupBy)
+    // so each invoice contributes its display-currency amount when converted,
+    // falling back to the original for older/unconverted invoices. Aggregated by
+    // (category, effective currency) below so converted invoices collapse into a
+    // single display-currency total while any leftover originals stay separate.
+    // Excludes soft-deleted and IGNORED invoices to match every other aggregate.
+    prisma.invoice.findMany({
       where: {
         organizationId,
         removedAt: null,
         status: { not: "IGNORED" },
         emailDate: { gte: monthStart, lte: monthEnd },
       },
-      _sum: { totalAmount: true },
-      _count: true,
+      select: {
+        category: true,
+        currency: true,
+        totalAmount: true,
+        displayAmount: true,
+        displayCurrency: true,
+      },
     }),
     // Reclaimable VAT this month. Only TAX_INVOICE documents carry deductible
     // VAT, so plain receipts/unknown docs are excluded. Fetched as rows (not a
@@ -83,18 +90,23 @@ export async function GET() {
   const byStatus = Object.fromEntries(invoicesByStatus.map((r) => [r.status, r._count]))
   const total    = invoicesByStatus.reduce((s, r) => s + r._count, 0) || 1
 
-  // Flatten the (category, currency) groups into rows the dashboard renders
-  // directly. UNCATEGORIZED is dropped from the headline breakdown. Sorted by
-  // spend desc so the biggest expense types lead.
-  const spendByCategory = invoicesByCategory
-    .filter((r) => r.category !== "UNCATEGORIZED")
-    .map((r) => ({
-      category: r.category,
-      currency: r.currency,
-      total: Number(r._sum.totalAmount ?? 0),
-      count: r._count,
-    }))
-    .sort((a, b) => b.total - a.total)
+  // Aggregate spend per (category, effective currency), using each invoice's
+  // display-currency amount when it has one, else its original. UNCATEGORIZED is
+  // dropped from the headline breakdown. Sorted by spend desc so the biggest
+  // expense types lead.
+  const catTotals = new Map<string, { category: string; currency: string; total: number; count: number }>()
+  for (const r of invoicesByCategory) {
+    if (r.category === "UNCATEGORIZED") continue
+    const converted = r.displayAmount != null && r.displayCurrency
+    const amount = converted ? Number(r.displayAmount) : Number(r.totalAmount)
+    const currency = converted ? r.displayCurrency! : r.currency
+    const key = `${r.category}|${currency}`
+    const bucket = catTotals.get(key) ?? { category: r.category, currency, total: 0, count: 0 }
+    bucket.total += amount
+    bucket.count += 1
+    catTotals.set(key, bucket)
+  }
+  const spendByCategory = Array.from(catTotals.values()).sort((a, b) => b.total - a.total)
 
   // Dedupe copies of the same tax invoice (same Tax Authority allocation number,
   // else same invoice#+vendor+total) so a document arriving as both email body

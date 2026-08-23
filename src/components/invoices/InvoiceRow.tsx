@@ -1,7 +1,7 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { fmtDateShort } from "@/lib/date"
+import { fmtDisplayMoney } from "@/lib/money"
 import { TABLE_GRID_COLUMNS } from "./constants"
-import { fmtAmount } from "./helpers"
 import type { InvoiceRow as InvoiceRowType } from "./types"
 import { VendorCell } from "./VendorCell"
 import { CategoryBadge } from "./CategoryBadge"
@@ -46,9 +46,9 @@ export function InvoiceRow({ invoice, onSelect }: {
         <CategoryBadge category={invoice.category} />
       </div>
 
-      {/* Amount */}
+      {/* Amount (shown in the org display currency) */}
       <span className="text-sm font-bold text-heading text-right">
-        {fmtAmount(invoice.totalAmount, invoice.currency)}
+        {fmtDisplayMoney(invoice)}
       </span>
 
       {/* Gmail link */}
