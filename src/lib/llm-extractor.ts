@@ -59,7 +59,12 @@ const RESPONSE_SCHEMA: Schema = {
     allocationNumber: nullableStr,
     invoiceDate: nullableStr,
     dueDate: nullableStr,
-    currency: nullableStr,
+    currency: {
+      type: Type.STRING,
+      nullable: true,
+      description:
+        "The ISO 4217 currency code (e.g. ILS, USD, EUR, GBP), NOT the symbol or local spelling. Map ₪ / ש\"ח / שקל → ILS, $ → USD, € → EUR, £ → GBP.",
+    },
     subtotalAmount: nullableNum,
     vatAmount: nullableNum,
     totalAmount: nullableNum,
@@ -91,6 +96,7 @@ Return English keys with the values as written on the document (vendor names, ta
 Guardrails:
 - Extract all numbers, dates, and amounts WITHOUT reversing digit order (1,250.00 must not become 00.250,1).
 - Israeli documents write dates day-first (14/05/2026); return every date as ISO YYYY-MM-DD.
+- currency: return the ISO 4217 code (ILS, USD, EUR, GBP, …), NOT the symbol or local spelling — map ₪ / ש"ח / שקל → ILS, $ → USD, € → EUR, £ → GBP.
 - allocationNumber is the Israeli Tax Authority clearance id (מספר הקצאה / "מספר הקצאה"). Only set it if the document actually shows one.
 - vendorTaxId is the business id (ח.פ. / ע.מ. / VAT number).
 - documentType: TAX_INVOICE (חשבונית מס), RECEIPT (קבלה), CREDIT_INVOICE (חשבונית זיכוי), else UNKNOWN.
@@ -149,9 +155,10 @@ export async function extractInvoiceFromPdf(input: {
     if (!text) return null
     const parsed = extractionSchema.safeParse(JSON.parse(text))
     if (!parsed.success) return null
-    // The model returns currency "as written" — often a symbol ("₪") for
-    // Israeli docs. Normalize to an ISO 4217 code before it's persisted, or it
-    // will later crash Intl.NumberFormat wherever the invoice is rendered.
+    // The model is now asked for an ISO 4217 code directly (see INSTRUCTIONS /
+    // the currency schema description). This normalize is a safety net for the
+    // occasional slip (a returned "₪"/"שקל") so a symbol can never reach the DB
+    // and later crash Intl.NumberFormat wherever the invoice is rendered.
     return { ...parsed.data, currency: parsed.data.currency ? normalizeCurrencyCode(parsed.data.currency) : null }
   } catch (err) {
     log.warn("llm-extractor failed, falling back to heuristics", { model, err: String(err) })
