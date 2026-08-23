@@ -1,7 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
 import { TriangleAlert } from "lucide-react"
 import { ActionButton } from "@/components/reconcile/ActionButton"
-import { StatusCell } from "@/components/reconcile/StatusCell"
 import { MatchedInvoiceCell } from "@/components/reconcile/MatchedInvoiceCell"
 import { GRID } from "@/components/reconcile/constants"
 import { fmtMoney } from "@/lib/money"
@@ -61,9 +60,6 @@ export function ReconcileRow({
 
       {/* Matched invoice */}
       <MatchedInvoiceCell txn={txn} />
-
-      {/* Confidence */}
-      <StatusCell txn={txn} />
 
       {/* Actions */}
       <div className="flex gap-1.5 justify-end" onClick={(e) => e.stopPropagation()}>

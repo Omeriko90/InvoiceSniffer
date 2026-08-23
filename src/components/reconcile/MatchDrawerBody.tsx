@@ -1,7 +1,6 @@
 // Client component by import — only ever rendered from <MatchDrawer>.
 import { ArrowDown, CreditCard, ExternalLink, FileText, TriangleAlert } from "lucide-react"
 import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { InfoBox } from "@/components/ui/info-box"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { Field } from "@/components/reconcile/Field"
@@ -29,9 +28,6 @@ function Header({ transaction }: { transaction: TransactionRow }) {
 
 function Content({ transaction }: { transaction: TransactionRow }) {
   const { invoice } = transaction
-  const showConfidence =
-    transaction.matchConfidence !== null &&
-    (transaction.status === "MATCHED" || transaction.status === "POSSIBLE")
 
   // Match signal — do the two sides agree on amount / date?
   const amountMatch = invoice
@@ -73,17 +69,6 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         )}
       </div>
 
-        {/* Confidence banner */}
-        {showConfidence && (
-          <InfoBox variant="neutral" className="border-border">
-            <div className="flex-1">
-              <p className="text-sm font-bold uppercase tracking-tight text-text-secondary mb-1.25">
-                Match confidence
-              </p>
-              <ConfidenceBar value={transaction.matchConfidence!} size="md" />
-            </div>
-          </InfoBox>
-        )}
         {transaction.matchReason && (
           <p className="text-sm text-text-secondary -mt-2">
             {transaction.matchReason}

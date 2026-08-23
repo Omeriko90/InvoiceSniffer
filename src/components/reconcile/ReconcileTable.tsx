@@ -23,11 +23,11 @@ export function ReconcileTable({
     <div className="bg-card border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
       <div className="grid px-[18px] py-3 bg-raised border-b border-border" style={GRID}>
-        {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
+        {["Date", "Merchant", "Amount", "Matched invoice", "Actions"].map((h, i) => (
           <span
             key={h}
             className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
-            style={i === 2 || i === 5 ? { textAlign: "right" } : undefined}
+            style={i === 2 || i === 4 ? { textAlign: "right" } : undefined}
           >
             {h}
           </span>
