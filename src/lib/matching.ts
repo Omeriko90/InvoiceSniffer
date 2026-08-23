@@ -31,7 +31,6 @@ export const DEFAULT_DATE_WINDOW: DateWindow = {
 export const AMOUNT_TOLERANCE = 0.02
 export const MATCH_THRESHOLD = 0.85
 export const POSSIBLE_THRESHOLD = 0.55
-export const WEAK_FALLBACK_SCORE = 0.6
 
 const WEIGHTS = { amount: 0.45, date: 0.2, name: 0.35 }
 const ALIAS_BOOST = 0.3
@@ -190,37 +189,6 @@ export function scoreCandidate(
   return { invoiceId: inv.id, score, reason: parts.join(" · ") }
 }
 
-export function weakCandidate(
-  txn: TxnInput,
-  inv: InvoiceCandidate,
-  alias: AliasSignal,
-  window: DateWindow = DEFAULT_DATE_WINDOW
-): ScoredCandidate | null {
-  if (alias) return null
-
-  const txnCurrency = normalizeCurrency(txn.currency)
-  const invCurrency = normalizeCurrency(inv.currency)
-  if (txnCurrency && invCurrency && txnCurrency !== invCurrency) return null
-
-  const amt = amountScore(txn.amount, inv.totalAmount)
-  const signedDays = differenceInCalendarDays(txn.date, inv.effectiveDate)
-  const days = Math.abs(signedDays)
-  const inWindow = signedDays <= window.leadDays && signedDays >= -window.trailDays
-  if (amt === 0 || !inWindow) return null
-
-  const name = inv.vendorName ? nameSimilarity(txn.merchant, inv.vendorName) : 0
-  const invoiceNumberHit = inv.invoiceNumber
-    ? invoiceNumberInText(inv.invoiceNumber, txn.merchant)
-    : false
-  if (invoiceNumberHit || name >= NAME_MIN_CORROBORATION) return null
-
-  const reason =
-    (amt === 1 ? "Exact amount" : "Amount within tolerance") +
-    ` · ${days === 0 ? "same day" : `${days} day${days === 1 ? "" : "s"} apart`}` +
-    " · only nearby invoice"
-  return { invoiceId: inv.id, score: WEAK_FALLBACK_SCORE, reason }
-}
-
 // Rank all candidates for one transaction, best first.
 export function rankCandidates(
   txn: TxnInput,
@@ -228,14 +196,8 @@ export function rankCandidates(
   aliasFor: (inv: InvoiceCandidate) => AliasSignal,
   window: DateWindow = DEFAULT_DATE_WINDOW
 ): ScoredCandidate[] {
-  const identified = invoices
+  return invoices
     .map((inv) => scoreCandidate(txn, inv, aliasFor(inv), window))
     .filter((c): c is ScoredCandidate => c !== null)
     .sort((a, b) => b.score - a.score)
-  if (identified.length > 0) return identified
-
-  const weak = invoices
-    .map((inv) => weakCandidate(txn, inv, aliasFor(inv), window))
-    .filter((c): c is ScoredCandidate => c !== null)
-  return weak.length === 1 ? weak : []
 }
