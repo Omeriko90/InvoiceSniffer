@@ -1,4 +1,4 @@
-import { normalizeCurrencyCode } from "@/lib/csv-import"
+import { normalizeCurrencyCode } from "@/lib/currency"
 
 // CSV imports can carry symbol "currencies" ("₪") that Intl rejects —
 // normalize to ISO first and fall back to a plain prefix if still unknown.

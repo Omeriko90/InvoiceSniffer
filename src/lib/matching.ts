@@ -1,6 +1,6 @@
 import { differenceInCalendarDays } from "date-fns"
 import { token_set_ratio } from "fuzzball"
-import { normalizeCurrencyCode } from "@/lib/csv-import"
+import { normalizeCurrencyCode } from "@/lib/currency"
 
 // Matching algorithm per the implementation plan: deterministic, explainable,
 // replayable. For each transaction, generate candidate invoices (±date window,

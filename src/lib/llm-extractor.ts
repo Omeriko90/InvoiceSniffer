@@ -1,6 +1,6 @@
 import { Type, type Schema } from "@google/genai"
 import { z } from "zod"
-import { normalizeCurrencyCode } from "@/lib/csv-import"
+import { normalizeCurrencyCode } from "@/lib/currency"
 import { DOCUMENT_TYPES } from "@/lib/document-types"
 import { geminiClient, llmModel } from "@/lib/gemini"
 import { CATEGORY_GUIDANCE, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
