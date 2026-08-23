@@ -6,6 +6,7 @@ import { z } from "zod"
 import { INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { DOCUMENT_TYPES } from "@/lib/document-types"
 import { INVOICE_ROW_SELECT, toInvoiceRow } from "@/lib/invoice-row"
+import { convertAmount } from "@/lib/fx"
 
 // Fetch a single invoice as a full InvoiceRow — powers the invoice drawer when
 // opened outside the list (e.g. from a fixed-expense period). Org-scoped.
@@ -85,6 +86,16 @@ export async function PATCH(
   }
   if (p.totalAmount !== undefined) {
     data.totalAmount = p.totalAmount
+    // Keep the display-currency amount in sync with a manual edit, reusing the
+    // FX rate locked at arrival (the currency itself isn't editable here). No
+    // stored rate (older/unconverted invoice) → leave converted fields untouched.
+    const existing = await prisma.invoice.findFirst({
+      where: { id, organizationId: session.user.organizationId },
+      select: { fxRate: true },
+    })
+    if (existing?.fxRate != null) {
+      data.displayAmount = convertAmount(Number(p.totalAmount), Number(existing.fxRate))
+    }
   }
   if (p.invoiceDate !== undefined) {
     data.invoiceDate = p.invoiceDate === null ? null : new Date(p.invoiceDate)

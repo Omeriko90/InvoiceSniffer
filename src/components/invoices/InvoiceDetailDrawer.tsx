@@ -22,6 +22,7 @@ import { useUpdateInvoice } from "@/hooks/useUpdateInvoice"
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
 import { useUnlinkFixedExpense } from "@/hooks/useUnlinkFixedExpense"
 import type { RemovalReason } from "@/api/invoices"
+import { fmtMoney, fmtDisplayMoney, hasDistinctOriginal } from "@/lib/money"
 import { STATUS_META } from "./constants"
 import { fmtAmount, fmtSize, toDraft } from "./helpers"
 import type { InvoiceRow } from "./types"
@@ -146,19 +147,22 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         </div>
       </div>
 
-      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-5.5">
-        {/* Amount */}
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-3xl font-bold text-heading tracking-tight leading-none">
-            {fmtAmount(invoice.totalAmount, invoice.currency)}
-          </span>
-          <StatusBadge status={status} />
-          <DocumentTypeBadge documentType={invoice.documentType} />
-          <CategoryBadge category={invoice.category} />
+        <div className="mb-5">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-bold text-heading tracking-tight leading-none">
+              {fmtDisplayMoney(invoice)}
+            </span>
+            <StatusBadge status={status} />
+            <CategoryBadge category={invoice.category} />
+          </div>
+          {hasDistinctOriginal(invoice) && (
+            <p className="mt-2 text-sm text-text-secondary">
+              {fmtMoney(invoice.totalAmount, invoice.currency)} original
+            </p>
+          )}
         </div>
 
-        {/* Fixed-expense link indication */}
         {invoice.fixedExpense && (
           <div className="flex items-center gap-1.75 -mt-4 mb-6 px-2.75 py-2 rounded-lg bg-info-bg">
             <Repeat size={14} strokeWidth={1.8} className="text-primary shrink-0" />
@@ -177,7 +181,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </div>
         )}
 
-        {/* Extracted fields */}
         <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
           Extracted fields
         </p>
@@ -249,7 +252,11 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-5.5">
           {[
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
-            { label: "Amount",    value: fmtAmount(invoice.totalAmount, invoice.currency) },
+            { label: "Amount",    value: fmtDisplayMoney(invoice) },
+            // Original amount only when its currency differs from the display one.
+            ...(hasDistinctOriginal(invoice)
+              ? [{ label: "Original amount", value: fmtMoney(invoice.totalAmount, invoice.currency) }]
+              : []),
             { label: "Tax",       value: invoice.taxAmount != null ? fmtAmount(invoice.taxAmount, invoice.currency) : "—" },
             { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
             // Most receipts are already paid, so a missing due date means
