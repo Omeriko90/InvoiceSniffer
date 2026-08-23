@@ -31,6 +31,11 @@ export const DEFAULT_DATE_WINDOW: DateWindow = {
 export const AMOUNT_TOLERANCE = 0.02
 export const MATCH_THRESHOLD = 0.85
 export const POSSIBLE_THRESHOLD = 0.55
+// Score assigned to a single-candidate fallback (see weakCandidate): a charge
+// with no identity signal but exactly one invoice matching on amount + date.
+// Sits inside the POSSIBLE band so it always surfaces for review yet can never
+// auto-match. Kept below any identity-backed score so real matches win.
+export const WEAK_FALLBACK_SCORE = 0.6
 
 const WEIGHTS = { amount: 0.45, date: 0.2, name: 0.35 }
 const ALIAS_BOOST = 0.3
@@ -189,15 +194,64 @@ export function scoreCandidate(
   return { invoiceId: inv.id, score, reason: parts.join(" · ") }
 }
 
-// Rank all candidates for one transaction, best first.
+// Fallback for a charge that scoreCandidate rejects for want of an identity
+// signal. Returns a candidate ONLY when the pair clears the amount + date gates
+// but has NO identity corroboration — i.e. exactly the case scoreCandidate drops.
+// The caller (rankCandidates) promotes it only when it is the *sole* such
+// candidate, so a genuinely unique amount+date coincidence gets surfaced for
+// review instead of vanishing. Never returned for aliased pairs (positive is a
+// real match handled by scoreCandidate; negative was explicitly rejected).
+export function weakCandidate(
+  txn: TxnInput,
+  inv: InvoiceCandidate,
+  alias: AliasSignal,
+  window: DateWindow = DEFAULT_DATE_WINDOW
+): ScoredCandidate | null {
+  if (alias) return null // positive → scoreCandidate; negative → suppressed
+
+  const txnCurrency = normalizeCurrency(txn.currency)
+  const invCurrency = normalizeCurrency(inv.currency)
+  if (txnCurrency && invCurrency && txnCurrency !== invCurrency) return null
+
+  const amt = amountScore(txn.amount, inv.totalAmount)
+  const signedDays = differenceInCalendarDays(txn.date, inv.effectiveDate)
+  const days = Math.abs(signedDays)
+  const inWindow = signedDays <= window.leadDays && signedDays >= -window.trailDays
+  if (amt === 0 || !inWindow) return null
+
+  // Only the no-identity case belongs here; anything with corroboration is a
+  // real scoreCandidate result, not a fallback.
+  const name = inv.vendorName ? nameSimilarity(txn.merchant, inv.vendorName) : 0
+  const invoiceNumberHit = inv.invoiceNumber
+    ? invoiceNumberInText(inv.invoiceNumber, txn.merchant)
+    : false
+  if (invoiceNumberHit || name >= NAME_MIN_CORROBORATION) return null
+
+  const reason =
+    (amt === 1 ? "Exact amount" : "Amount within tolerance") +
+    ` · ${days === 0 ? "same day" : `${days} day${days === 1 ? "" : "s"} apart`}` +
+    " · only nearby invoice"
+  return { invoiceId: inv.id, score: WEAK_FALLBACK_SCORE, reason }
+}
+
+// Rank all candidates for one transaction, best first. When no candidate carries
+// an identity signal, fall back to a single amount+date match (weakCandidate) so
+// obfuscated merchants with a unique nearby invoice still surface for review
+// rather than matching nothing. Confirming one learns the alias, so it self-heals.
 export function rankCandidates(
   txn: TxnInput,
   invoices: InvoiceCandidate[],
   aliasFor: (inv: InvoiceCandidate) => AliasSignal,
   window: DateWindow = DEFAULT_DATE_WINDOW
 ): ScoredCandidate[] {
-  return invoices
+  const identified = invoices
     .map((inv) => scoreCandidate(txn, inv, aliasFor(inv), window))
     .filter((c): c is ScoredCandidate => c !== null)
     .sort((a, b) => b.score - a.score)
+  if (identified.length > 0) return identified
+
+  const weak = invoices
+    .map((inv) => weakCandidate(txn, inv, aliasFor(inv), window))
+    .filter((c): c is ScoredCandidate => c !== null)
+  return weak.length === 1 ? weak : []
 }
