@@ -1,50 +1,72 @@
 "use client"
 
+import { useMemo, useState } from "react"
+import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/useDashboard"
-import { StatRow } from "@/components/dashboard/StatRow"
-import { ReconciliationCard } from "@/components/dashboard/ReconciliationCard"
-import { RecentAlertsCard } from "@/components/dashboard/RecentAlertsCard"
-import { CategorySpend } from "@/components/dashboard/CategorySpend"
+import { OverviewStatRow } from "@/components/dashboard/OverviewStatRow"
+import { SpendPieChart } from "@/components/dashboard/SpendPieChart"
 import { TaxPaidCard } from "@/components/dashboard/TaxPaidCard"
+import { TopVendorsCard } from "@/components/dashboard/TopVendorsCard"
+import { DashboardDateRange } from "@/components/dashboard/DashboardDateRange"
+import { resolveDateRange } from "@/lib/date-range"
+import {
+  DASHBOARD_PRESET_LABELS,
+  isDashboardPreset,
+  type DashboardScope,
+} from "@/lib/dashboard-range"
 
 export default function DashboardPage() {
-  const { data: dashboardData = { unmatched: 0, possible: 0, matched: 0, matchedDelta: 0, alerts: 0, criticalAlerts: 0, rec: { total: 0, matched: 0, possible: 0, missing: 0, noInvoice: 0 }, spendByCategory: [], taxByMonth: [], recentAlerts: [], monthLabel: "" }, isPending } = useDashboard()
+  const [scope, setScope] = useState<DashboardScope>({ preset: "ytd" })
 
-  if( isPending ) return <DashboardSkeleton />
+  // Resolve the scope to a concrete ISO window. Null while a custom range is
+  // still being filled in — the query stays disabled until then.
+  const range = useMemo(() => {
+    try {
+      if (!isDashboardPreset(scope) && (!scope.from || !scope.to)) return null
+      const { from, to } = resolveDateRange(scope, new Date())
+      return { from: from.toISOString(), to: to.toISOString() }
+    } catch {
+      return null
+    }
+  }, [scope])
+
+  const rangeLabel = isDashboardPreset(scope)
+    ? DASHBOARD_PRESET_LABELS[scope.preset]
+    : range
+      ? `${format(new Date(range.from), "d MMM")} – ${format(new Date(range.to), "d MMM yyyy")}`
+      : "Custom range"
+
+  const { data, isPending } = useDashboard(range)
+
   return (
     <div className="flex flex-col gap-[18px]">
-      <StatRow
-        unmatched={dashboardData?.unmatched}
-        possible={dashboardData?.possible}
-        matched={dashboardData?.matched}
-        matchedDelta={dashboardData?.matchedDelta}
-        alerts={dashboardData?.alerts}
-        criticalAlerts={dashboardData?.criticalAlerts}
-      />
+      <DashboardDateRange scope={scope} onChange={setScope} />
 
-      {/* Main content */}
-      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <ReconciliationCard
-          monthLabel={dashboardData?.monthLabel}
-          rec={dashboardData?.rec}
-          possibleCount={dashboardData?.possible}
-          unmatchedCount={dashboardData?.unmatched}
-        />
-        <RecentAlertsCard alerts={dashboardData?.recentAlerts} />
-      </div>
+      {range === null ? (
+        <p className="text-sm text-text-secondary py-10 text-center">
+          Pick a start and end date to see your overview.
+        </p>
+      ) : isPending || !data ? (
+        <DashboardSkeleton />
+      ) : (
+        <>
+          <OverviewStatRow
+            invoiceCount={data.invoiceCount}
+            receiptCount={data.receiptCount}
+            totalSpend={data.totalSpend}
+            taxThisMonth={data.taxThisMonth}
+            rangeLabel={rangeLabel}
+          />
 
-      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <CategorySpend
-          rows={dashboardData?.spendByCategory ?? []}
-          monthLabel={dashboardData?.monthLabel}
-        />
-        <TaxPaidCard
-          rows={dashboardData?.taxByMonth ?? []}
-          monthLabel={dashboardData?.monthLabel}
-        />
-      </div>
+          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+            <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
+            <TaxPaidCard rows={data.taxThisMonth} monthLabel={data.monthLabel} />
+          </div>
 
+          <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
+        </>
+      )}
     </div>
   )
 }
