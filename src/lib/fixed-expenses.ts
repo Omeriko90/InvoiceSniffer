@@ -147,9 +147,12 @@ export type TimelineEntry = {
 
 /**
  * The detail-drawer coverage view: one entry per period, newest first, from the
- * current period back toward the expense's creation. Never emits periods before
- * `max(anchorDate, createdAt)`, and caps at `limit` so long-lived expenses don't
- * render hundreds of rows. `offset` pages further back (in periods).
+ * current period back toward the expense's creation. The floor is normally
+ * `max(anchorDate, createdAt)`, but it's lowered to cover the oldest linked
+ * invoice — an expense that absorbed historical invoices (which can predate its
+ * creation, and even its anchor) must still surface every one of them rather
+ * than looking like it only tracks the last period. Caps at `limit` per page so
+ * long-lived expenses don't render hundreds of rows; `offset` pages further back.
  */
 export function periodTimeline(
   expense: FixedExpenseLike,
@@ -160,7 +163,19 @@ export function periodTimeline(
   const currentIdx = currentPeriod(expense, now).index
   const anchor = effectiveAnchor(expense)
   const startBound = expense.createdAt.getTime() > anchor.getTime() ? expense.createdAt : anchor
-  const firstIdx = Math.max(0, periodIndexFor(expense.frequency, anchor, startBound))
+  let firstIdx = Math.max(0, periodIndexFor(expense.frequency, anchor, startBound))
+
+  // Extend the floor down to the oldest linked invoice's period so absorbed
+  // history is never hidden below the creation/anchor floor (index may go < 0).
+  if (linkedInvoices.length > 0) {
+    let earliestMs = Infinity
+    for (const inv of linkedInvoices) {
+      const t = inv.emailDate.getTime()
+      if (t < earliestMs) earliestMs = t
+    }
+    const oldestInvoiceIdx = periodIndexFor(expense.frequency, anchor, new Date(earliestMs))
+    firstIdx = Math.min(firstIdx, oldestInvoiceIdx)
+  }
 
   const top = currentIdx - offset
   const from = Math.max(firstIdx, top - limit + 1)

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { buildFixedExpenseMatchWhere, matchesExpense } from "./fixed-expenses"
+import { buildFixedExpenseMatchWhere, matchesExpense, periodTimeline } from "./fixed-expenses"
 
 // matchesExpense only reads these three fields off each side.
 const invoice = (over: Partial<{ vendorNormalized: string | null; senderEmail: string | null; gmailCredentialId: string | null }>) => ({
@@ -97,4 +97,49 @@ test("vendor + sender → sender branch is guarded against a conflicting known v
       },
     ],
   })
+})
+
+// ── periodTimeline ───────────────────────────────────────────────
+
+// periodTimeline reads these expense fields; match fields are unused here since
+// the linked invoices are already attached to the expense.
+const timelineExpense = (over: Partial<{ anchorDate: Date; createdAt: Date; frequency: "MONTHLY"; gracePeriodDays: number }>) => ({
+  anchorDate: new Date("2026-08-01"),
+  createdAt: new Date("2026-08-01"),
+  frequency: "MONTHLY" as const,
+  gracePeriodDays: 5,
+  vendorNormalized: [],
+  senderEmail: [],
+  gmailCredentialId: null,
+  ...over,
+})
+const linkedOn = (iso: string) => ({
+  emailDate: new Date(iso),
+  vendorNormalized: null,
+  senderEmail: null,
+  gmailCredentialId: null,
+})
+
+test("periodTimeline surfaces an absorbed invoice older than the expense's creation", () => {
+  // Expense created this month, but it absorbed an invoice from six months ago.
+  const exp = timelineExpense({})
+  const now = new Date("2026-08-24")
+  const { entries } = periodTimeline(exp, [linkedOn("2026-02-15")], now)
+
+  // The old code floored at the creation period (one row); now the floor drops
+  // to the oldest invoice's period, so its month is included and marked ARRIVED.
+  const feb = new Date("2026-02-15").getTime()
+  const arrived = entries.find((e) => e.start.getTime() <= feb && feb < e.end.getTime())
+  assert.ok(arrived, "expected an entry covering the February invoice")
+  assert.equal(arrived!.status, "ARRIVED")
+  assert.ok(entries.length >= 7, `expected periods back through February, got ${entries.length}`)
+})
+
+test("periodTimeline with no linked invoices still floors at the creation period", () => {
+  const exp = timelineExpense({})
+  const now = new Date("2026-08-24")
+  const { entries, hasMore } = periodTimeline(exp, [], now)
+  assert.equal(entries.length, 1, "only the current period when nothing was absorbed")
+  assert.equal(entries[0].status, "PENDING") // Aug grace window is still open on the 24th
+  assert.equal(hasMore, false)
 })
