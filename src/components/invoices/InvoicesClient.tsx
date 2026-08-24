@@ -15,7 +15,7 @@ import { isPreset, resolveInvoiceDateRange, type InvoiceDateScope } from "@/lib/
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [search, setSearch]         = useState("")
-  const [categoryFilter, setCategory] = useState<string>("all")
+  const [categoryFilter, setCategory] = useState<string[]>([])
   const [documentTypeFilter, setDocumentType] = useState<string>("all")
   const [accountFilter, setAccount] = useState<string>("all")
   const [dateScope, setDateScope]   = useState<InvoiceDateScope>({ preset: "thisMonth" })
@@ -37,14 +37,14 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   // month. "Clear all" resets to this and is disabled while already here.
   const canClear =
     search !== "" ||
-    categoryFilter !== "all" ||
+    categoryFilter.length > 0 ||
     documentTypeFilter !== "all" ||
     accountFilter !== "all" ||
     !(isPreset(dateScope) && dateScope.preset === "thisMonth")
 
   function clearAll() {
     setSearch("")
-    setCategory("all")
+    setCategory([])
     setDocumentType("all")
     setAccount("all")
     setDateScope({ preset: "thisMonth" })
@@ -60,7 +60,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         (inv.invoiceNumber ?? "").toLowerCase().includes(q) ||
         inv.totalAmount.includes(q)
       const matchCategory =
-        categoryFilter === "all" || inv.category === categoryFilter
+        categoryFilter.length === 0 || categoryFilter.includes(inv.category)
       const matchDocumentType =
         documentTypeFilter === "all" || inv.documentType === documentTypeFilter
       const matchAccount =
@@ -70,9 +70,9 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         const d = belongsToDate(inv)
         return d >= range.from && d <= range.to
       })()
-      return matchSearch && matchCategory && matchAccount && matchDate
+      return matchSearch && matchCategory && matchDocumentType && matchAccount && matchDate
     })
-  }, [invoices, search, categoryFilter, accountFilter, dateScope])
+  }, [invoices, search, categoryFilter, documentTypeFilter, accountFilter, dateScope])
 
   return (
     <div className="flex flex-col gap-4">
