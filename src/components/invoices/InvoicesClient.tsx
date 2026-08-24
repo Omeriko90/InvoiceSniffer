@@ -95,6 +95,12 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         count={filtered.length}
       />
 
+      {uiState === "data" && filtered.length > 0 && (
+        <p className="-mb-1 text-sm text-text-secondary">
+          {filtered.length} {filtered.length === 1 ? "invoice" : "invoices"}
+        </p>
+      )}
+
       <InvoicesTable
         uiState={uiState}
         invoices={invoices}
