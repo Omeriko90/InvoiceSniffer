@@ -178,11 +178,13 @@ export function InvoicesToolbar({
         </Button>
       )}
 
-      <span className="text-sm font-medium text-dim shrink-0">
-        {count} detected
-      </span>
+      {/* Status + Export pinned right, so the toggling Clear all button on the
+          left doesn't shift the "N detected" count. */}
+      <div className="ms-auto flex items-center gap-3 shrink-0">
+        <span className="text-sm font-medium text-dim">
+          {count} detected
+        </span>
 
-      <div className="ms-auto shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
