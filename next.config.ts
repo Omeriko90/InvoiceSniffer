@@ -44,6 +44,20 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/exports": ["src/lib/fonts/*.ttf"],
   },
+  // `next dev --webpack` traces the server-only PDF chain (@napi-rs/canvas — a
+  // native .node addon) into the client compilation and fails its browser-binary
+  // guard, even though it only ever runs server-side. Stub it out of the client
+  // bundle. Turbopack (the default) ignores this and relies on
+  // serverExternalPackages above.
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "@napi-rs/canvas": false,
+      }
+    }
+    return config
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
