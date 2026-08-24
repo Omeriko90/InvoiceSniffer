@@ -44,16 +44,21 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/exports": ["src/lib/fonts/*.ttf"],
   },
-  // `next dev --webpack` traces the server-only PDF chain (@napi-rs/canvas — a
-  // native .node addon, reached via the worker modules) into the client
-  // compilation and fails its browser-binary guard, even though it only ever
-  // runs server-side. Drop @napi-rs/canvas (and its platform subpackages) from
-  // the client build entirely. Turbopack (the default) ignores this and relies
-  // on serverExternalPackages above.
-  webpack: (config, { isServer, webpack }) => {
-    if (!isServer) {
+  // instrumentation.ts (compiled for edge because middleware runs on edge) and
+  // client code never run the server-only worker chain, but its NEXT_RUNTIME-
+  // guarded dynamic imports still get traced into the browser + edge builds.
+  // `next dev --webpack` doesn't dead-code-eliminate the guard, so it tries to
+  // bundle native/Node-only deps (@napi-rs/canvas, @google-cloud/run → node
+  // "path", the workers, posthog-node) and fails. None run off Node, so drop the
+  // whole chain from every non-Node build. Turbopack (the default) is unaffected;
+  // serverExternalPackages keeps them external in the Node build.
+  webpack: (config, { nextRuntime, webpack }) => {
+    if (nextRuntime !== "nodejs") {
       config.plugins.push(
-        new webpack.IgnorePlugin({ resourceRegExp: /^@napi-rs\/canvas/ })
+        new webpack.IgnorePlugin({
+          resourceRegExp:
+            /(^@napi-rs\/canvas)|(^@google-cloud\/run)|([/\\](worker-trigger|posthog-server)$)|([/\\]workers[/\\])/,
+        })
       )
     }
     return config
