@@ -1,17 +1,14 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
 import { TABLE_GRID_COLUMNS } from "./constants"
-import type { InvoiceRow as InvoiceRowType, UIState } from "./types"
+import type { InvoiceRow as InvoiceRowType } from "./types"
 import { InvoiceRow } from "./InvoiceRow"
-import { InvoicesLoading } from "./InvoicesLoading"
 import { EmptyState } from "./EmptyState"
 
 export function InvoicesTable({
-  uiState,
   invoices,
   filtered,
   onSelect,
 }: {
-  uiState: UIState
   invoices: InvoiceRowType[]
   filtered: InvoiceRowType[]
   onSelect: (invoice: InvoiceRowType) => void
@@ -35,19 +32,15 @@ export function InvoicesTable({
       </div>
 
       {/* Body */}
-      {uiState === "loading" && Array.from({ length: 6 }).map((_, i) => <InvoicesLoading key={i} />)}
-
-      {uiState === "empty" && <EmptyState />}
-
-      {uiState === "data" && filtered.length === 0 && (
+      {filtered.length === 0 ? (
         <div className="py-12 text-center text-sm text-dim">
           {invoices.length === 0 ? <EmptyState /> : "No results match your search"}
         </div>
+      ) : (
+        filtered.map((inv) => (
+          <InvoiceRow key={inv.id} invoice={inv} onSelect={onSelect} />
+        ))
       )}
-
-      {uiState === "data" && filtered.map((inv) => (
-        <InvoiceRow key={inv.id} invoice={inv} onSelect={onSelect} />
-      ))}
     </div>
   )
 }
