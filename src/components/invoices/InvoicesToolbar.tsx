@@ -151,7 +151,7 @@ export function InvoicesToolbar({
             </Button>
           }
         />
-        <PopoverContent align="start" className="w-64 gap-3.5">
+        <PopoverContent align="start" className="w-64 gap-4.5">
           <FilterField label="Category">
             <Select
               multiple
@@ -159,7 +159,7 @@ export function InvoicesToolbar({
               value={categoryFilter}
               onValueChange={(v) => onCategoryChange(v as string[])}
             >
-              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+              <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
                 <SelectValue>
                   {(value) => {
                     const v = value as string[]
@@ -184,7 +184,7 @@ export function InvoicesToolbar({
               value={documentTypeFilter}
               onValueChange={(v) => onDocumentTypeChange(v as string)}
             >
-              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+              <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="w-fit min-w-(--anchor-width)">
@@ -202,7 +202,7 @@ export function InvoicesToolbar({
                 value={accountFilter}
                 onValueChange={(v) => onAccountChange(v as string)}
               >
-                <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+                <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="w-fit min-w-(--anchor-width)">
