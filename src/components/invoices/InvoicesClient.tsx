@@ -97,7 +97,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
 
       {uiState === "data" && filtered.length > 0 && (
         <p className="-mb-1 text-sm text-text-secondary">
-          {filtered.length} {filtered.length === 1 ? "invoice" : "invoices"}
+          {filtered.length} {filtered.length === 1 ? "document" : "documents"}
         </p>
       )}
 
