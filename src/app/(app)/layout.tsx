@@ -5,28 +5,10 @@ import { Topbar } from "@/components/shell/Topbar"
 import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
 import { PageViewTracker } from "@/components/shared/PageViewTracker"
 import { ExportsProvider } from "@/components/exports/ExportsProvider"
-import { headers } from "next/headers"
-
-// Map pathnames to page titles
-function getTitle(pathname: string): string {
-  if (pathname === "/") return "Dashboard"
-  if (pathname.startsWith("/invoices"))  return "Invoices"
-  if (pathname.startsWith("/import"))    return "Import CSV"
-  if (pathname.startsWith("/reconcile")) return "Reconcile"
-  if (pathname.startsWith("/fixed-expenses")) return "Fixed Expenses"
-  if (pathname.startsWith("/alerts"))    return "Alerts"
-  if (pathname.startsWith("/exports"))   return "Exports"
-  if (pathname.startsWith("/settings"))  return "Settings"
-  return "InvoiceSniffer"
-}
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session) redirect("/auth/signin")
-
-  const headerList = await headers()
-  const pathname = headerList.get("x-pathname") ?? ""
-  const title = getTitle(pathname)
 
   const initials = session.user.name
     ? session.user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -49,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         userInitials={initials}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar title={title} />
+        <Topbar />
         <main className="flex-1 overflow-y-auto bg-background p-7">
           {children}
         </main>
