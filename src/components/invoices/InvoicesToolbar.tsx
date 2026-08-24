@@ -169,17 +169,14 @@ export function InvoicesToolbar({
               onChange={onAccountChange}
             />
           )}
-
-          <Button
-            variant="ghost"
-            onClick={onClearAll}
-            disabled={!canClear}
-            className="h-auto py-2 rounded-[10px] text-sm font-semibold text-text-secondary hover:bg-hover disabled:text-faint"
-          >
-            Clear all
-          </Button>
         </PopoverContent>
       </Popover>
+
+      {canClear && (
+        <Button variant="ghost" onClick={onClearAll}>
+          Clear all
+        </Button>
+      )}
 
       <span className="text-sm font-medium text-dim shrink-0">
         {count} detected
