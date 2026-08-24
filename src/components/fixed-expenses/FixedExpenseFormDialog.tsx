@@ -235,7 +235,6 @@ export function FixedExpenseFormDialog({
             variant="outline"
             onClick={onClose}
             disabled={pending || absorb.isPending}
-            className="h-auto py-2 rounded-lg border-border bg-surface text-sm font-semibold text-text-primary"
           >
             Cancel
           </Button>
@@ -244,12 +243,11 @@ export function FixedExpenseFormDialog({
               type="button"
               onClick={() => setConfirmOpen(true)}
               disabled={absorb.isPending}
-              className="h-auto py-2 rounded-lg text-sm font-semibold"
             >
               Link
             </Button>
           ) : (
-            <Button type="submit" disabled={pending} className="h-auto py-2 rounded-lg text-sm font-semibold">
+            <Button type="submit" disabled={pending}>
               {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
             </Button>
           )}
@@ -426,7 +424,6 @@ export function FixedExpenseFormDialog({
               variant="outline"
               onClick={() => setConfirmOpen(false)}
               disabled={absorb.isPending}
-              className="rounded-lg text-sm font-semibold"
             >
               Cancel
             </Button>
@@ -434,7 +431,6 @@ export function FixedExpenseFormDialog({
               type="button"
               onClick={confirmLink}
               disabled={absorb.isPending}
-              className="rounded-[10px] text-sm font-bold"
             >
               {absorb.isPending ? "Linking…" : "Link invoice"}
             </Button>

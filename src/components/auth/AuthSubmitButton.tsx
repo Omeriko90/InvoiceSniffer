@@ -8,9 +8,10 @@ export function AuthSubmitButton({ disabled, children }: {
   return (
     <Button
       type="submit"
-      size="lg"
+      variant="gradientSky"
+      size="xl"
       disabled={disabled}
-      className="w-full text-base font-bold rounded-[11px] border-none text-white bg-gradient-sky shadow-primary"
+      className="w-full"
     >
       {children}
     </Button>

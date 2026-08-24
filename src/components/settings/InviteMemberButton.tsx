@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 export function InviteMemberButton() {
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       disabled
       title="Member invites are coming soon"
-      className="w-full h-auto text-sm font-semibold text-text-secondary border-dashed border-faint rounded-[11px] py-[11px] bg-transparent hover:bg-hover"
+      className="w-full border border-dashed border-faint"
     >
       + Invite member
     </Button>

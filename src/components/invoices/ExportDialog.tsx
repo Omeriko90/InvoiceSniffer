@@ -299,11 +299,7 @@ export function ExportDialog({
               Invoices
             </p>
             {invoices.length > 0 && (
-              <Button
-                variant="link"
-                onClick={toggleAll}
-                className="h-auto p-0 rounded-none text-sm font-semibold text-primary cursor-pointer hover:no-underline"
-              >
+              <Button variant="link" size="inline" onClick={toggleAll}>
                 {allSelected ? "Deselect all" : "Select all"}
               </Button>
             )}

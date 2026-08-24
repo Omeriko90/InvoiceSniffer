@@ -32,7 +32,7 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         </div>
         <Button
           onClick={() => { window.location.href = "/api/gmail/connect" }}
-          className="shrink-0 h-auto text-sm font-semibold text-white bg-primary rounded-lg px-3.5 py-2 shadow-primary hover:bg-primary hover:opacity-90"
+          className="shrink-0"
         >
           Reconnect
         </Button>
@@ -57,10 +57,10 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         </p>
       </div>
       <Button
-        variant="outline"
+        variant="successOutline"
         onClick={() => sync.mutate(gmail.id)}
         disabled={syncing}
-        className="shrink-0 h-auto text-sm font-semibold text-success bg-surface border-success-border rounded-lg px-3.5 py-2 hover:bg-success-bg hover:text-success disabled:opacity-60"
+        className="shrink-0"
       >
         {syncing ? "Syncing…" : "Sync now"}
       </Button>

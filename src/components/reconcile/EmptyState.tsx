@@ -12,10 +12,9 @@ export function EmptyState() {
       description="Import a bank or credit-card CSV and we'll match every charge against your detected invoices automatically."
       action={
         <Button
+          variant="gradientSky"
           nativeButton={false}
           render={<Link href="/reconcile" />}
-          className="h-auto px-[18px] py-2.5 rounded-[10px] text-sm font-bold text-white border-0 bg-gradient-sky"
-          style={{ boxShadow: "0 4px 12px rgba(122,167,255,.3)" }}
         >
           Import a CSV
         </Button>

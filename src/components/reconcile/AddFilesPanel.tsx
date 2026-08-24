@@ -163,8 +163,8 @@ export function AddFilesPanel({
             : `${files.length} file${files.length === 1 ? "" : "s"} · ${totalCharges} charges ready`}
         </p>
         <Button
+          variant="gradientSky"
           size="lg"
-          className="text-sm px-4 text-white shadow-primary border-0 bg-gradient-sky"
           disabled={files.length === 0 || reconciling}
           onClick={onReconcile}
         >
