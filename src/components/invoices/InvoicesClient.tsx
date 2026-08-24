@@ -91,10 +91,8 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         onOpenCustomDate={() => requestAnimationFrame(() => setCustomDateOpen(true))}
         canClear={canClear}
         onClearAll={clearAll}
-        uiState={uiState}
-        onUiStateChange={setUiState}
-        count={filtered.length}
         onExport={setExportFormat}
+        count={filtered.length}
       />
 
       <InvoicesTable

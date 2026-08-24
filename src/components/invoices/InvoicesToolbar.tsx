@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { Search, Download, ChevronDown, CalendarDays } from "lucide-react"
+import type { ReactNode } from "react"
+import { Search, Download, ChevronDown, CalendarDays, SlidersHorizontal } from "lucide-react"
 import { format as formatDate } from "date-fns"
 import { Input } from "@/components/ui/input"
 import {
@@ -17,9 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
-import type { UIState } from "./types"
 import type { ExportFormat } from "@/api/exports"
 import {
   INVOICE_DATE_PRESETS,
@@ -47,6 +52,25 @@ function dateScopeLabel(scope: InvoiceDateScope): string {
   return `${formatDate(from, fromFmt)} – ${formatDate(to, "d MMM yyyy")}`
 }
 
+interface InvoicesToolbarProps {
+  search: string
+  onSearchChange: (value: string) => void
+  categoryFilter: string
+  onCategoryChange: (value: string) => void
+  documentTypeFilter: string
+  onDocumentTypeChange: (value: string) => void
+  accountFilter: string
+  onAccountChange: (value: string) => void
+  accounts: { email: string; label: string }[]
+  dateScope: InvoiceDateScope
+  onDateScopeChange: (scope: InvoiceDateScope) => void
+  onOpenCustomDate: () => void
+  canClear: boolean
+  onClearAll: () => void
+  onExport: (format: ExportFormat) => void
+  count: number
+}
+
 export function InvoicesToolbar({
   search,
   onSearchChange,
@@ -62,35 +86,22 @@ export function InvoicesToolbar({
   onOpenCustomDate,
   canClear,
   onClearAll,
-  uiState,
-  onUiStateChange,
   count,
   onExport,
-}: {
-  search: string
-  onSearchChange: (value: string) => void
-  categoryFilter: string
-  onCategoryChange: (value: string) => void
-  documentTypeFilter: string
-  onDocumentTypeChange: (value: string) => void
-  accountFilter: string
-  onAccountChange: (value: string) => void
-  accounts: { email: string; label: string }[]
-  dateScope: InvoiceDateScope
-  onDateScopeChange: (scope: InvoiceDateScope) => void
-  onOpenCustomDate: () => void
-  canClear: boolean
-  onClearAll: () => void
-  uiState: UIState
-  onUiStateChange: (value: UIState) => void
-  count: number
-  onExport: (format: ExportFormat) => void
-}) {
+}: InvoicesToolbarProps) {
   // Only worth showing once there's more than one mailbox to filter by.
+  const showAccount = accounts.length > 1
   const accountOptions = [
     { value: "all", label: "All accounts" },
     ...accounts.map((a) => ({ value: a.email, label: a.label })),
   ]
+  // Filters tucked into the popover — Date and Search stay inline. Each set
+  // filter counts as one; the account filter only counts when it's shown.
+  const activeCount =
+    (categoryFilter !== "all" ? 1 : 0) +
+    (documentTypeFilter !== "all" ? 1 : 0) +
+    (showAccount && accountFilter !== "all" ? 1 : 0)
+
   return (
     <div className="flex items-center gap-3 flex-wrap">
       {/* Search */}
@@ -100,46 +111,8 @@ export function InvoicesToolbar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search vendor, amount, invoice #…"
-          className="h-auto ps-[34px] pe-3 py-2 text-sm text-text-primary border-border rounded-[10px] bg-surface"
+          className="h-auto ps-8.5 pe-3 py-2 text-sm text-text-primary border-border rounded-[10px] bg-surface"
         />
-      </div>
-
-      {/* Category filter */}
-      <div className="relative flex items-center gap-2">
-      <span className="text-sm font-medium text-text-primary">Category:</span>
-      <Select
-        items={CATEGORY_OPTIONS}
-        value={categoryFilter}
-        onValueChange={(v) => onCategoryChange(v as string)}
-      >
-        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="w-fit min-w-(--anchor-width)">
-          {CATEGORY_OPTIONS.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      </div>
-
-      {/* Document type filter */}
-      <div className="relative flex items-center gap-2">
-      <span className="text-sm font-medium text-text-primary">Type:</span>
-      <Select
-        items={DOCUMENT_TYPE_OPTIONS}
-        value={documentTypeFilter}
-        onValueChange={(v) => onDocumentTypeChange(v as string)}
-      >
-        <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="w-fit min-w-(--anchor-width)">
-          {DOCUMENT_TYPE_OPTIONS.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
       </div>
 
       {/* Date filter */}
@@ -164,31 +137,93 @@ export function InvoicesToolbar({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Source mailbox filter — only when the org has more than one account */}
-      {accounts.length > 1 && (
-        <Select
-          items={accountOptions}
-          value={accountFilter}
-          onValueChange={(v) => onAccountChange(v as string)}
-        >
-          <SelectTrigger className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="w-fit min-w-(--anchor-width)">
-            {accountOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+      {/* Filters popover — Status, Category, Type, and (when relevant) Account */}
+      <Popover>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
+            >
+              <SlidersHorizontal size={14} className="text-dim" />
+              Filters
+              {activeCount > 0 && (
+                <span className="ms-0.5 inline-flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-primary text-white text-[11px] font-bold leading-none">
+                  {activeCount}
+                </span>
+              )}
+              <ChevronDown size={14} className="text-dim" />
+            </Button>
+          }
+        />
+        <PopoverContent align="start" className="w-64 gap-3.5">
+          <FilterField label="Category">
+            <Select
+              items={CATEGORY_OPTIONS}
+              value={categoryFilter}
+              onValueChange={(v) => onCategoryChange(v as string)}
+            >
+              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="w-fit min-w-(--anchor-width)">
+                {CATEGORY_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterField>
+
+          <FilterField label="Type">
+            <Select
+              items={DOCUMENT_TYPE_OPTIONS}
+              value={documentTypeFilter}
+              onValueChange={(v) => onDocumentTypeChange(v as string)}
+            >
+              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="w-fit min-w-(--anchor-width)">
+                {DOCUMENT_TYPE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterField>
+
+          {showAccount && (
+            <FilterField label="Account">
+              <Select
+                items={accountOptions}
+                value={accountFilter}
+                onValueChange={(v) => onAccountChange(v as string)}
+              >
+                <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="w-fit min-w-(--anchor-width)">
+                  {accountOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterField>
+          )}
+
+          <Button
+            variant="ghost"
+            onClick={onClearAll}
+            disabled={!canClear}
+            className="h-auto py-2 rounded-[10px] text-sm font-semibold text-text-secondary hover:bg-hover disabled:text-faint"
+          >
+            Clear all
+          </Button>
+        </PopoverContent>
+      </Popover>
 
       <span className="text-sm font-medium text-dim shrink-0">
         {count} detected
       </span>
-
-      <Button variant="ghost" onClick={onClearAll} disabled={!canClear}>
-        Clear all
-      </Button>
 
       <div className="ms-auto shrink-0">
         <DropdownMenu>
@@ -208,6 +243,18 @@ export function InvoicesToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+    </div>
+  )
+}
+
+// A labelled row inside the Filters popover — label above its control.
+function FilterField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
+        {label}
+      </span>
+      {children}
     </div>
   )
 }
