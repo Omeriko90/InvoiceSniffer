@@ -28,10 +28,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/", req.url))
   }
 
-  // Pass pathname to server components via header
-  const res = NextResponse.next()
-  res.headers.set("x-pathname", pathname)
-  return res
+  return NextResponse.next()
 })
 
 export const config = {
