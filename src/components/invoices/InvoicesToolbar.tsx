@@ -23,7 +23,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import type { ExportFormat } from "@/api/exports"
@@ -154,29 +153,29 @@ export function InvoicesToolbar({
         />
         <PopoverContent align="start" className="w-64 gap-3.5">
           <FilterField label="Category">
-            <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto">
-              {CATEGORY_OPTIONS.map((o) => {
-                const checked = categoryFilter.includes(o.value)
-                return (
-                  <label
-                    key={o.value}
-                    className="flex items-center gap-2 text-sm text-text-primary cursor-pointer"
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) =>
-                        onCategoryChange(
-                          v === true
-                            ? `${categoryFilter}, ${o.value}`
-                            : categoryFilter
-                        )
-                      }
-                    />
-                    {o.label}
-                  </label>
-                )
-              })}
-            </div>
+            <Select
+              multiple
+              items={CATEGORY_OPTIONS}
+              value={categoryFilter}
+              onValueChange={(v) => onCategoryChange(v as string[])}
+            >
+              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
+                <SelectValue>
+                  {(value) => {
+                    const v = value as string[]
+                    if (v.length === 0) return "All categories"
+                    if (v.length === 1)
+                      return CATEGORY_OPTIONS.find((o) => o.value === v[0])?.label ?? "1 selected"
+                    return `${v.length} selected`
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="w-fit min-w-(--anchor-width)">
+                {CATEGORY_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FilterField>
 
           <FilterField label="Type">
