@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { Sheet } from "@/components/ui/sheet"
 import { Dialog } from "@/components/ui/dialog"
-import type { InvoiceRow, UIState } from "./types"
+import type { InvoiceRow } from "./types"
 import type { ExportFormat } from "@/api/exports"
 import { belongsToDate } from "./helpers"
 import { InvoicesToolbar } from "./InvoicesToolbar"
@@ -20,7 +20,6 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [accountFilter, setAccount] = useState<string>("all")
   const [dateScope, setDateScope]   = useState<InvoiceDateScope>({ preset: "thisMonth" })
   const [customDateOpen, setCustomDateOpen] = useState(false)
-  const [uiState, setUiState]       = useState<UIState>("data")
   const [selected, setSelected]     = useState<InvoiceRow | null>(null)
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null)
 
@@ -92,17 +91,15 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
         canClear={canClear}
         onClearAll={clearAll}
         onExport={setExportFormat}
-        count={filtered.length}
       />
 
-      {uiState === "data" && filtered.length > 0 && (
+      {filtered.length > 0 && (
         <p className="-mb-1 text-sm text-text-secondary">
           {filtered.length} {filtered.length === 1 ? "document" : "documents"}
         </p>
       )}
 
       <InvoicesTable
-        uiState={uiState}
         invoices={invoices}
         filtered={filtered}
         onSelect={setSelected}

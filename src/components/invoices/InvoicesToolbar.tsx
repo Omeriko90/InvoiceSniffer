@@ -45,8 +45,8 @@ function dateScopeLabel(scope: InvoiceDateScope): string {
 interface InvoicesToolbarProps {
   search: string
   onSearchChange: (value: string) => void
-  categoryFilter: string
-  onCategoryChange: (value: string) => void
+  categoryFilter: string[]
+  onCategoryChange: (value: string[]) => void
   documentTypeFilter: string
   onDocumentTypeChange: (value: string) => void
   accountFilter: string
@@ -58,7 +58,6 @@ interface InvoicesToolbarProps {
   canClear: boolean
   onClearAll: () => void
   onExport: (format: ExportFormat) => void
-  count: number
 }
 
 export function InvoicesToolbar({
@@ -76,7 +75,6 @@ export function InvoicesToolbar({
   onOpenCustomDate,
   canClear,
   onClearAll,
-  count,
   onExport,
 }: InvoicesToolbarProps) {
   const showAccount = accounts.length > 1
