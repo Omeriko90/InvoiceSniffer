@@ -45,16 +45,16 @@ const nextConfig: NextConfig = {
     "/api/exports": ["src/lib/fonts/*.ttf"],
   },
   // `next dev --webpack` traces the server-only PDF chain (@napi-rs/canvas — a
-  // native .node addon) into the client compilation and fails its browser-binary
-  // guard, even though it only ever runs server-side. Stub it out of the client
-  // bundle. Turbopack (the default) ignores this and relies on
-  // serverExternalPackages above.
-  webpack: (config, { isServer }) => {
+  // native .node addon, reached via the worker modules) into the client
+  // compilation and fails its browser-binary guard, even though it only ever
+  // runs server-side. Drop @napi-rs/canvas (and its platform subpackages) from
+  // the client build entirely. Turbopack (the default) ignores this and relies
+  // on serverExternalPackages above.
+  webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@napi-rs/canvas": false,
-      }
+      config.plugins.push(
+        new webpack.IgnorePlugin({ resourceRegExp: /^@napi-rs\/canvas/ })
+      )
     }
     return config
   },
