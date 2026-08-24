@@ -53,10 +53,16 @@ export function FilterSelect(props: FilterSelectProps) {
             <SelectValue>
               {(value) => {
                 const v = value as string[]
-                if (v.length === 0) return props.allLabel
-                if (v.length === 1)
-                  return props.options.find((o) => o.value === v[0])?.label ?? "1 selected"
-                return `${v.length} selected`
+                const text =
+                  v.length === 0
+                    ? props.allLabel
+                    : v.length === 1
+                      ? props.options.find((o) => o.value === v[0])?.label ?? "1 selected"
+                      : `${v.length} selected`
+                // An empty multiple value marks the trigger as "placeholder", which
+                // would mute the text — render it in the normal color so it matches
+                // the single-value filters.
+                return <span className="text-text-primary">{text}</span>
               }}
             </SelectValue>
           </SelectTrigger>
