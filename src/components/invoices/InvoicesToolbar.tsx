@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories"
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import type { ExportFormat } from "@/api/exports"
@@ -33,10 +34,7 @@ import {
   type InvoiceDateScope,
 } from "@/lib/invoice-date-filter"
 
-const CATEGORY_OPTIONS = [
-  { value: "all", label: "All categories" },
-  ...INVOICE_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] })),
-]
+const CATEGORY_OPTIONS = INVOICE_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))
 
 const DOCUMENT_TYPE_OPTIONS = [
   { value: "all", label: "All types" },
@@ -89,16 +87,14 @@ export function InvoicesToolbar({
   count,
   onExport,
 }: InvoicesToolbarProps) {
-  // Only worth showing once there's more than one mailbox to filter by.
   const showAccount = accounts.length > 1
   const accountOptions = [
     { value: "all", label: "All accounts" },
     ...accounts.map((a) => ({ value: a.email, label: a.label })),
   ]
-  // Filters tucked into the popover — Date and Search stay inline. Each set
-  // filter counts as one; the account filter only counts when it's shown.
+  
   const activeCount =
-    (categoryFilter !== "all" ? 1 : 0) +
+    (categoryFilter.length > 0 ? 1 : 0) +
     (documentTypeFilter !== "all" ? 1 : 0) +
     (showAccount && accountFilter !== "all" ? 1 : 0)
 
@@ -158,20 +154,29 @@ export function InvoicesToolbar({
         />
         <PopoverContent align="start" className="w-64 gap-3.5">
           <FilterField label="Category">
-            <Select
-              items={CATEGORY_OPTIONS}
-              value={categoryFilter}
-              onValueChange={(v) => onCategoryChange(v as string)}
-            >
-              <SelectTrigger className="w-full h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="w-fit min-w-(--anchor-width)">
-                {CATEGORY_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto">
+              {CATEGORY_OPTIONS.map((o) => {
+                const checked = categoryFilter.includes(o.value)
+                return (
+                  <label
+                    key={o.value}
+                    className="flex items-center gap-2 text-sm text-text-primary cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) =>
+                        onCategoryChange(
+                          v === true
+                            ? `${categoryFilter}, ${o.value}`
+                            : categoryFilter
+                        )
+                      }
+                    />
+                    {o.label}
+                  </label>
+                )
+              })}
+            </div>
           </FilterField>
 
           <FilterField label="Type">
