@@ -1,15 +1,8 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import type { ReactNode } from "react"
 import { Search, Download, ChevronDown, CalendarDays, SlidersHorizontal } from "lucide-react"
 import { format as formatDate } from "date-fns"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { FilterSelect } from "@/components/ui/filter-select"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -152,66 +145,29 @@ export function InvoicesToolbar({
           }
         />
         <PopoverContent align="start" className="w-64 gap-4.5">
-          <FilterField label="Category">
-            <Select
-              multiple
-              items={CATEGORY_OPTIONS}
-              value={categoryFilter}
-              onValueChange={(v) => onCategoryChange(v as string[])}
-            >
-              <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-                <SelectValue>
-                  {(value) => {
-                    const v = value as string[]
-                    if (v.length === 0) return "All categories"
-                    if (v.length === 1)
-                      return CATEGORY_OPTIONS.find((o) => o.value === v[0])?.label ?? "1 selected"
-                    return `${v.length} selected`
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="w-fit min-w-(--anchor-width)">
-                {CATEGORY_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FilterField>
+          <FilterSelect
+            label="Category"
+            multiple
+            options={CATEGORY_OPTIONS}
+            value={categoryFilter}
+            onChange={onCategoryChange}
+            allLabel="All categories"
+          />
 
-          <FilterField label="Type">
-            <Select
-              items={DOCUMENT_TYPE_OPTIONS}
-              value={documentTypeFilter}
-              onValueChange={(v) => onDocumentTypeChange(v as string)}
-            >
-              <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="w-fit min-w-(--anchor-width)">
-                {DOCUMENT_TYPE_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FilterField>
+          <FilterSelect
+            label="Type"
+            options={DOCUMENT_TYPE_OPTIONS}
+            value={documentTypeFilter}
+            onChange={onDocumentTypeChange}
+          />
 
           {showAccount && (
-            <FilterField label="Account">
-              <Select
-                items={accountOptions}
-                value={accountFilter}
-                onValueChange={(v) => onAccountChange(v as string)}
-              >
-                <SelectTrigger className="w-full h-auto py-2.5 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="w-fit min-w-(--anchor-width)">
-                  {accountOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FilterField>
+            <FilterSelect
+              label="Account"
+              options={accountOptions}
+              value={accountFilter}
+              onChange={onAccountChange}
+            />
           )}
 
           <Button
@@ -247,18 +203,6 @@ export function InvoicesToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
-  )
-}
-
-// A labelled row inside the Filters popover — label above its control.
-function FilterField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
-        {label}
-      </span>
-      {children}
     </div>
   )
 }
