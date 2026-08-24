@@ -1,60 +1,83 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { startOfMonth, endOfMonth, subMonths, format } from "date-fns"
+import { startOfMonth, endOfMonth, format } from "date-fns"
+import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
+import type { Prisma } from "@prisma/client"
 
-export async function GET() {
+// Financial-overview dashboard. Range-scoped counts + spend for the selected
+// window, plus reclaimable VAT pinned to the current calendar month. The range
+// comes in as ?from&to (ISO); it's re-validated here so a crafted range can't
+// drive an unbounded scan.
+export async function GET(request: Request) {
   const session = await auth()
   if (!session) return new Response("Unauthorized", { status: 401 })
 
   const { organizationId } = session.user
-  const now        = new Date()
+  const now = new Date()
+
+  const url = new URL(request.url)
+  const fromParam = url.searchParams.get("from")
+  const toParam = url.searchParams.get("to")
+
+  let range: { from: Date; to: Date }
+  try {
+    range =
+      fromParam && toParam
+        ? resolveDateRange({ from: fromParam, to: toParam }, now)
+        : resolveDateRange({ preset: "ytd" }, now)
+  } catch (e) {
+    if (e instanceof InvalidDateRangeError) return new Response(e.message, { status: 400 })
+    throw e
+  }
+  const { from, to } = range
+
   const monthStart = startOfMonth(now)
-  const monthEnd   = endOfMonth(now)
-  const prevStart  = startOfMonth(subMonths(now, 1))
-  const prevEnd    = endOfMonth(subMonths(now, 1))
+  const monthEnd = endOfMonth(now)
+
+  // Shared scope for every range aggregate: this org's live invoices in-window.
+  const scoped: Prisma.InvoiceWhereInput = {
+    organizationId,
+    removedAt: null,
+    status: { not: "IGNORED" },
+    emailDate: { gte: from, lte: to },
+  }
 
   const [
-    unmatchedCount,
-    possibleCount,
-    matchedCount,
-    prevMatchedCount,
-    alertCount,
-    criticalAlertCount,
-    invoicesByStatus,
+    invoiceCount,
+    receiptCount,
+    spendByCurrency,
     invoicesByCategory,
+    invoicesByVendor,
     invoicesByTax,
-    recentAlerts,
   ] = await Promise.all([
-    prisma.invoice.count({ where: { organizationId, status: "UNMATCHED", emailDate: { gte: monthStart, lte: monthEnd } } }),
-    prisma.invoice.count({ where: { organizationId, status: "DETECTED",  emailDate: { gte: monthStart, lte: monthEnd } } }),
-    prisma.invoice.count({ where: { organizationId, status: "MATCHED",   emailDate: { gte: monthStart, lte: monthEnd } } }),
-    prisma.invoice.count({ where: { organizationId, status: "MATCHED",   emailDate: { gte: prevStart,  lte: prevEnd  } } }),
-    prisma.anomalyLog.count({ where: { organizationId, acknowledged: false } }),
-    prisma.anomalyLog.count({ where: { organizationId, acknowledged: false, severity: "HIGH" } }),
+    prisma.invoice.count({ where: { ...scoped, documentType: "TAX_INVOICE" } }),
+    prisma.invoice.count({ where: { ...scoped, documentType: "RECEIPT" } }),
+    // Headline spend, grouped by currency so mixed-currency orgs aren't summed
+    // into a meaningless total.
     prisma.invoice.groupBy({
-      by: ["status"],
-      where: { organizationId, status: { not: "IGNORED" }, emailDate: { gte: monthStart, lte: monthEnd } },
+      by: ["currency"],
+      where: scoped,
+      _sum: { totalAmount: true },
       _count: true,
     }),
-    prisma.invoice.findMany({
-      where: {
-        organizationId,
-        removedAt: null,
-        status: { not: "IGNORED" },
-        emailDate: { gte: monthStart, lte: monthEnd },
-      },
-      select: {
-        category: true,
-        currency: true,
-        totalAmount: true,
-        displayAmount: true,
-        displayCurrency: true,
-      },
+    // Spend by category (+ currency) feeds the pie chart. UNCATEGORIZED dropped
+    // from the breakdown below.
+    prisma.invoice.groupBy({
+      by: ["category", "currency"],
+      where: scoped,
+      _sum: { totalAmount: true },
+      _count: true,
     }),
-    // Reclaimable VAT this month. Only TAX_INVOICE documents carry deductible
-    // VAT, so plain receipts/unknown docs are excluded. Fetched as rows (not a
-    // groupBy) so duplicate copies of the same invoice can be deduped before
-    // summing — see the dedupe below.
+    // Top vendors by spend within the range.
+    prisma.invoice.groupBy({
+      by: ["vendorName", "currency"],
+      where: scoped,
+      _sum: { totalAmount: true },
+      _count: true,
+    }),
+    // Reclaimable VAT — ALWAYS the current calendar month, regardless of the
+    // range selector. Only TAX_INVOICE docs carry deductible VAT; fetched as
+    // rows so duplicate copies can be deduped before summing (see below).
     prisma.invoice.findMany({
       where: {
         organizationId,
@@ -73,36 +96,39 @@ export async function GET() {
         totalAmount: true,
       },
     }),
-    prisma.anomalyLog.findMany({
-      where: { organizationId, acknowledged: false },
-      orderBy: { createdAt: "desc" },
-      take: 4,
-      include: { invoice: { select: { vendorName: true } } },
-    }),
   ])
 
-  const byStatus = Object.fromEntries(invoicesByStatus.map((r) => [r.status, r._count]))
-  const total    = invoicesByStatus.reduce((s, r) => s + r._count, 0) || 1
+  const totalSpend = spendByCurrency
+    .map((r) => ({ currency: r.currency, total: Number(r._sum.totalAmount ?? 0), count: r._count }))
+    .filter((r) => r.total > 0)
+    .sort((a, b) => b.total - a.total)
 
-  const catTotals = new Map<string, { category: string; currency: string; total: number; count: number }>()
-  for (const r of invoicesByCategory) {
-    if (r.category === "UNCATEGORIZED") continue
-    const converted = r.displayAmount != null && r.displayCurrency
-    const amount = converted ? Number(r.displayAmount) : Number(r.totalAmount)
-    const currency = converted ? r.displayCurrency! : r.currency
-    const key = `${r.category}|${currency}`
-    const bucket = catTotals.get(key) ?? { category: r.category, currency, total: 0, count: 0 }
-    bucket.total += amount
-    bucket.count += 1
-    catTotals.set(key, bucket)
-  }
-  const spendByCategory = Array.from(catTotals.values()).sort((a, b) => b.total - a.total)
+  // Flatten (category, currency) groups; drop UNCATEGORIZED, sort by spend desc.
+  const spendByCategory = invoicesByCategory
+    .filter((r) => r.category !== "UNCATEGORIZED")
+    .map((r) => ({
+      category: r.category,
+      currency: r.currency,
+      total: Number(r._sum.totalAmount ?? 0),
+      count: r._count,
+    }))
+    .sort((a, b) => b.total - a.total)
+
+  const topVendors = invoicesByVendor
+    .filter((r) => r.vendorName)
+    .map((r) => ({
+      vendor: r.vendorName as string,
+      currency: r.currency,
+      total: Number(r._sum.totalAmount ?? 0),
+      count: r._count,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
 
   // Dedupe copies of the same tax invoice (same Tax Authority allocation number,
   // else same invoice#+vendor+total) so a document arriving as both email body
   // and attachment — or forwarded — isn't counted twice. Rows with no
-  // identifying number fall back to their unique id, so distinct invoices are
-  // never merged. Then sum reclaimable VAT per currency.
+  // identifying number fall back to their unique id. Then sum VAT per currency.
   const seenTax = new Set<string>()
   const taxTotals = new Map<string, { total: number; count: number }>()
   for (const r of invoicesByTax) {
@@ -116,35 +142,19 @@ export async function GET() {
     bucket.count += 1
     taxTotals.set(r.currency, bucket)
   }
-  const taxByMonth = Array.from(taxTotals.entries())
+  const taxThisMonth = Array.from(taxTotals.entries())
     .map(([currency, { total, count }]) => ({ currency, total, count }))
     .filter((r) => r.total > 0)
     .sort((a, b) => b.total - a.total)
 
   return Response.json({
-    unmatched:      unmatchedCount,
-    possible:       possibleCount,
-    matched:        matchedCount,
-    matchedDelta:   matchedCount - prevMatchedCount,
-    alerts:         alertCount,
-    criticalAlerts: criticalAlertCount,
-    rec: {
-      total,
-      matched:   byStatus["MATCHED"]   ?? 0,
-      possible:  byStatus["DETECTED"]  ?? 0,
-      missing:   byStatus["UNMATCHED"] ?? 0,
-      noInvoice: byStatus["REVIEWED"]  ?? 0,
-    },
+    range: { from: from.toISOString(), to: to.toISOString() },
+    invoiceCount,
+    receiptCount,
+    totalSpend,
     spendByCategory,
-    taxByMonth,
-    recentAlerts: recentAlerts.map((a) => ({
-      id:        a.id,
-      type:      a.type,
-      severity:  a.severity,
-      details:   a.details,
-      vendorName: a.vendorName,
-      invoice:   a.invoice,
-    })),
+    topVendors,
+    taxThisMonth,
     monthLabel: format(now, "MMMM yyyy"),
   })
 }

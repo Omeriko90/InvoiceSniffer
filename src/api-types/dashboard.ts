@@ -1,4 +1,3 @@
-import { AlertItem } from "@/types/alert"
 import type { InvoiceCategory } from "@/lib/invoice-categories"
 
 export interface CategorySpend {
@@ -14,22 +13,30 @@ export interface TaxByCurrency {
     count:    number
 }
 
+export interface CurrencyTotal {
+    currency: string
+    total:    number
+    count:    number
+}
+
+export interface TopVendor {
+    vendor:   string
+    currency: string
+    total:    number
+    count:    number
+}
+
 export interface DashboardData {
-    unmatched:      number
-    possible:       number
-    matched:        number
-    matchedDelta:   number
-    alerts:         number
-    criticalAlerts: number
-    rec: {
-      total:     number
-      matched:   number
-      possible:  number
-      missing:   number
-      noInvoice: number
-    }
+    // The resolved range these figures cover (echoed back for the UI label).
+    range: { from: string; to: string }
+    // Counts within the range, split by document type.
+    invoiceCount: number
+    receiptCount: number
+    // Spend within the range, grouped by currency (mixed-currency safe).
+    totalSpend:      CurrencyTotal[]
     spendByCategory: CategorySpend[]
-    taxByMonth:   TaxByCurrency[]
-    recentAlerts: AlertItem[]
+    topVendors:      TopVendor[]
+    // Reclaimable VAT — always the current calendar month, independent of range.
+    taxThisMonth: TaxByCurrency[]
     monthLabel:   string
-  }
+}

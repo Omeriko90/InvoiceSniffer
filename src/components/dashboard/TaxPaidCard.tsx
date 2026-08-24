@@ -9,7 +9,7 @@ export function TaxPaidCard({ rows, monthLabel }: { rows: TaxByCurrency[]; month
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-heading leading-none">
-            Tax paid — {monthLabel}
+            Reclaimable VAT — {monthLabel}
           </h2>
         </div>
 
