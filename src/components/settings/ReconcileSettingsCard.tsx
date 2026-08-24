@@ -76,7 +76,6 @@ export function ReconcileSettingsCard({
           <Button
             onClick={save}
             disabled={!dirty || update.isPending}
-            className="h-auto text-sm font-semibold text-white bg-primary rounded-[9px] px-4 py-2 shadow-primary hover:bg-primary hover:opacity-90 disabled:opacity-60"
           >
             {update.isPending ? "Saving…" : "Save"}
           </Button>

@@ -224,7 +224,6 @@ export function FixedExpenseDetailDrawer({
             {timeline.hasNextPage && (
               <Button
                 variant="ghost"
-                className="h-auto py-2 rounded-lg text-sm font-semibold text-text-secondary"
                 disabled={timeline.isFetchingNextPage}
                 onClick={() => timeline.fetchNextPage()}
               >
@@ -240,7 +239,7 @@ export function FixedExpenseDetailDrawer({
         <div className="flex gap-2.5">
           <Button
             variant="outline"
-            className="flex-1 h-auto py-2.5 rounded-lg border-border text-sm font-semibold text-heading"
+            className="flex-1"
             onClick={onEdit}
           >
             <Pencil size={15} strokeWidth={1.8} />
@@ -248,7 +247,7 @@ export function FixedExpenseDetailDrawer({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 h-auto py-2.5 rounded-lg border-border text-sm font-semibold text-heading"
+            className="flex-1"
             disabled={update.isPending}
             onClick={togglePause}
           >
@@ -257,8 +256,7 @@ export function FixedExpenseDetailDrawer({
           </Button>
         </div>
         <Button
-          variant="ghost"
-          className="h-auto py-2 rounded-lg text-sm font-semibold text-dim hover:text-danger hover:bg-danger-bg"
+          variant="ghostDanger"
           disabled={remove.isPending}
           onClick={() => setConfirmDelete(true)}
         >

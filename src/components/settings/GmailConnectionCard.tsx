@@ -44,8 +44,9 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
             ) : (
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => { window.location.href = "/api/gmail/connect" }}
-                className="self-start h-auto text-sm font-semibold text-primary bg-surface border-border rounded-[9px] px-3.5 py-[7px] hover:bg-hover"
+                className="self-start"
               >
                 + Add account
               </Button>
@@ -61,7 +62,8 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               </p>
             </div>
             <Button
-              className="shrink-0 h-auto text-sm font-semibold text-white bg-primary rounded-[9px] px-3.5 py-[7px] shadow-primary hover:bg-primary hover:opacity-90"
+              size="sm"
+              className="shrink-0"
               onClick={() => { window.location.href = "/api/gmail/connect" }}
             >
               Connect

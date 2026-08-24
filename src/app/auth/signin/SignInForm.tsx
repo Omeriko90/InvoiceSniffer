@@ -63,7 +63,7 @@ export function SignInForm() {
           <Button
             type="button"
             variant="link"
-            className="h-auto p-0 border-0 text-sm font-semibold text-primary hover:opacity-80 hover:no-underline"
+            size="inline"
           >
             Forgot?
           </Button>

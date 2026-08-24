@@ -418,7 +418,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <>
             <Button
               variant="outline"
-              className="flex-1 h-auto py-2.5 rounded-[10px] border-[#E8EDFA] text-[13.5px] font-semibold text-heading"
+              className="flex-1"
               disabled={update.isPending}
               onClick={() => {
                 setDraft(toDraft(invoice))
@@ -430,7 +430,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Cancel
             </Button>
             <Button
-              className="flex-1 h-auto py-2.5 rounded-[10px] text-white text-sm font-bold border-0 bg-gradient-logo"
+              variant="gradientLogo"
+              className="flex-1"
               disabled={update.isPending || !amountValid}
               onClick={handleSave}
             >
@@ -441,7 +442,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <>
             <Button
               variant="outline"
-              className="flex-1 h-auto py-2.5 rounded-[10px] border-[#E8EDFA] text-[13.5px] font-semibold text-heading"
+              className="flex-1"
               nativeButton={false}
               render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
             >
@@ -449,7 +450,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Open in Gmail
             </Button>
             <Button
-              className="flex-1 h-auto py-2.5 rounded-lg text-white text-sm font-bold border-0 bg-gradient-logo"
+              variant="gradientLogo"
+              className="flex-1"
               onClick={() => setEditing(true)}
             >
               Edit fields
@@ -460,7 +462,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         {!editing && !invoice.fixedExpense && (
           <Button
             variant="ghost"
-            className="h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-primary hover:bg-info-bg"
             onClick={() => setMarkFixedOpen(true)}
           >
             <Repeat size={14} strokeWidth={1.8} />
@@ -470,8 +471,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         {!editing && (
           <div className="flex gap-2.5">
             <Button
-              variant="ghost"
-              className="flex-1 h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-danger-fg hover:bg-danger-bg"
+              variant="ghostDanger"
+              className="flex-1"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_RELEVANT")}
             >
@@ -479,8 +480,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               Not relevant
             </Button>
             <Button
-              variant="ghost"
-              className="flex-1 h-auto py-2 rounded-[10px] text-sm font-semibold text-dim hover:text-danger-fg hover:bg-danger-bg"
+              variant="ghostDanger"
+              className="flex-1"
               disabled={remove.isPending}
               onClick={() => openConfirm("NOT_AN_INVOICE")}
             >

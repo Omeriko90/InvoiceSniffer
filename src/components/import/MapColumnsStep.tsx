@@ -54,12 +54,12 @@ export function MapColumnsStep({
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
-          <Button variant="outline" size="lg" className="text-sm px-4" onClick={onBack}>
+          <Button variant="outline" size="lg" onClick={onBack}>
             Back
           </Button>
           <Button
+            variant="gradientSky"
             size="lg"
-            className="text-sm px-4 text-white shadow-primary border-0 bg-gradient-sky"
             disabled={!complete || importing}
             onClick={onImport}
           >

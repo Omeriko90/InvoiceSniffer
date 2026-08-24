@@ -146,10 +146,7 @@ export function InvoicesToolbar({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button
-              variant="outline"
-              className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
-            >
+            <Button variant="outline">
               <CalendarDays size={14} className="text-dim" />
               {dateScopeLabel(dateScope)}
               <ChevronDown size={14} className="text-dim" />
@@ -189,12 +186,7 @@ export function InvoicesToolbar({
         {count} detected
       </span>
 
-      <Button
-        variant="ghost"
-        onClick={onClearAll}
-        disabled={!canClear}
-        className="h-auto py-2 px-2.5 rounded-[10px] text-sm font-semibold text-text-secondary hover:bg-hover disabled:text-faint"
-      >
+      <Button variant="ghost" onClick={onClearAll} disabled={!canClear}>
         Clear all
       </Button>
 
@@ -202,10 +194,7 @@ export function InvoicesToolbar({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                variant="outline"
-                className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
-              >
+              <Button variant="outline">
                 <Download size={14} />
                 Export
                 <ChevronDown size={14} className="text-dim" />

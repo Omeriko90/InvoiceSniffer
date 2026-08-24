@@ -96,7 +96,7 @@ export function FixedExpensesClient({
           </SelectContent>
         </Select>
         <div className="flex-1" />
-        <Button onClick={openCreate} className="h-auto py-2 px-3.5 rounded-lg text-sm font-semibold">
+        <Button onClick={openCreate}>
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>
@@ -190,7 +190,7 @@ function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolea
           : "Add a fixed expense and we'll tell you each period whether its invoice has arrived."}
       </p>
       {!hasAny && (
-        <Button onClick={onCreate} className="h-auto py-2 px-3.5 rounded-lg text-sm font-semibold">
+        <Button onClick={onCreate}>
           <Plus size={15} strokeWidth={2} />
           New fixed expense
         </Button>

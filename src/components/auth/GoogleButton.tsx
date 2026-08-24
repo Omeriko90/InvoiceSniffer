@@ -8,7 +8,7 @@ export function GoogleButton({ onClick }: { onClick: () => void }) {
       type="button"
       variant="outline"
       size="lg"
-      className="w-full gap-2.5 rounded-[11px] border-border text-sm font-semibold mb-5"
+      className="w-full mb-5"
       onClick={onClick}
     >
       <GoogleLogo />

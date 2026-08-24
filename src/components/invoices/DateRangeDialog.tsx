@@ -47,18 +47,10 @@ export function DateRangeDialog({
       }
       footer={
         <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="h-auto py-2 rounded-lg border-border bg-surface text-sm font-semibold text-text-primary"
-          >
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            onClick={apply}
-            disabled={!canApply}
-            className="h-auto py-2 rounded-lg text-sm font-semibold"
-          >
+          <Button onClick={apply} disabled={!canApply}>
             Apply
           </Button>
         </>

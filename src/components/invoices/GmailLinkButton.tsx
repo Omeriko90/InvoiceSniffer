@@ -8,7 +8,6 @@ export function GmailLinkButton({ gmailLink }: { gmailLink: string }) {
       variant="ghost"
       size="icon-sm"
       title="Open in Gmail"
-      className="text-dim hover:bg-info-bg hover:text-primary-strong"
       nativeButton={false}
       render={
         <a
