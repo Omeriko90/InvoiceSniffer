@@ -52,6 +52,13 @@ const nextConfig: NextConfig = {
   // "path", the workers, posthog-node) and fails. None run off Node, so drop the
   // whole chain from every non-Node build. Turbopack (the default) is unaffected;
   // serverExternalPackages keeps them external in the Node build.
+  //
+  // Production builds and `next dev` use Turbopack (the Next 16 default), which
+  // needs no config here — serverExternalPackages already handles the native
+  // deps. This empty block only tells Next the webpack config below is a
+  // deliberate coexistence (for the `dev:webpack` escape hatch), not a stray
+  // leftover, silencing the "webpack config with no turbopack config" build error.
+  turbopack: {},
   webpack: (config, { nextRuntime, webpack }) => {
     if (nextRuntime !== "nodejs") {
       config.plugins.push(
