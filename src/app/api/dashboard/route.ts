@@ -1,7 +1,11 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { format, startOfMonth, subMonths } from "date-fns"
 import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import type { Prisma } from "@prisma/client"
+
+// Months shown in the fixed spend-trend chart (current month + 5 prior).
+const TREND_MONTHS = 6
 
 // Financial-overview dashboard. Range-scoped counts + spend + reclaimable VAT
 // for the selected window. The range comes in as ?from&to (ISO); it's
@@ -37,6 +41,9 @@ export async function GET(request: Request) {
     emailDate: { gte: from, lte: to },
   }
 
+  // Fixed trailing window for the spend-trend chart — independent of the range.
+  const trendStart = startOfMonth(subMonths(now, TREND_MONTHS - 1))
+
   const [
     invoiceCount,
     receiptCount,
@@ -44,6 +51,7 @@ export async function GET(request: Request) {
     invoicesByCategory,
     invoicesByVendor,
     invoicesByTax,
+    trendRows,
   ] = await Promise.all([
     prisma.invoice.count({ where: { ...scoped, documentType: "TAX_INVOICE" } }),
     prisma.invoice.count({ where: { ...scoped, documentType: "RECEIPT" } }),
@@ -86,6 +94,17 @@ export async function GET(request: Request) {
         vendorNormalized: true,
         totalAmount: true,
       },
+    }),
+    // Spend trend — live invoices over the fixed trailing window, bucketed by
+    // month (in the dominant currency) below.
+    prisma.invoice.findMany({
+      where: {
+        organizationId,
+        removedAt: null,
+        status: { not: "IGNORED" },
+        emailDate: { gte: trendStart, lte: now },
+      },
+      select: { emailDate: true, currency: true, totalAmount: true },
     }),
   ])
 
@@ -138,6 +157,31 @@ export async function GET(request: Request) {
     .filter((r) => r.total > 0)
     .sort((a, b) => b.total - a.total)
 
+  // Spend trend: pick the dominant currency over the window, then sum its spend
+  // into one bucket per month (zero-filled) so the chart always shows every
+  // month in the window.
+  const trendByCurrency = new Map<string, number>()
+  for (const r of trendRows) {
+    trendByCurrency.set(r.currency, (trendByCurrency.get(r.currency) ?? 0) + Number(r.totalAmount ?? 0))
+  }
+  const trendCurrency = Array.from(trendByCurrency.entries()).sort((a, b) => b[1] - a[1])[0]?.[0]
+  let spendTrend: { currency: string; points: { month: string; total: number }[] } | null = null
+  if (trendCurrency) {
+    const buckets = new Map<string, number>()
+    for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+      buckets.set(format(startOfMonth(subMonths(now, i)), "yyyy-MM-dd"), 0)
+    }
+    for (const r of trendRows) {
+      if (r.currency !== trendCurrency) continue
+      const key = format(startOfMonth(r.emailDate), "yyyy-MM-dd")
+      if (buckets.has(key)) buckets.set(key, buckets.get(key)! + Number(r.totalAmount ?? 0))
+    }
+    spendTrend = {
+      currency: trendCurrency,
+      points: Array.from(buckets.entries()).map(([month, total]) => ({ month, total })),
+    }
+  }
+
   return Response.json({
     range: { from: from.toISOString(), to: to.toISOString() },
     invoiceCount,
@@ -146,5 +190,6 @@ export async function GET(request: Request) {
     spendByCategory,
     topVendors,
     reclaimableVat,
+    spendTrend,
   })
 }

@@ -26,6 +26,19 @@ export interface TopVendor {
     count:    number
 }
 
+export interface SpendTrendPoint {
+    // First day of the month, ISO "yyyy-MM-dd" (formatted client-side).
+    month: string
+    total: number
+}
+
+// Total spend per month over a fixed trailing window, in the dominant currency.
+// Null when there's no spend in the window.
+export interface SpendTrend {
+    currency: string
+    points:   SpendTrendPoint[]
+}
+
 export interface DashboardData {
     // The resolved range these figures cover (echoed back for the UI label).
     range: { from: string; to: string }
@@ -38,4 +51,6 @@ export interface DashboardData {
     topVendors:      TopVendor[]
     // Reclaimable VAT within the selected range, grouped by currency.
     reclaimableVat: TaxByCurrency[]
+    // Monthly spend over a fixed trailing 6-month window, independent of range.
+    spendTrend: SpendTrend | null
 }
