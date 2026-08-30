@@ -9,7 +9,7 @@ export type DateRangePreset = (typeof DATE_RANGE_PRESETS)[number]
 export const PRESET_LABELS: Record<DateRangePreset, string> = {
   week: "Last 7 days",
   month: "Last month",
-  mtd: "This month",
+  mtd: "Current month",
   "3m": "Last 3 months",
   "6m": "Last 6 months",
   year: "Last 12 months",
