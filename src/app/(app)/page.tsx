@@ -8,6 +8,7 @@ import { OverviewStatRow } from "@/components/dashboard/OverviewStatRow"
 import { SpendPieChart } from "@/components/dashboard/SpendPieChart"
 import { TaxPaidCard } from "@/components/dashboard/TaxPaidCard"
 import { TopVendorsCard } from "@/components/dashboard/TopVendorsCard"
+import { SpendTrendCard } from "@/components/dashboard/SpendTrendCard"
 import { DashboardDateRange } from "@/components/dashboard/DashboardDateRange"
 import { resolveDateRange } from "@/lib/date-range"
 import { isDashboardPreset, type DashboardScope } from "@/lib/dashboard-range"
@@ -58,7 +59,10 @@ export default function DashboardPage() {
             <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
           </div>
 
-          <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
+          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
+            <SpendTrendCard trend={data.spendTrend} />
+          </div>
         </>
       )}
     </div>
