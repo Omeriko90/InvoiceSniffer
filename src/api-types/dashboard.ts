@@ -36,7 +36,6 @@ export interface DashboardData {
     totalSpend:      CurrencyTotal[]
     spendByCategory: CategorySpend[]
     topVendors:      TopVendor[]
-    // Reclaimable VAT — always the current calendar month, independent of range.
-    taxThisMonth: TaxByCurrency[]
-    monthLabel:   string
+    // Reclaimable VAT within the selected range, grouped by currency.
+    reclaimableVat: TaxByCurrency[]
 }

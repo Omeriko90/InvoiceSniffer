@@ -1,13 +1,11 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { startOfMonth, endOfMonth, format } from "date-fns"
 import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import type { Prisma } from "@prisma/client"
 
-// Financial-overview dashboard. Range-scoped counts + spend for the selected
-// window, plus reclaimable VAT pinned to the current calendar month. The range
-// comes in as ?from&to (ISO); it's re-validated here so a crafted range can't
-// drive an unbounded scan.
+// Financial-overview dashboard. Range-scoped counts + spend + reclaimable VAT
+// for the selected window. The range comes in as ?from&to (ISO); it's
+// re-validated here so a crafted range can't drive an unbounded scan.
 export async function GET(request: Request) {
   const session = await auth()
   if (!session) return new Response("Unauthorized", { status: 401 })
@@ -30,9 +28,6 @@ export async function GET(request: Request) {
     throw e
   }
   const { from, to } = range
-
-  const monthStart = startOfMonth(now)
-  const monthEnd = endOfMonth(now)
 
   // Shared scope for every range aggregate: this org's live invoices in-window.
   const scoped: Prisma.InvoiceWhereInput = {
@@ -75,15 +70,11 @@ export async function GET(request: Request) {
       _sum: { totalAmount: true },
       _count: true,
     }),
-    // Reclaimable VAT — ALWAYS the current calendar month, regardless of the
-    // range selector. Only TAX_INVOICE docs carry deductible VAT; fetched as
-    // rows so duplicate copies can be deduped before summing (see below).
+    // Reclaimable VAT within the selected range. Fetched as rows so duplicate
+    // copies can be deduped before summing (see below).
     prisma.invoice.findMany({
       where: {
-        organizationId,
-        removedAt: null,
-        status: { not: "IGNORED" },
-        emailDate: { gte: monthStart, lte: monthEnd },
+        ...scoped,
         taxAmount: { not: null },
       },
       select: {
@@ -142,7 +133,7 @@ export async function GET(request: Request) {
     bucket.count += 1
     taxTotals.set(r.currency, bucket)
   }
-  const taxThisMonth = Array.from(taxTotals.entries())
+  const reclaimableVat = Array.from(taxTotals.entries())
     .map(([currency, { total, count }]) => ({ currency, total, count }))
     .filter((r) => r.total > 0)
     .sort((a, b) => b.total - a.total)
@@ -154,7 +145,6 @@ export async function GET(request: Request) {
     totalSpend,
     spendByCategory,
     topVendors,
-    taxThisMonth,
-    monthLabel: format(now, "MMMM yyyy"),
+    reclaimableVat,
   })
 }

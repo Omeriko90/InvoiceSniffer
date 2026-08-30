@@ -3,19 +3,22 @@ import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
 import type { TaxByCurrency } from "@/api-types/dashboard"
 
-export function TaxPaidCard({ rows, monthLabel }: { rows: TaxByCurrency[]; monthLabel: string }) {
+export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; rangeLabel: string }) {
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
           <h2 className="text-base font-bold text-heading leading-none">
-            Reclaimable VAT — {monthLabel}
+            Reclaimable VAT — {rangeLabel}
           </h2>
+          <p className="text-xs font-semibold text-text-secondary leading-none">
+            Breakdown by currency
+          </p>
         </div>
 
         {rows.length === 0 ? (
           <p className="text-sm text-text-secondary py-6 text-center">
-            No tax recorded on this month&apos;s invoices.
+            No tax recorded on invoices in the selected range.
           </p>
         ) : (
           <div className="flex flex-col gap-3">
