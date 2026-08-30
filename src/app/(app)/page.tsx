@@ -27,11 +27,9 @@ export default function DashboardPage() {
     }
   }, [scope])
 
-  // Summary boxes always show the concrete window; the preset *name* lives only
-  // on the chips (see DashboardDateRange).
-  const rangeLabel = range
-    ? `${format(new Date(range.from), "d MMM")} – ${format(new Date(range.to), "d MMM yyyy")}`
-    : "Custom range"
+  // Summary boxes always show the concrete window as month names; the preset
+  // *name* lives only on the chips (see DashboardDateRange).
+  const rangeLabel = range ? monthRangeLabel(range.from, range.to) : "Custom range"
 
   const { data, isPending } = useDashboard(range)
 
@@ -65,6 +63,18 @@ export default function DashboardPage() {
       )}
     </div>
   )
+}
+
+// Compact month-granularity window label: "August", "June – August" within a
+// year, or "Dec 2025 – Feb 2026" across years.
+function monthRangeLabel(fromISO: string, toISO: string): string {
+  const from = new Date(fromISO)
+  const to = new Date(toISO)
+  const sameYear = from.getFullYear() === to.getFullYear()
+  const sameMonth = sameYear && from.getMonth() === to.getMonth()
+  if (sameMonth) return format(from, "MMMM yyyy")
+  if (sameYear) return `${format(from, "MMMM")} – ${format(to, "MMMM yyyy")}`
+  return `${format(from, "MMM yyyy")} – ${format(to, "MMM yyyy")}`
 }
 
 function DashboardSkeleton() {

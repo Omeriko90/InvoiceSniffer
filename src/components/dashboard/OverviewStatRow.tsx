@@ -63,7 +63,7 @@ export function OverviewStatRow({
         label="Reclaimable VAT"
         value={tax.value}
         note={rangeLabel}
-        noteClass="text-purple"
+        noteClass="text-text-secondary"
         iconBgClass="bg-purple"
         icon={<Percent size={15} strokeWidth={2} />}
       />
