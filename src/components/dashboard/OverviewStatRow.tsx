@@ -21,17 +21,17 @@ export function OverviewStatRow({
   invoiceCount,
   receiptCount,
   totalSpend,
-  taxThisMonth,
+  reclaimableVat,
   rangeLabel,
 }: {
   invoiceCount: number
   receiptCount: number
   totalSpend: CurrencyTotal[]
-  taxThisMonth: TaxByCurrency[]
+  reclaimableVat: TaxByCurrency[]
   rangeLabel: string
 }) {
   const spend = money(totalSpend)
-  const tax = money(taxThisMonth)
+  const tax = money(reclaimableVat)
 
   return (
     <div className="grid grid-cols-4 gap-3.5">
@@ -62,7 +62,7 @@ export function OverviewStatRow({
       <OverviewCard
         label="Reclaimable VAT"
         value={tax.value}
-        note="this month"
+        note={rangeLabel}
         noteClass="text-purple"
         iconBgClass="bg-purple"
         icon={<Percent size={15} strokeWidth={2} />}
