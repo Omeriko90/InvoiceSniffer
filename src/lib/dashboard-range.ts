@@ -12,7 +12,7 @@ const _presetCheck: readonly DateRangePreset[] = DASHBOARD_PRESETS
 void _presetCheck
 
 export const DASHBOARD_PRESET_LABELS: Record<DashboardPreset, string> = {
-  mtd: "This month",
+  mtd: "Current month",
   "3m": "Quarter",
   "6m": "Half year",
   year: "Year",
