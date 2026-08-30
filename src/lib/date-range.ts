@@ -1,15 +1,16 @@
-import { endOfDay, startOfDay, startOfMonth, startOfYear, subDays, subMonths, subYears } from "date-fns"
+import { endOfDay, startOfDay, startOfMonth, startOfQuarter, startOfYear, subDays, subMonths, subYears } from "date-fns"
 import type { DateRange } from "@/lib/matching-data"
 
 // Reconcile date-range scope. Presets are trailing windows ending today; the
 // user matches against invoices whose effective date falls inside the window.
-export const DATE_RANGE_PRESETS = ["week", "month", "mtd", "3m", "6m", "year", "ytd"] as const
+export const DATE_RANGE_PRESETS = ["week", "month", "mtd", "qtd", "3m", "6m", "year", "ytd"] as const
 export type DateRangePreset = (typeof DATE_RANGE_PRESETS)[number]
 
 export const PRESET_LABELS: Record<DateRangePreset, string> = {
   week: "Last 7 days",
   month: "Last month",
   mtd: "Current month",
+  qtd: "Current quarter",
   "3m": "Last 3 months",
   "6m": "Last 6 months",
   year: "Last 12 months",
@@ -59,6 +60,8 @@ export function resolveDateRange(
       return { from: startOfDay(subMonths(now, 1)), to }
     case "mtd":
       return { from: startOfMonth(now), to }
+    case "qtd":
+      return { from: startOfQuarter(now), to }
     case "3m":
       return { from: startOfDay(subMonths(now, 3)), to }
     case "6m":
