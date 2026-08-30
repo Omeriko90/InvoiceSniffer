@@ -10,14 +10,10 @@ import { TaxPaidCard } from "@/components/dashboard/TaxPaidCard"
 import { TopVendorsCard } from "@/components/dashboard/TopVendorsCard"
 import { DashboardDateRange } from "@/components/dashboard/DashboardDateRange"
 import { resolveDateRange } from "@/lib/date-range"
-import {
-  DASHBOARD_PRESET_LABELS,
-  isDashboardPreset,
-  type DashboardScope,
-} from "@/lib/dashboard-range"
+import { isDashboardPreset, type DashboardScope } from "@/lib/dashboard-range"
 
 export default function DashboardPage() {
-  const [scope, setScope] = useState<DashboardScope>({ preset: "ytd" })
+  const [scope, setScope] = useState<DashboardScope>({ preset: "mtd" })
 
   // Resolve the scope to a concrete ISO window. Null while a custom range is
   // still being filled in — the query stays disabled until then.
@@ -31,11 +27,11 @@ export default function DashboardPage() {
     }
   }, [scope])
 
-  const rangeLabel = isDashboardPreset(scope)
-    ? DASHBOARD_PRESET_LABELS[scope.preset]
-    : range
-      ? `${format(new Date(range.from), "d MMM")} – ${format(new Date(range.to), "d MMM yyyy")}`
-      : "Custom range"
+  // Summary boxes always show the concrete window; the preset *name* lives only
+  // on the chips (see DashboardDateRange).
+  const rangeLabel = range
+    ? `${format(new Date(range.from), "d MMM")} – ${format(new Date(range.to), "d MMM yyyy")}`
+    : "Custom range"
 
   const { data, isPending } = useDashboard(range)
 
@@ -55,13 +51,13 @@ export default function DashboardPage() {
             invoiceCount={data.invoiceCount}
             receiptCount={data.receiptCount}
             totalSpend={data.totalSpend}
-            taxThisMonth={data.taxThisMonth}
+            reclaimableVat={data.reclaimableVat}
             rangeLabel={rangeLabel}
           />
 
           <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
             <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
-            <TaxPaidCard rows={data.taxThisMonth} monthLabel={data.monthLabel} />
+            <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
           </div>
 
           <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
