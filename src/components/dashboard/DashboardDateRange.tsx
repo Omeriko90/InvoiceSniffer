@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { format as formatDate } from "date-fns"
 import type { DateRange } from "react-day-picker"
+import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ToggleChip } from "@/components/ui/toggle-chip"
@@ -52,8 +53,9 @@ export function DashboardDateRange({
   )
 }
 
-// Calendar draft seeded from the current scope when it's already custom. Applies
-// (and closes the popover) only once both endpoints are chosen.
+// Calendar draft seeded from the current scope when it's already custom. Opens
+// on the start month (or today when there's no start yet), and only commits the
+// range — closing the popover — when the user hits Apply with both endpoints set.
 function CustomRangeCalendar({
   scope,
   onApply,
@@ -64,16 +66,30 @@ function CustomRangeCalendar({
   const [draft, setDraft] = useState<DateRange | undefined>(() =>
     isDashboardPreset(scope) ? undefined : { from: new Date(scope.from), to: new Date(scope.to) }
   )
+  const canApply = !!draft?.from && !!draft?.to
 
-  function handleSelect(next: DateRange | undefined) {
-    setDraft(next)
-    if (next?.from && next?.to) {
-      onApply({
-        from: formatDate(next.from, "yyyy-MM-dd"),
-        to: formatDate(next.to, "yyyy-MM-dd"),
-      })
-    }
+  function apply() {
+    if (!draft?.from || !draft?.to) return
+    onApply({
+      from: formatDate(draft.from, "yyyy-MM-dd"),
+      to: formatDate(draft.to, "yyyy-MM-dd"),
+    })
   }
 
-  return <Calendar mode="range" selected={draft} onSelect={handleSelect} numberOfMonths={1} />
+  return (
+    <div className="flex flex-col gap-2">
+      <Calendar
+        mode="range"
+        selected={draft}
+        onSelect={setDraft}
+        numberOfMonths={1}
+        defaultMonth={draft?.from ?? new Date()}
+      />
+      <div className="flex justify-end px-1 pb-1">
+        <Button size="sm" disabled={!canApply} onClick={apply}>
+          Apply
+        </Button>
+      </div>
+    </div>
+  )
 }
