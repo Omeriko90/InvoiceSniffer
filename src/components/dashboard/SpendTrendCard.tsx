@@ -36,24 +36,19 @@ export function SpendTrendCard({ trend }: { trend: SpendTrend | null }) {
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 12, fill: "var(--color-text-secondary)" }}
+                  tick={{ fontSize: 12, fill: "#64748B" }}
                   dy={4}
                 />
                 <Tooltip
-                  cursor={{ fill: "var(--color-hover)" }}
+                  cursor={{ fill: "#F1F3F8" }}
                   formatter={(value) => [fmtMoney(Number(value ?? 0), trend!.currency), "Spend"]}
                   contentStyle={{
                     borderRadius: 10,
-                    border: "1px solid var(--color-border)",
+                    border: "1px solid #E8EDFA",
                     fontSize: 12,
                   }}
                 />
-                <Bar
-                  dataKey="total"
-                  fill="var(--color-primary)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={40}
-                />
+                <Bar dataKey="total" fill="#7AA7FF" radius={[6, 6, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
