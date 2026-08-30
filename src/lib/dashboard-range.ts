@@ -4,7 +4,7 @@
 // Client-safe: no server imports.
 import type { DateRangePreset } from "@/lib/date-range"
 
-export const DASHBOARD_PRESETS = ["mtd", "3m", "6m", "year", "ytd"] as const
+export const DASHBOARD_PRESETS = ["mtd", "qtd", "6m", "year", "ytd"] as const
 export type DashboardPreset = (typeof DASHBOARD_PRESETS)[number]
 
 // Compile-time guard that every dashboard preset is a real DateRangePreset.
@@ -13,7 +13,7 @@ void _presetCheck
 
 export const DASHBOARD_PRESET_LABELS: Record<DashboardPreset, string> = {
   mtd: "Current month",
-  "3m": "Quarter",
+  qtd: "Quarter",
   "6m": "Half year",
   year: "Year",
   ytd: "YTD",
