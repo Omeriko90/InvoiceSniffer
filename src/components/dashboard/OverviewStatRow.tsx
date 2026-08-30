@@ -96,7 +96,7 @@ function OverviewCard({
           </div>
         </div>
         <p className="text-3xl font-extrabold text-heading leading-none tracking-tight mt-2 tabular-nums truncate">{value}</p>
-        <p className={cn("text-xs font-semibold mt-1.5 leading-none truncate", noteClass)}>{note}</p>
+        <p className={cn("text-xs font-semibold mt-1.5 leading-tight", noteClass)}>{note}</p>
       </CardContent>
     </Card>
   )
