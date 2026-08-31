@@ -40,7 +40,7 @@ export function SpendTrendCard({ trend }: { trend: SpendTrend | null }) {
                   dy={4}
                 />
                 <Tooltip
-                  cursor={{ fill: "#F1F3F8" }}
+                  cursor={false}
                   formatter={(value) => [fmtMoney(Number(value ?? 0), trend!.currency), "Spend"]}
                   contentStyle={{
                     borderRadius: 10,
