@@ -21,7 +21,7 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
             No tax recorded on invoices in the selected range.
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex-1 flex flex-col justify-center gap-3">
             {rows.map((r) => (
               <div key={r.currency} className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 min-w-0">
