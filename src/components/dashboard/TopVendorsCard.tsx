@@ -15,7 +15,9 @@ export function TopVendorsCard({ rows, rangeLabel }: { rows: TopVendor[]; rangeL
         </div>
 
         {rows.length === 0 ? (
-          <p className="text-sm text-text-secondary py-6 text-center">No spend in this range.</p>
+          <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
+            No spend in this range.
+          </p>
         ) : (
           <div className="flex flex-col gap-3.5">
             {rows.map((r) => (

@@ -24,7 +24,7 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
         </div>
 
         {!hasSpend ? (
-          <p className="text-sm text-text-secondary py-10 text-center">
+          <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
             No spend in this range.
           </p>
         ) : (
