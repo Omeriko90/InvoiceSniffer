@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
           <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
-            <SpendTrendCard trend={data.spendTrend} />
+            <SpendTrendCard trend={data.spendTrend} rangeLabel={rangeLabel} />
           </div>
 
           <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
