@@ -32,8 +32,8 @@ export interface SpendTrendPoint {
     total: number
 }
 
-// Total spend per month over a fixed trailing window, in the dominant currency.
-// Null when there's no spend in the window.
+// Total spend per month across the selected range, in the dominant currency.
+// Null when there's no spend in the range.
 export interface SpendTrend {
     currency: string
     points:   SpendTrendPoint[]
@@ -51,6 +51,6 @@ export interface DashboardData {
     topVendors:      TopVendor[]
     // Reclaimable VAT within the selected range, grouped by currency.
     reclaimableVat: TaxByCurrency[]
-    // Monthly spend over a fixed trailing 6-month window, independent of range.
+    // Monthly spend across the selected range.
     spendTrend: SpendTrend | null
 }

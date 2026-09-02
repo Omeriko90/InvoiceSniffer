@@ -5,9 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
 import type { SpendTrend } from "@/api-types/dashboard"
 
-// Monthly spend over a fixed trailing window. Independent of the selected range,
-// so it reads as a steady momentum view next to the (range-scoped) vendor list.
-export function SpendTrendCard({ trend }: { trend: SpendTrend | null }) {
+// Spend bucketed by month across the selected range.
+export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null; rangeLabel: string }) {
   const data =
     trend?.points.map((p) => ({
       label: format(new Date(p.month), "MMM"),
@@ -17,16 +16,16 @@ export function SpendTrendCard({ trend }: { trend: SpendTrend | null }) {
   const hasSpend = data.some((d) => d.total > 0)
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
+    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[264px]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-heading leading-none">Spend over time</h2>
-          <span className="text-xs text-text-secondary shrink-0">Last 6 months</span>
+          <h2 className="text-base font-bold text-heading leading-none">Spend by month</h2>
+          <span className="text-xs text-text-secondary shrink-0">{rangeLabel}</span>
         </div>
 
         {!hasSpend ? (
           <p className="text-sm text-text-secondary py-10 text-center">
-            No spend in the last 6 months.
+            No spend in this range.
           </p>
         ) : (
           <div className="h-[168px] -mx-1">
