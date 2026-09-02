@@ -41,7 +41,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
             No categorized spend in this range.
           </p>
         ) : (
-          <div className="flex items-center gap-5">
+          <div className="flex-1 flex items-center gap-5">
             {/* Donut */}
             <div className="relative w-[140px] h-[140px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
