@@ -16,6 +16,30 @@ export const en = {
       saved: "Language updated",
     },
   },
+  shell: {
+    sidebar: {
+      default_org_name: "My Workspace",
+      group_workspace: "Workspace",
+      group_insights: "Insights",
+      settings: "Settings",
+    },
+    nav: {
+      dashboard: "Dashboard",
+      invoices: "Invoices",
+      reconcile: "Reconcile",
+      fixed_expenses: "Fixed Expenses",
+      alerts: "Alerts",
+      exports: "Exports",
+    },
+    user_card: {
+      default_name: "User",
+      log_out: "Log out",
+    },
+    gmail_sync: {
+      reconnect_title: "Reconnect Gmail to resume detecting invoices",
+      out_of_sync: "Gmail out of sync · reconnect",
+    },
+  },
 }
 
 export type Dictionary = typeof en
