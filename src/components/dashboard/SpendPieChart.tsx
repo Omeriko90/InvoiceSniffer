@@ -29,7 +29,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
   const total = slices.reduce((s, d) => s + d.value, 0)
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[264px]">
+    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[228px]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-bold text-heading leading-none">Spend by category</h2>
@@ -43,15 +43,15 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
         ) : (
           <div className="flex items-center gap-5">
             {/* Donut */}
-            <div className="relative w-[168px] h-[168px] shrink-0">
+            <div className="relative w-[140px] h-[140px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={slices}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={54}
-                    outerRadius={80}
+                    innerRadius={46}
+                    outerRadius={68}
                     paddingAngle={2}
                     stroke="none"
                   >

@@ -16,7 +16,7 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
   const hasSpend = data.some((d) => d.total > 0)
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[264px]">
+    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[228px]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-bold text-heading leading-none">Spend by month</h2>
@@ -28,7 +28,7 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
             No spend in this range.
           </p>
         ) : (
-          <div className="h-[168px] -mx-1">
+          <div className="h-[148px] -mx-1">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }} barCategoryGap="28%">
                 <XAxis
