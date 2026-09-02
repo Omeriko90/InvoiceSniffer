@@ -28,7 +28,7 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
             No spend in this range.
           </p>
         ) : (
-          <div className="h-[148px] -mx-1">
+          <div className="flex-1 min-h-0 -mx-1">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }} barCategoryGap="28%">
                 <XAxis
