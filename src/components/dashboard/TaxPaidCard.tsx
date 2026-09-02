@@ -5,7 +5,7 @@ import type { TaxByCurrency } from "@/api-types/dashboard"
 
 export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; rangeLabel: string }) {
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
+    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[264px]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-base font-bold text-heading leading-none">
