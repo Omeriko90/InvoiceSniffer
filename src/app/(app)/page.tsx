@@ -54,14 +54,14 @@ export default function DashboardPage() {
             rangeLabel={rangeLabel}
           />
 
-          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
-            <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
+            <SpendTrendCard trend={data.spendTrend} />
           </div>
 
           <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
-            <SpendTrendCard trend={data.spendTrend} />
+            <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
           </div>
         </>
       )}
