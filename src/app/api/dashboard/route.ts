@@ -1,11 +1,8 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { format, startOfMonth, subMonths } from "date-fns"
+import { eachMonthOfInterval, format, startOfMonth } from "date-fns"
 import { resolveDateRange, InvalidDateRangeError } from "@/lib/date-range"
 import type { Prisma } from "@prisma/client"
-
-// Months shown in the fixed spend-trend chart (current month + 5 prior).
-const TREND_MONTHS = 6
 
 // Financial-overview dashboard. Range-scoped counts + spend + reclaimable VAT
 // for the selected window. The range comes in as ?from&to (ISO); it's
@@ -41,9 +38,6 @@ export async function GET(request: Request) {
     emailDate: { gte: from, lte: to },
   }
 
-  // Fixed trailing window for the spend-trend chart — independent of the range.
-  const trendStart = startOfMonth(subMonths(now, TREND_MONTHS - 1))
-
   const [
     invoiceCount,
     receiptCount,
@@ -71,7 +65,7 @@ export async function GET(request: Request) {
       _sum: { totalAmount: true },
       _count: true,
     }),
-    // Top vendors by spend within the range.
+    // Top 3 vendors by spend within the range.
     prisma.invoice.groupBy({
       by: ["vendorName", "currency"],
       where: scoped,
@@ -95,15 +89,10 @@ export async function GET(request: Request) {
         totalAmount: true,
       },
     }),
-    // Spend trend — live invoices over the fixed trailing window, bucketed by
-    // month (in the dominant currency) below.
+    // Spend trend — live invoices within the selected range, bucketed by month
+    // (in the dominant currency) below.
     prisma.invoice.findMany({
-      where: {
-        organizationId,
-        removedAt: null,
-        status: { not: "IGNORED" },
-        emailDate: { gte: trendStart, lte: now },
-      },
+      where: scoped,
       select: { emailDate: true, currency: true, totalAmount: true },
     }),
   ])
@@ -133,7 +122,7 @@ export async function GET(request: Request) {
       count: r._count,
     }))
     .sort((a, b) => b.total - a.total)
-    .slice(0, 5)
+    .slice(0, 3)
 
   // Dedupe copies of the same tax invoice (same Tax Authority allocation number,
   // else same invoice#+vendor+total) so a document arriving as both email body
@@ -168,8 +157,8 @@ export async function GET(request: Request) {
   let spendTrend: { currency: string; points: { month: string; total: number }[] } | null = null
   if (trendCurrency) {
     const buckets = new Map<string, number>()
-    for (let i = TREND_MONTHS - 1; i >= 0; i--) {
-      buckets.set(format(startOfMonth(subMonths(now, i)), "yyyy-MM-dd"), 0)
+    for (const m of eachMonthOfInterval({ start: startOfMonth(from), end: startOfMonth(to) })) {
+      buckets.set(format(m, "yyyy-MM-dd"), 0)
     }
     for (const r of trendRows) {
       if (r.currency !== trendCurrency) continue
