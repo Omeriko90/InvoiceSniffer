@@ -37,7 +37,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
         </div>
 
         {slices.length === 0 ? (
-          <p className="text-sm text-text-secondary py-10 text-center">
+          <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
             No categorized spend in this range.
           </p>
         ) : (

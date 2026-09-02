@@ -17,7 +17,7 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
         </div>
 
         {rows.length === 0 ? (
-          <p className="text-sm text-text-secondary py-6 text-center">
+          <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
             No tax recorded on invoices in the selected range.
           </p>
         ) : (
