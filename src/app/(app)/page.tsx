@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const { data, isPending } = useDashboard(range)
 
   return (
-    <div className="flex flex-col gap-[18px]">
+    <div className="flex flex-col gap-[18px] md:h-full md:min-h-0">
       <DashboardDateRange scope={scope} onChange={setScope} />
 
       {range === null ? (
@@ -54,12 +54,9 @@ export default function DashboardPage() {
             rangeLabel={rangeLabel}
           />
 
-          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:flex-1 md:min-h-0 md:auto-rows-fr">
             <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
             <SpendTrendCard trend={data.spendTrend} rangeLabel={rangeLabel} />
-          </div>
-
-          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
             <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
           </div>
@@ -83,15 +80,16 @@ function monthRangeLabel(fromISO: string, toISO: string): string {
 
 function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-[18px]">
-      <div className="grid grid-cols-4 gap-3.5">
+    <div className="flex flex-col gap-[18px] md:h-full md:min-h-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-[108px] rounded-[14px] bg-hover" />
         ))}
       </div>
-      <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <Skeleton className="h-80 rounded-[14px] bg-hover" />
-        <Skeleton className="h-80 rounded-[14px] bg-hover" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:flex-1 md:min-h-0 md:auto-rows-fr">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-56 md:h-auto rounded-[14px] bg-hover" />
+        ))}
       </div>
     </div>
   )

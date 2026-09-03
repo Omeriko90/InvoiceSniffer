@@ -29,7 +29,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
   const total = slices.reduce((s, d) => s + d.value, 0)
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0] h-[220px]">
+    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-bold text-heading leading-none">Spend by category</h2>
