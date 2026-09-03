@@ -23,7 +23,7 @@ export function InvoicesTable({
         {["Vendor", "Invoice #", "Issue date", "Received", "Category", "Amount", ""].map((h, i) => (
           <span
             key={i}
-            className="text-sm font-bold uppercase tracking-tight text-text-secondary"
+            className="text-sm font-bold tracking-tight text-text-secondary"
             style={i === 5 ? { textAlign: "right" } : undefined}
           >
             {h}
