@@ -35,26 +35,15 @@ import { useRemoveInvoice } from "@/hooks/useRemoveInvoice";
 import { useUnlinkFixedExpense } from "@/hooks/useUnlinkFixedExpense";
 import type { RemovalReason } from "@/api/invoices";
 import { fmtMoney, fmtDisplayMoney, hasDistinctOriginal } from "@/lib/money";
-import { fmtAmount, fmtSize, toDraft } from "../helpers";
 import type { InvoiceRow } from "../types";
 import { VendorCell } from "../VendorCell";
 import { CategoryBadge } from "../CategoryBadge";
 import { DocumentTypeBadge } from "../DocumentTypeBadge";
-import {
-  CATEGORY_LABELS,
-  CATEGORY_SELECTABLE,
-  type InvoiceCategory,
-} from "@/lib/invoice-categories";
-import {
-  DOCUMENT_TYPE_LABELS,
-  DOCUMENT_TYPE_SELECTABLE,
-  type DocumentType,
-} from "@/lib/document-types";
 import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog";
 import { track } from "@/lib/analytics";
 import { InvoiceDetailDrawerHeader } from "./InvoiceDetailDrawerHeader";
 import { InvoiceDetail } from "./InvoiceDetail";
-import { InvoiceDetailsForm } from "./InvoiceDetailsForm";
+import { InvoiceDetailsForm, type InvoiceEditFormValues } from "./InvoiceDetailsForm";
 
 export function InvoiceDetailDrawer({
   invoice,
@@ -68,13 +57,6 @@ export function InvoiceDetailDrawer({
   const router = useRouter();
   const [unlinkOpen, setUnlinkOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(() => toDraft(invoice));
-  const [categoryDraft, setCategoryDraft] = useState<InvoiceCategory>(
-    invoice.category,
-  );
-  const [documentTypeDraft, setDocumentTypeDraft] = useState<DocumentType>(
-    invoice.documentType,
-  );
   // Which removal is awaiting confirmation (null = dialog closed), and whether
   // the user opted to also mute the sender (only offered for "not relevant").
   const [confirmReason, setConfirmReason] = useState<RemovalReason | null>(
@@ -118,28 +100,19 @@ export function InvoiceDetailDrawer({
   const vendor =
     invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail;
 
-  const amountValid =
-    draft.totalAmount.trim() !== "" &&
-    Number.isFinite(Number(draft.totalAmount)) &&
-    Number(draft.totalAmount) >= 0;
-
-  function setField(field: keyof ReturnType<typeof toDraft>, value: string) {
-    setDraft((d) => ({ ...d, [field]: value }));
-  }
-
   function handleUnlink() {
     unlink(invoice.id);
   }
 
-  function handleSave() {
+  function handleSave(values: InvoiceEditFormValues) {
     const data = {
-      vendorName: draft.vendorName.trim() || null,
-      invoiceNumber: draft.invoiceNumber.trim() || null,
-      totalAmount: draft.totalAmount.trim(),
-      invoiceDate: draft.invoiceDate || null,
-      dueDate: draft.dueDate || null,
-      category: categoryDraft,
-      documentType: documentTypeDraft,
+      vendorName: values.vendorName.trim() || null,
+      invoiceNumber: values.invoiceNumber.trim() || null,
+      totalAmount: values.totalAmount.trim(),
+      invoiceDate: values.invoiceDate || null,
+      dueDate: values.dueDate || null,
+      category: values.category,
+      documentType: values.documentType,
     };
     update.mutate(
       { id: invoice.id, data },
@@ -175,15 +148,9 @@ export function InvoiceDetailDrawer({
       {editing ? (
         <InvoiceDetailsForm
           invoice={invoice}
-          draft={draft}
-          onFieldChange={setField}
-          onDocumentTypeChange={setDocumentTypeDraft}
-          onCategoryChange={setCategoryDraft}
-          documentType={documentTypeDraft}
-          category={categoryDraft}
           isPending={update.isPending}
           onCancel={() => setEditing(false)}
-          onSave={handleSave}
+          onSubmit={handleSave}
         />
       ) : (
         <InvoiceDetail
