@@ -24,7 +24,7 @@ import {
   useFixedExpenseCandidates,
   useLinkInvoiceToFixedExpense,
 } from "@/hooks/useFixedExpenseTimeline"
-import { InvoiceDetailDrawer } from "@/components/invoices/InvoiceDetailDrawer"
+import { InvoiceDetailDrawer } from "@/components/invoices/InvoiceDetailsDrawer/InvoiceDetailDrawer"
 import { useInvoice } from "@/hooks/useInvoice"
 import { queries } from "@/queries"
 import { FixedExpenseStatusBadge } from "./FixedExpenseStatusBadge"
