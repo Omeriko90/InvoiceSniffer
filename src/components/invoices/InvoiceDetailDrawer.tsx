@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Ban, ChevronRight, Clock, ExternalLink, EyeOff, FileText, FileX, Lock, Repeat, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
@@ -146,13 +146,9 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
       <div className="flex-1 overflow-y-auto p-5.5">
         <div className="mb-5">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold text-heading tracking-tight leading-none">
-              {fmtDisplayMoney(invoice)}
-            </span>
-            <CategoryBadge category={invoice.category} />
-            <DocumentTypeBadge documentType={invoice.documentType} />
-          </div>
+          <span className="text-3xl font-bold text-heading tracking-tight leading-none">
+            {fmtDisplayMoney(invoice)}
+          </span>
           {hasDistinctOriginal(invoice) && (
             <p className="mt-2 text-sm text-text-secondary">
               {fmtMoney(invoice.totalAmount, invoice.currency)} original
@@ -179,7 +175,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         )}
 
         <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
-          Extracted fields
+          Details
         </p>
         {editing ? (
         <div className="flex flex-col gap-3.25 border border-[#E8EDFA] rounded-[11px] p-3.25 mb-5.5">
@@ -247,7 +243,9 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         </div>
         ) : (
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-5.5">
-          {[
+          {([
+            { label: "Type",     node: <DocumentTypeBadge documentType={invoice.documentType} /> },
+            { label: "Category",  node: <CategoryBadge category={invoice.category} /> },
             { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
             { label: "Amount",    value: fmtDisplayMoney(invoice) },
             ...(hasDistinctOriginal(invoice)
@@ -260,7 +258,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             ...(invoice.dueDate
               ? [{ label: "Due date", value: format(new Date(invoice.dueDate), "MMM d, yyyy") }]
               : []),
-          ].map((row, i, arr) => (
+          ] as { label: string; value?: string; mono?: boolean; node?: ReactNode }[]).map((row, i, arr) => (
             <div
               key={row.label}
               className={cn(
@@ -269,12 +267,14 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
               )}
             >
               <span className="text-text-secondary">{row.label}</span>
-              <span
-                className="font-semibold text-text-primary"
-                style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
-              >
-                {row.value}
-              </span>
+              {row.node ?? (
+                <span
+                  className="font-semibold text-text-primary"
+                  style={row.mono ? { fontFamily: "var(--font-mono)" } : undefined}
+                >
+                  {row.value}
+                </span>
+              )}
             </div>
           ))}
         </div>
