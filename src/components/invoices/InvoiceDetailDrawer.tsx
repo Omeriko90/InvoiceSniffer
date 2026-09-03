@@ -128,7 +128,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   return (
     <SheetContent
       side="right"
-      className="w-110 sm:max-w-110 gap-0 bg-white border-l border-border"
+      className="w-125 sm:max-w-125 gap-0 bg-white border-l border-border"
       style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
     >
       {/* Drawer header */}
