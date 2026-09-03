@@ -23,11 +23,9 @@ import { useRemoveInvoice } from "@/hooks/useRemoveInvoice"
 import { useUnlinkFixedExpense } from "@/hooks/useUnlinkFixedExpense"
 import type { RemovalReason } from "@/api/invoices"
 import { fmtMoney, fmtDisplayMoney, hasDistinctOriginal } from "@/lib/money"
-import { STATUS_META } from "./constants"
 import { fmtAmount, fmtSize, toDraft } from "./helpers"
 import type { InvoiceRow } from "./types"
 import { VendorCell } from "./VendorCell"
-import { StatusBadge } from "./StatusBadge"
 import { CategoryBadge } from "./CategoryBadge"
 import { DocumentTypeBadge } from "./DocumentTypeBadge"
 import { CATEGORY_LABELS, CATEGORY_SELECTABLE, type InvoiceCategory } from "@/lib/invoice-categories"
@@ -82,7 +80,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
   }
 
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
-  const status = STATUS_META[invoice.status] ?? STATUS_META.DETECTED
 
   const amountValid =
     draft.totalAmount.trim() !== "" &&
@@ -153,8 +150,8 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
             <span className="text-3xl font-bold text-heading tracking-tight leading-none">
               {fmtDisplayMoney(invoice)}
             </span>
-            <StatusBadge status={status} />
             <CategoryBadge category={invoice.category} />
+            <DocumentTypeBadge documentType={invoice.documentType} />
           </div>
           {hasDistinctOriginal(invoice) && (
             <p className="mt-2 text-sm text-text-secondary">
@@ -164,7 +161,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         </div>
 
         {invoice.fixedExpense && (
-          <div className="flex items-center gap-1.75 -mt-4 mb-6 px-2.75 py-2 rounded-lg bg-info-bg">
+          <div className="flex items-center gap-1.75 -mt-2 mb-6 px-2.75 py-2 rounded-lg bg-info-bg">
             <Repeat size={14} strokeWidth={1.8} className="text-primary shrink-0" />
             <span className="text-sm font-semibold text-text-primary truncate">
               Fixed expense · {invoice.fixedExpense.name}
