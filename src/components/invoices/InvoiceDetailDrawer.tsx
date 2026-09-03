@@ -149,11 +149,6 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           <span className="text-3xl font-bold text-heading tracking-tight leading-none">
             {fmtDisplayMoney(invoice)}
           </span>
-          {hasDistinctOriginal(invoice) && (
-            <p className="mt-2 text-sm text-text-secondary">
-              {fmtMoney(invoice.totalAmount, invoice.currency)} original
-            </p>
-          )}
         </div>
 
         {invoice.fixedExpense && (
