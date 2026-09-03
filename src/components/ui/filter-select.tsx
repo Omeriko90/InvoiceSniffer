@@ -39,7 +39,7 @@ const CONTENT_CLASS = "w-fit min-w-(--anchor-width)"
 export function FilterSelect(props: FilterSelectProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
+      <span className="text-xs font-bold text-text-secondary">
         {props.label}
       </span>
       {props.multiple ? (

@@ -12,7 +12,7 @@ export function OnboardingCard() {
         <Mail size={26} strokeWidth={2} className="text-white" />
       </div>
 
-      <p className="text-sm font-bold text-primary uppercase tracking-wide mb-2">
+      <p className="text-sm font-bold text-primary mb-2">
         InvoiceSniffer
       </p>
 

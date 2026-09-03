@@ -53,7 +53,7 @@ export function AlertCard({
       </div>
 
       <div className="text-end shrink-0">
-        <div className="text-xs font-semibold uppercase tracking-[0.04em] text-dim">
+        <div className="text-xs font-semibold text-dim">
           {metric.label}
         </div>
         <div className="text-xl font-extrabold tracking-[-0.02em]" style={{ color: sev.accent }}>

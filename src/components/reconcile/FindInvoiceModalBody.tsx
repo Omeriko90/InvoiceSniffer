@@ -49,7 +49,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
               />
             </div>
 
-            <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.05em]">
+            <p className="text-xs font-bold text-text-secondary">
               Suggested matches
             </p>
 

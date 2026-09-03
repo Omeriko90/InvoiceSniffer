@@ -169,7 +169,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
           </div>
         )}
 
-        <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
+        <p className="text-[11px] font-bold text-text-secondary mb-2">
           Details
         </p>
         {editing ? (
@@ -276,7 +276,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         )}
 
         {/* Source email */}
-        <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
+        <p className="text-[11px] font-bold text-text-secondary mb-2">
           Source email
         </p>
         <div className="border border-[#E8EDFA] rounded-[11px] p-3.25 mb-5.5">
@@ -295,7 +295,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
         {/* Attachments — served on demand from Gmail, never stored */}
         {invoice.attachmentMeta.length > 0 && (
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
+          <p className="text-[11px] font-bold text-[#64748B] mb-2">
             Attached documents
           </p>
         )}
@@ -320,7 +320,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
 
         {/* Hosted receipt link */}
         {invoice.receiptUrl && (
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
+          <p className="text-[11px] font-bold text-[#64748B] mb-2">
             Receipt link
           </p>
         )}
@@ -350,7 +350,7 @@ export function InvoiceDetailDrawer({ invoice, onSaved, onDismiss }: {
         {/* Actions */}
         {!editing && (
           <div className="mt-5.5">
-            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
+            <p className="text-[11px] font-bold text-[#64748B] mb-2">
               Actions
             </p>
 

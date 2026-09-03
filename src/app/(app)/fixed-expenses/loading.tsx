@@ -21,7 +21,7 @@ export default function Loading() {
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
           {HEADERS.map((h) => (
-            <span key={h} className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
+            <span key={h} className="text-xs font-bold text-text-secondary">
               {h}
             </span>
           ))}
