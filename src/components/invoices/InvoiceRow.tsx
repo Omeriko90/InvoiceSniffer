@@ -24,6 +24,9 @@ export function InvoiceRow({ invoice, onSelect }: {
       <div className="flex items-center gap-2.5 min-w-0">
         <VendorCell vendor={vendor} />
         <span className="text-sm font-semibold text-foreground truncate">{vendor}</span>
+        <span className="shrink-0">
+          <DocumentTypeBadge documentType={invoice.documentType} />
+        </span>
       </div>
 
       {/* Invoice # */}
