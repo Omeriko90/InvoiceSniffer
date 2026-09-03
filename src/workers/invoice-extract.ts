@@ -449,12 +449,24 @@ function findPart(parts: GmailPart[], mimeType: string): GmailPart | null {
   return null
 }
 
+// Some senders (SendGrid/Manychat and similar) stuff HTML markup into the
+// text/plain part, or the whole message body is a single unlabeled HTML blob.
+// Both would otherwise reach the caller as raw tags. Detect markup and run it
+// through html-to-text so extractBodyText always returns readable plain text.
+function looksLikeHtml(s: string): boolean {
+  return /<(!doctype\s+html|html\b|body\b|table\b|tr\b|td\b|div\b|p\b|br\s*\/?|span\b|a\s)/i.test(s)
+}
+
+function toPlainText(raw: string): string {
+  return looksLikeHtml(raw) ? convert(raw, { wordwrap: false }) : raw
+}
+
 export function extractBodyText(payload: GmailPart): string {
   const parts = payload.parts ?? []
 
   const plain = findPart(parts, "text/plain")
   if (plain?.body?.data) {
-    return Buffer.from(plain.body.data, "base64url").toString("utf8")
+    return toPlainText(Buffer.from(plain.body.data, "base64url").toString("utf8"))
   }
 
   const html = findPart(parts, "text/html")
@@ -464,7 +476,7 @@ export function extractBodyText(payload: GmailPart): string {
   }
 
   if (payload.body?.data) {
-    return Buffer.from(payload.body.data, "base64url").toString("utf8")
+    return toPlainText(Buffer.from(payload.body.data, "base64url").toString("utf8"))
   }
 
   return ""
