@@ -24,7 +24,7 @@ export default function Loading() {
           {HEADERS.map((h, i) => (
             <span
               key={i}
-              className="text-sm font-bold uppercase tracking-tight text-text-secondary"
+              className="text-sm font-bold tracking-tight text-text-secondary"
             >
               {h}
             </span>

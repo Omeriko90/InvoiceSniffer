@@ -26,7 +26,7 @@ export function ReconcileTable({
         {["Date", "Merchant", "Amount", "Matched invoice", "Actions"].map((h, i) => (
           <span
             key={h}
-            className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
+            className="text-xs font-bold text-text-secondary"
             style={i === 2 || i === 4 ? { textAlign: "right" } : undefined}
           >
             {h}

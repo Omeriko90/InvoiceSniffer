@@ -41,7 +41,7 @@ function periodLabel(startIso: string, frequency: FixedExpenseFrequency): string
   return format(d, "MMMM yyyy")
 }
 
-const sectionLabel = "text-xs font-bold text-text-secondary uppercase tracking-[0.05em] mb-2"
+const sectionLabel = "text-xs font-bold text-text-secondary mb-2"
 
 export function FixedExpenseDetailDrawer({
   expense,
@@ -122,7 +122,7 @@ export function FixedExpenseDetailDrawer({
             <FixedExpenseStatusBadge status={expense.currentStatus} />
             <CategoryBadge category={expense.category} />
             {paused && (
-              <span className="text-xs font-bold text-dim uppercase tracking-[0.04em]">Paused</span>
+              <span className="text-xs font-bold text-dim">Paused</span>
             )}
           </div>
         </div>

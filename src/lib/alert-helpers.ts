@@ -43,15 +43,15 @@ function day(iso: string | undefined): string {
   return iso ? fmtDateShort(iso) : ""
 }
 
-// Right-aligned metric block on each card: a small uppercase label + big value.
+// Right-aligned metric block on each card: a small label + big value.
 export function alertMetric(type: string, details: AnomalyDetails): { label: string; value: string } {
   switch (type) {
-    case "AMOUNT_HIGH":       return { label: "vs median",  value: details.pct !== undefined ? `+${details.pct}%` : "High" }
-    case "AMOUNT_LOW":        return { label: "vs median",  value: details.pct !== undefined ? `-${details.pct}%` : "Low" }
-    case "SPEND_SPIKE":       return { label: "this month", value: details.multiple !== undefined ? `${details.multiple}×` : "Spike" }
-    case "MISSING_RECURRING": return { label: "overdue",    value: details.overdueDays !== undefined ? `${details.overdueDays}d` : "Due" }
-    case "NEW_VENDOR":        return { label: "first seen",  value: "New" }
-    default:                  return { label: "alert",      value: "—" }
+    case "AMOUNT_HIGH":       return { label: "Vs median",  value: details.pct !== undefined ? `+${details.pct}%` : "High" }
+    case "AMOUNT_LOW":        return { label: "Vs median",  value: details.pct !== undefined ? `-${details.pct}%` : "Low" }
+    case "SPEND_SPIKE":       return { label: "This month", value: details.multiple !== undefined ? `${details.multiple}×` : "Spike" }
+    case "MISSING_RECURRING": return { label: "Overdue",    value: details.overdueDays !== undefined ? `${details.overdueDays}d` : "Due" }
+    case "NEW_VENDOR":        return { label: "First seen",  value: "New" }
+    default:                  return { label: "Alert",      value: "—" }
   }
 }
 
