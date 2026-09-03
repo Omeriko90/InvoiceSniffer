@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import type { DateRange } from "@/lib/matching-data"
 import type { DocumentType } from "@/lib/document-types"
 import type { AttachmentMeta } from "@/workers/invoice-extract"
+import { parseLineItems, type BodyLineItem } from "@/lib/html-invoice-pdf"
 
 // Data loaders for the export flow. Shared by the spreadsheet route (sync) and
 // the PDF export runner (async). Scoped by organizationId; the effective-date
@@ -29,11 +30,15 @@ export type ExportInvoiceRow = {
   taxAmount: number | null
 }
 
-// Extra fields the PDF runner needs on top of the exportable columns.
+// Extra fields the PDF runner needs on top of the exportable columns. senderEmail
+// and lineItems feed the structured template rendered for body-only invoices
+// (those with no PDF attachment) — see renderBodyInvoicePdf.
 export type PdfExportInvoice = ExportInvoiceRow & {
   gmailMessageId: string
   gmailCredentialId: string | null
   attachmentMeta: AttachmentMeta[]
+  senderEmail: string
+  lineItems: BodyLineItem[]
 }
 
 const PDF_SELECT = {
@@ -49,6 +54,8 @@ const PDF_SELECT = {
   gmailMessageId: true,
   gmailCredentialId: true,
   attachmentMeta: true,
+  senderEmail: true,
+  lineItems: true,
 } as const
 
 // Invoices selected by explicit id (from the export dialog), scoped to the org.
@@ -148,11 +155,15 @@ function toPdfExportInvoice(r: {
   gmailMessageId: string
   gmailCredentialId: string | null
   attachmentMeta: unknown
+  senderEmail: string
+  lineItems: unknown
 }): PdfExportInvoice {
   return {
     ...toExportRow(r),
     gmailMessageId: r.gmailMessageId,
     gmailCredentialId: r.gmailCredentialId,
     attachmentMeta: (r.attachmentMeta as AttachmentMeta[]) ?? [],
+    senderEmail: r.senderEmail,
+    lineItems: parseLineItems(r.lineItems),
   }
 }

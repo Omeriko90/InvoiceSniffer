@@ -3,30 +3,64 @@ import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib"
 import fontkit from "@pdf-lib/fontkit"
 import bidiFactory from "bidi-js"
 import { format as formatDate } from "date-fns"
+import { DOCUMENT_TYPE_LABELS, type DocumentType } from "@/lib/document-types"
 
 // Renders a "body-only" invoice — one that arrived as email HTML with no PDF
-// attachment and no downloadable receipt (e.g. Apple/Google subscription
-// receipts) — into a PDF so it can be included in the merged export like any
-// other invoice document.
+// attachment and no downloadable receipt (e.g. Apple/Google/Manychat
+// subscription receipts) — into a PDF so it can be included in the merged export
+// like any other invoice document.
 //
-// Deliberately lightweight: pdf-lib text layout, no headless browser. The goal
-// is a legible document of record (vendor, amount, date, invoice #, plus the
-// email's text content), not a pixel copy of the Gmail render.
+// Deliberately lightweight: pdf-lib text layout, no headless browser. Rather than
+// dumping the email's raw body (which for many senders is unsanitized HTML
+// markup), we render a clean, self-contained invoice document built purely from
+// the fields we already extracted: vendor, document type, invoice #, dates,
+// billed-to, line items, and totals. The email body is not included.
 //
-// These receipts are typically Israeli, so the body mixes English and Hebrew.
+// These receipts are typically Israeli, so the fields mix English and Hebrew.
 // We embed Heebo (a Hebrew+Latin OFL font) instead of pdf-lib's WinAnsi-only
 // standard fonts, and run each line through the Unicode bidi algorithm so RTL
-// (Hebrew) runs are reordered logical→visual and right-aligned. Characters the
-// font lacks a glyph for render as .notdef rather than throwing.
+// (Hebrew) runs are reordered logical→visual and aligned to the right. Characters
+// the font lacks a glyph for render as .notdef rather than throwing.
+
+// One extracted line item. Mirrors the LLM extractor's lineItemSchema
+// (llm-extractor.ts): description + quantity + unit price, any of which may be
+// missing depending on what the source document exposed.
+export type BodyLineItem = {
+  description: string | null
+  quantity: number | null
+  price: number | null
+}
 
 export type BodyInvoiceMeta = {
   vendorName: string | null
+  documentType: DocumentType
   invoiceNumber: string | null
   invoiceDate: Date | null
   dueDate: Date | null
   totalAmount: number
   currency: string
   taxAmount: number | null
+  senderEmail: string
+  lineItems: BodyLineItem[]
+}
+
+// Coerce the persisted lineItems JSON (Invoice.lineItems, defaulted to []) into
+// typed rows. Fails open: anything malformed becomes an empty list, and rows
+// with no usable content at all are dropped so they don't render as blank table
+// lines. Kept here (next to BodyLineItem) so export-data can reuse it.
+export function parseLineItems(raw: unknown): BodyLineItem[] {
+  if (!Array.isArray(raw)) return []
+  const items: BodyLineItem[] = []
+  for (const entry of raw) {
+    if (typeof entry !== "object" || entry === null) continue
+    const e = entry as Record<string, unknown>
+    const description = typeof e.description === "string" ? e.description : null
+    const quantity = typeof e.quantity === "number" && Number.isFinite(e.quantity) ? e.quantity : null
+    const price = typeof e.price === "number" && Number.isFinite(e.price) ? e.price : null
+    if (description == null && quantity == null && price == null) continue
+    items.push({ description, quantity, price })
+  }
+  return items
 }
 
 const PAGE_WIDTH = 595.28 // A4 in points
@@ -121,6 +155,31 @@ function wrapLine(line: string, font: PDFFont, size: number): string[] {
   return lines
 }
 
+// Shorten a single line to fit maxWidth, appending an ellipsis when it doesn't.
+// Used for table cells (descriptions), which stay one line rather than wrapping.
+function truncateToWidth(text: string, font: PDFFont, size: number, maxWidth: number): string {
+  if (font.widthOfTextAtSize(text, size) <= maxWidth) return text
+  const ellipsis = "…"
+  let out = ""
+  for (const ch of text) {
+    if (font.widthOfTextAtSize(out + ch + ellipsis, size) > maxWidth) break
+    out += ch
+  }
+  return out + ellipsis
+}
+
+// One column of a table row. x/width define the cell box; the text is aligned
+// left or right within it (numeric columns right-align; RTL text right-aligns).
+type Cell = {
+  text: string
+  x: number
+  width: number
+  align: "left" | "right"
+  font: PDFFont
+  size: number
+  color?: ReturnType<typeof rgb>
+}
+
 // Cursor-based writer that adds fresh pages as content overflows.
 class Cursor {
   private page: PDFPage
@@ -151,31 +210,59 @@ class Cursor {
     }
   }
 
+  // Draw a single row of cells sharing one baseline. Each cell's text is
+  // truncated to its column width, reordered to visual order for RTL scripts,
+  // and anchored left or right within its box. Numeric columns pass align:"right".
+  row(cells: Cell[]) {
+    const size = Math.max(...cells.map((c) => c.size))
+    const lineHeight = size * LINE_GAP
+    this.ensure(lineHeight)
+    this.y -= lineHeight
+    for (const cell of cells) {
+      const clipped = truncateToWidth(cell.text, cell.font, cell.size, cell.width)
+      const { text } = toVisual(clipped)
+      const w = cell.font.widthOfTextAtSize(text, cell.size)
+      const x = cell.align === "right" ? cell.x + cell.width - w : cell.x
+      this.page.drawText(text, { x, y: this.y, size: cell.size, font: cell.font, color: cell.color ?? INK })
+    }
+  }
+
   gap(amount: number) {
     this.y -= amount
   }
 
-  rule() {
+  rule(color = RULE) {
     this.ensure(8)
     this.y -= 8
     this.page.drawLine({
       start: { x: MARGIN, y: this.y },
       end: { x: PAGE_WIDTH - MARGIN, y: this.y },
       thickness: 0.75,
-      color: RULE,
+      color,
     })
     this.y -= 8
   }
 }
 
-function formatAmount(amount: number, currency: string): string {
+function formatMoney(amount: number, currency: string): string {
   return `${amount.toFixed(2)} ${currency}`.trim()
 }
 
-export async function renderBodyInvoicePdf(
-  bodyText: string,
-  meta: BodyInvoiceMeta
-): Promise<Uint8Array> {
+// Quantities are usually whole numbers; show "2" not "2.00", but keep decimals
+// for the occasional fractional quantity.
+function formatQty(qty: number): string {
+  return Number.isInteger(qty) ? String(qty) : qty.toFixed(2)
+}
+
+// Table column geometry, right-anchored so the numeric columns line up with the
+// totals block below. Description takes whatever is left on the far side.
+const RIGHT_EDGE = PAGE_WIDTH - MARGIN
+const COL_AMOUNT = { x: RIGHT_EDGE - 85, width: 85 }
+const COL_UNIT = { x: RIGHT_EDGE - 85 - 80, width: 75 }
+const COL_QTY = { x: RIGHT_EDGE - 85 - 80 - 50, width: 45 }
+const COL_DESC = { x: MARGIN, width: RIGHT_EDGE - 85 - 80 - 50 - MARGIN - 8 }
+
+export async function renderBodyInvoicePdf(meta: BodyInvoiceMeta): Promise<Uint8Array> {
   const doc = await PDFDocument.create()
   doc.registerFontkit(fontkit)
   const fonts = loadFonts()
@@ -185,40 +272,102 @@ export async function renderBodyInvoicePdf(
 
   const cursor = new Cursor(doc)
 
+  // Title: vendor name, with the document type ("Invoice" / "Receipt" / "Credit
+  // Note") as a subheading so the reader knows what the document is.
   cursor.text(normalizeWhitespace(meta.vendorName || "Invoice"), bold, TITLE_SIZE)
-  cursor.gap(6)
+  cursor.gap(2)
+  cursor.text(DOCUMENT_TYPE_LABELS[meta.documentType], regular, LABEL_SIZE, MUTED)
+  cursor.gap(10)
 
+  // Meta block: identifying fields, one per line, blanks skipped.
   const fields: Array<[string, string | null]> = [
     ["Invoice #", meta.invoiceNumber],
     ["Invoice date", meta.invoiceDate ? formatDate(meta.invoiceDate, "d MMM yyyy") : null],
     ["Due date", meta.dueDate ? formatDate(meta.dueDate, "d MMM yyyy") : null],
-    ["Total", formatAmount(meta.totalAmount, meta.currency)],
-    ["Tax", meta.taxAmount == null ? null : formatAmount(meta.taxAmount, meta.currency)],
+    ["Billed to", meta.senderEmail || null],
   ]
   for (const [label, value] of fields) {
     if (value == null || value === "") continue
     cursor.text(`${label}:  ${normalizeWhitespace(value)}`, regular, LABEL_SIZE, MUTED)
   }
 
+  cursor.gap(6)
   cursor.rule()
-  cursor.text("Email content", bold, LABEL_SIZE)
-  cursor.gap(4)
 
-  // Preserve paragraph breaks from the source; collapse runs of blank lines so
-  // a marketing footer full of spacing doesn't balloon the page count.
-  const normalized = normalizeWhitespace(bodyText).replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n")
-  const lines = normalized.split("\n")
-  let blankRun = 0
-  for (const raw of lines) {
-    const clean = raw.replace(/\t/g, "    ").trimEnd()
-    if (clean.trim() === "") {
-      blankRun += 1
-      if (blankRun > 1) continue
-      cursor.gap(BODY_SIZE * 0.6)
-      continue
+  // Line-items table — only when we actually extracted items; otherwise the
+  // header + totals stand on their own (decision: no raw email body fallback).
+  if (meta.lineItems.length > 0) {
+    cursor.gap(2)
+    cursor.row([
+      { text: "Description", x: COL_DESC.x, width: COL_DESC.width, align: "left", font: bold, size: BODY_SIZE, color: MUTED },
+      { text: "Qty", x: COL_QTY.x, width: COL_QTY.width, align: "right", font: bold, size: BODY_SIZE, color: MUTED },
+      { text: "Unit price", x: COL_UNIT.x, width: COL_UNIT.width, align: "right", font: bold, size: BODY_SIZE, color: MUTED },
+      { text: "Amount", x: COL_AMOUNT.x, width: COL_AMOUNT.width, align: "right", font: bold, size: BODY_SIZE, color: MUTED },
+    ])
+    cursor.gap(4)
+
+    for (const item of meta.lineItems) {
+      const amount =
+        item.quantity != null && item.price != null
+          ? item.quantity * item.price
+          : item.price
+      cursor.row([
+        {
+          text: normalizeWhitespace(item.description || "—"),
+          x: COL_DESC.x,
+          width: COL_DESC.width,
+          align: "left",
+          font: regular,
+          size: BODY_SIZE,
+        },
+        {
+          text: item.quantity != null ? formatQty(item.quantity) : "",
+          x: COL_QTY.x,
+          width: COL_QTY.width,
+          align: "right",
+          font: regular,
+          size: BODY_SIZE,
+        },
+        {
+          text: item.price != null ? item.price.toFixed(2) : "",
+          x: COL_UNIT.x,
+          width: COL_UNIT.width,
+          align: "right",
+          font: regular,
+          size: BODY_SIZE,
+        },
+        {
+          text: amount != null ? amount.toFixed(2) : "",
+          x: COL_AMOUNT.x,
+          width: COL_AMOUNT.width,
+          align: "right",
+          font: regular,
+          size: BODY_SIZE,
+        },
+      ])
     }
-    blankRun = 0
-    cursor.text(clean, regular, BODY_SIZE)
+
+    cursor.gap(6)
+    cursor.rule()
+  }
+
+  // Totals block, right-aligned under the numeric columns. Subtotal is derived
+  // (total − tax) only when a tax amount is present.
+  cursor.gap(4)
+  const totals: Array<[string, string, boolean]> = []
+  if (meta.taxAmount != null) {
+    totals.push(["Subtotal", formatMoney(meta.totalAmount - meta.taxAmount, meta.currency), false])
+    totals.push(["Tax", formatMoney(meta.taxAmount, meta.currency), false])
+  }
+  totals.push(["Total", formatMoney(meta.totalAmount, meta.currency), true])
+  for (const [label, value, emphasized] of totals) {
+    const font = emphasized ? bold : regular
+    const size = emphasized ? LABEL_SIZE + 1 : LABEL_SIZE
+    cursor.gap(emphasized ? 2 : 0)
+    cursor.row([
+      { text: label, x: MARGIN + 200, width: 165, align: "right", font, size, color: emphasized ? INK : MUTED },
+      { text: value, x: COL_AMOUNT.x, width: COL_AMOUNT.width, align: "right", font, size },
+    ])
   }
 
   return doc.save()
