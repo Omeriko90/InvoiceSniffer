@@ -30,7 +30,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
         {["Vendor", "Invoice #", "Amount", "Date", ""].map((h, i) => (
           <span
             key={i}
-            className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary"
+            className="text-xs font-bold text-text-secondary"
             style={i === 2 ? { textAlign: "right" } : undefined}
           >
             {h}

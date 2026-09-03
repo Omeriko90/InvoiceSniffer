@@ -22,7 +22,7 @@ export function DateRangeBar({
 
   return (
     <div className="bg-card border border-border rounded-lg p-3.5 flex flex-col gap-3">
-      <p className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
+      <p className="text-xs font-bold text-text-secondary">
         Match against invoices from
       </p>
       <div className="flex flex-wrap items-center gap-1.5">

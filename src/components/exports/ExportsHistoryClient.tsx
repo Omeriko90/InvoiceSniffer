@@ -76,7 +76,7 @@ export function ExportsHistoryClient() {
     <div className="border border-border rounded-lg overflow-hidden bg-white">
       <table className="w-full text-[13px]">
         <thead>
-          <tr className="text-left text-sm font-bold uppercase tracking-tight text-text-secondary bg-background">
+          <tr className="text-left text-sm font-bold tracking-tight text-text-secondary bg-background">
             <th className="px-3.5 py-2.5">Format</th>
             <th className="px-3.5 py-2.5">Date range</th>
             <th className="px-3.5 py-2.5">Created</th>
@@ -176,7 +176,7 @@ function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
 
       {e.skipped.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+          <p className="text-sm font-bold tracking-tight text-text-secondary">
             Skipped files
           </p>
           <ul className="flex flex-col gap-1">
@@ -215,7 +215,7 @@ function ExportDetail({ item: e }: { item: ExportHistoryItem }) {
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-sm font-semibold uppercase tracking-tight text-text-secondary">
+      <dt className="text-sm font-semibold tracking-tight text-text-secondary">
         {label}
       </dt>
       <dd className="truncate text-text-primary">{value}</dd>

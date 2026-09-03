@@ -54,7 +54,7 @@ function Content({ alert }: { alert: AlertItem }) {
         className="rounded-lg px-4 py-3.5 flex items-center justify-between"
         style={{ background: sev.iconBg }}
       >
-        <span className="text-sm font-semibold uppercase tracking-tight" style={{ color: sev.iconStroke }}>
+        <span className="text-sm font-semibold tracking-tight" style={{ color: sev.iconStroke }}>
           {metric.label}
         </span>
         <span className="text-4xl font-bold tracking-tight" style={{ color: sev.accent }}>
@@ -68,7 +68,7 @@ function Content({ alert }: { alert: AlertItem }) {
 
       {fields.length > 0 && (
         <div className="border border-[#E8EDFA] rounded-[13px] overflow-hidden">
-          <div className="px-3.5 py-2.5 bg-surface border-b border-border text-sm font-bold uppercase tracking-tight text-text-secondary">
+          <div className="px-3.5 py-2.5 bg-surface border-b border-border text-sm font-bold tracking-tight text-text-secondary">
             Details
           </div>
           {fields.map((f) => (

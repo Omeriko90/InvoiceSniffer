@@ -27,7 +27,7 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
           "inline-flex items-center justify-center h-7 w-7 rounded bg-transparent text-text-secondary hover:bg-hover transition-colors cursor-pointer z-10",
         month_grid: "w-full border-collapse",
         weekdays: "flex",
-        weekday: "text-dim w-9 text-xs font-semibold uppercase tracking-[0.03em]",
+        weekday: "text-dim w-9 text-xs font-semibold",
         week: "flex w-full mt-1",
         day: "h-9 w-9 p-0 text-center text-sm",
         day_button:

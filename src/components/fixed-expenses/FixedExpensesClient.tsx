@@ -109,7 +109,7 @@ export function FixedExpensesClient({
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
           {["Name", "Source", "Category", "Frequency", "Expected", "This period"].map((h) => (
-            <span key={h} className="text-xs font-bold uppercase tracking-[0.04em] text-text-secondary">
+            <span key={h} className="text-xs font-bold text-text-secondary">
               {h}
             </span>
           ))}
@@ -130,7 +130,7 @@ export function FixedExpensesClient({
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-heading truncate">{expense.name}</span>
                 {expense.status === "PAUSED" && (
-                  <span className="text-xs font-bold text-dim uppercase tracking-[0.04em]">Paused</span>
+                  <span className="text-xs font-bold text-dim">Paused</span>
                 )}
               </span>
               <span className="text-sm text-text-secondary truncate">

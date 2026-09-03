@@ -199,7 +199,7 @@ export function ExportDialog({
       <div className="px-5.5 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
         {/* Date range */}
         <div className="flex flex-col gap-2.5">
-          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+          <p className="text-sm font-bold tracking-tight text-text-secondary">
             Date range
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -256,7 +256,7 @@ export function ExportDialog({
 
         {/* Document type filter */}
         <div className="flex flex-col gap-2.5">
-          <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+          <p className="text-sm font-bold tracking-tight text-text-secondary">
             Document type
           </p>
           <Select
@@ -278,7 +278,7 @@ export function ExportDialog({
         {/* Columns (spreadsheet only) */}
         {isSpreadsheet && (
           <div className="flex flex-col gap-2.5">
-            <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+            <p className="text-sm font-bold tracking-tight text-text-secondary">
               Columns
             </p>
             <div className="flex flex-wrap gap-x-4.5 gap-y-2">
@@ -295,7 +295,7 @@ export function ExportDialog({
         {/* Invoice list */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-bold uppercase tracking-tight text-text-secondary">
+            <p className="text-sm font-bold tracking-tight text-text-secondary">
               Invoices
             </p>
             {invoices.length > 0 && (
