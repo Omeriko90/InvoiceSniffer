@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { trackInput, type AnalyticsInput } from "@/lib/analytics"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -29,7 +29,7 @@ const buttonVariants = cva(
         sm: "h-auto px-3 py-[7px] text-[13px]",
         default: "h-auto px-3.5 py-2",
         lg: "h-auto px-4 py-2.5",
-        xl: "h-auto px-4 py-3 text-base font-bold",
+        xl: "h-auto px-4 py-3 text-base",
         icon: "size-9",
         "icon-sm": "size-8",
         "icon-xs": "size-6",

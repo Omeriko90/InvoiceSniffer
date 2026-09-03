@@ -1,44 +1,16 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Ban,
-  ChevronRight,
-  Clock,
-  ExternalLink,
-  EyeOff,
-  FileText,
-  FileX,
-  Lock,
-  Repeat,
-  Trash2,
-  X,
-} from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Dialog } from "@/components/ui/dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { SheetContent } from "@/components/ui/sheet";
 import { useUpdateInvoice } from "@/hooks/useUpdateInvoice";
 import { useRemoveInvoice } from "@/hooks/useRemoveInvoice";
 import { useUnlinkFixedExpense } from "@/hooks/useUnlinkFixedExpense";
 import type { RemovalReason } from "@/api/invoices";
-import { fmtMoney, fmtDisplayMoney, hasDistinctOriginal } from "@/lib/money";
 import type { InvoiceRow } from "../types";
-import { VendorCell } from "../VendorCell";
-import { CategoryBadge } from "../CategoryBadge";
-import { DocumentTypeBadge } from "../DocumentTypeBadge";
 import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog";
 import { track } from "@/lib/analytics";
 import { InvoiceDetailDrawerHeader } from "./InvoiceDetailDrawerHeader";
