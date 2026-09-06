@@ -143,6 +143,12 @@ export type FixedExpenseRangeStats = {
   arrivedCount: number
   totalCount: number
   overdueCount: number
+  // True when the expense only started partway through the range (its
+  // anchor/creation is after range.from), so the counts cover fewer periods
+  // than the range would otherwise contain. `coverageStart` is the ISO start of
+  // the first counted period — used to caption "since <month>".
+  partial: boolean
+  coverageStart: string | null
 }
 
 /**
@@ -166,8 +172,21 @@ export function rangeExpenseStats(
   const lastIdx = periodIndexFor(expense.frequency, anchor, range.to)
 
   if (lastIdx < firstIdx) {
-    return { latestStatus: "PENDING", arrivedCount: 0, totalCount: 0, overdueCount: 0 }
+    return {
+      latestStatus: "PENDING",
+      arrivedCount: 0,
+      totalCount: 0,
+      overdueCount: 0,
+      partial: false,
+      coverageStart: null,
+    }
   }
+
+  // The expense only spans part of the range when its own start (anchor or
+  // creation) lands after range.from — the counts then cover fewer periods.
+  const expenseStartMs = Math.max(anchor.getTime(), expense.createdAt.getTime())
+  const partial = expenseStartMs > range.from.getTime()
+  const coverageStart = periodBounds(expense, firstIdx).start.toISOString()
 
   let arrivedCount = 0
   let overdueCount = 0
@@ -184,7 +203,14 @@ export function rangeExpenseStats(
     if (k === lastIdx) latestStatus = status
   }
 
-  return { latestStatus, arrivedCount, totalCount: lastIdx - firstIdx + 1, overdueCount }
+  return {
+    latestStatus,
+    arrivedCount,
+    totalCount: lastIdx - firstIdx + 1,
+    overdueCount,
+    partial,
+    coverageStart,
+  }
 }
 
 export type TimelineEntry = {

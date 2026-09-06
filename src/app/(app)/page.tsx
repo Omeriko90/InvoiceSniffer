@@ -36,7 +36,7 @@ export default function DashboardPage() {
   const { data, isPending } = useDashboard(range)
 
   return (
-    <div className="flex flex-col gap-[18px] md:h-full md:min-h-0">
+    <div className="flex flex-col gap-[18px]">
       <DashboardDateRange scope={scope} onChange={setScope} />
 
       {range === null ? (
@@ -55,7 +55,7 @@ export default function DashboardPage() {
             rangeLabel={rangeLabel}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:flex-1 md:min-h-0 md:auto-rows-fr">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:auto-rows-fr">
             <SpendPieChart rows={data.spendByCategory} rangeLabel={rangeLabel} />
             <SpendTrendCard trend={data.spendTrend} rangeLabel={rangeLabel} />
             <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
@@ -83,15 +83,15 @@ function monthRangeLabel(fromISO: string, toISO: string): string {
 
 function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-[18px] md:h-full md:min-h-0">
+    <div className="flex flex-col gap-[18px]">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-[108px] rounded-[14px] bg-hover" />
         ))}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:flex-1 md:min-h-0 md:auto-rows-fr">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:auto-rows-fr">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-56 md:h-auto rounded-[14px] bg-hover" />
+          <Skeleton key={i} className="h-56 rounded-[14px] bg-hover" />
         ))}
       </div>
       <Skeleton className="h-64 rounded-[14px] bg-hover" />
