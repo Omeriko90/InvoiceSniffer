@@ -165,6 +165,18 @@ test("rangeExpenseStats: periods before the expense existed are not counted as o
   const stats = rangeExpenseStats(exp, [], range, now)
   assert.equal(stats.totalCount, 2) // only May + Jun, not the four pre-creation months
   assert.equal(stats.overdueCount, 2)
+  assert.equal(stats.partial, true) // range starts before the expense existed
+  const coverage = new Date(stats.coverageStart!)
+  assert.equal(coverage.getMonth(), 4) // first counted period starts in May
+  assert.equal(coverage.getFullYear(), 2026)
+})
+
+test("rangeExpenseStats: expense spanning the whole range is not partial", () => {
+  const exp = timelineExpense({ anchorDate: new Date("2026-01-01"), createdAt: new Date("2026-01-01") })
+  const range = { from: new Date("2026-04-01"), to: new Date("2026-06-30") }
+  const now = new Date("2026-07-10")
+  const stats = rangeExpenseStats(exp, [], range, now)
+  assert.equal(stats.partial, false)
 })
 
 test("rangeExpenseStats: range entirely before the first period → totalCount 0", () => {
