@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { format } from "date-fns"
 import { Search, AlertTriangle, Repeat } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleChip } from "@/components/ui/toggle-chip"
+import { FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
 import { fmtAmount } from "@/components/invoices/helpers"
 import { FixedExpenseStatusBadge } from "@/components/fixed-expenses/FixedExpenseStatusBadge"
 import { FixedExpenseDetailDrawer } from "@/components/fixed-expenses/FixedExpenseDetailDrawer"
@@ -141,17 +143,23 @@ export function FixedExpensesCard({
                     <span className="block text-sm font-semibold text-heading truncate">
                       {e.name}
                     </span>
-                    {e.expectedAmount && (
-                      <span className="block text-xs text-text-secondary">
-                        {fmtAmount(e.expectedAmount, e.currency)}
-                      </span>
-                    )}
+                    <span className="block text-xs text-text-secondary truncate">
+                      {FREQUENCY_LABELS[e.frequency]}
+                      {e.expectedAmount ? ` · ${fmtAmount(e.expectedAmount, e.currency)}` : ""}
+                    </span>
                   </span>
                   <span className="text-sm text-text-secondary truncate">
                     {e.vendorName[0] ?? e.senderEmail[0] ?? "—"}
                   </span>
-                  <span className="text-sm text-text-primary tabular-nums">
-                    {e.rangeStats.arrivedCount}/{e.rangeStats.totalCount}
+                  <span className="flex flex-col">
+                    <span className="text-sm text-text-primary tabular-nums">
+                      {e.rangeStats.arrivedCount}/{e.rangeStats.totalCount}
+                    </span>
+                    {e.rangeStats.partial && e.rangeStats.coverageStart && (
+                      <span className="text-[11px] text-dim">
+                        since {format(new Date(e.rangeStats.coverageStart), "MMM yyyy")}
+                      </span>
+                    )}
                   </span>
                   <span className="flex items-center justify-end gap-2 min-w-0">
                     {e.rangeStats.overdueCount > 0 && (
