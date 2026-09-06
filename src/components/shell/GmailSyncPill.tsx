@@ -1,13 +1,15 @@
 // Client component by import — only ever rendered from <Topbar>.
+import Link from "next/link"
 import { AlertTriangle } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { queries } from "@/queries"
 
-// Self-fetching Gmail status pill. Shows a red "out of sync" link (to reconnect)
+// Self-fetching Gmail status pill. Shows a red "out of sync" link (to settings)
 // when any mailbox has been soft-disconnected (e.g. its refresh token
 // expired/was revoked); renders nothing when mailboxes are healthy or none exist.
+// Links to settings rather than straight into the OAuth flow so the user can see
+// which mailbox needs reconnecting.
 export function GmailSyncPill() {
   const { data } = useQuery({
     ...queries.gmail.status,
@@ -20,17 +22,15 @@ export function GmailSyncPill() {
   if (!data || !data.hasAccounts || data.outOfSyncCount === 0) return null
 
   return (
-    <Button
-      variant="ghost"
-      type="button"
-      onClick={() => { window.location.href = "/api/gmail/connect" }}
-      title="Reconnect Gmail to resume detecting invoices"
-      className="h-auto appearance-none bg-transparent border-0 p-0 cursor-pointer hover:bg-transparent"
+    <Link
+      href="/settings"
+      title="See which mailbox needs reconnecting to resume detecting invoices"
+      className="cursor-pointer"
     >
       <Badge className="h-auto gap-1.5 px-3 py-1.5 rounded-full bg-danger-bg border-danger-border text-xs font-medium text-danger hover:opacity-90 cursor-pointer">
         <AlertTriangle size={12} />
         Gmail out of sync · reconnect
       </Badge>
-    </Button>
+    </Link>
   )
 }
