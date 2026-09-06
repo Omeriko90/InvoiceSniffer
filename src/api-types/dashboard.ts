@@ -1,4 +1,6 @@
 import type { InvoiceCategory } from "@/lib/invoice-categories"
+import type { FixedExpenseRangeStats } from "@/lib/fixed-expenses"
+import type { FixedExpenseRow } from "@/components/fixed-expenses/types"
 
 export interface CategorySpend {
     category: InvoiceCategory
@@ -53,4 +55,15 @@ export interface DashboardData {
     reclaimableVat: TaxByCurrency[]
     // Monthly spend across the selected range.
     spendTrend: SpendTrend | null
+}
+
+// One fixed expense projected onto the dashboard's selected range: the full row
+// (reused by the detail drawer) plus the in-range arrival roll-up.
+export interface DashboardFixedExpense extends FixedExpenseRow {
+    rangeStats: FixedExpenseRangeStats
+}
+
+export interface DashboardFixedExpensesData {
+    range: { from: string; to: string }
+    expenses: DashboardFixedExpense[]
 }
