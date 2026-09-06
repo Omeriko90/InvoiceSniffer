@@ -138,6 +138,55 @@ export function expenseStatus(
   return classifyPeriod(currentPeriod(expense, now), expense.gracePeriodDays, linkedInvoices, now)
 }
 
+export type FixedExpenseRangeStats = {
+  latestStatus: FixedExpensePeriodStatus
+  arrivedCount: number
+  totalCount: number
+  overdueCount: number
+}
+
+/**
+ * Roll-up for the dashboard card: classify every period that falls inside
+ * `[range.from, range.to]` and report the counts plus the latest period's
+ * status. The window is floored at the expense's own start (anchor / creation)
+ * so periods before it existed never read as OVERDUE. `totalCount` is 0 when the
+ * range predates the first period — the caller drops those expenses.
+ */
+export function rangeExpenseStats(
+  expense: FixedExpenseLike,
+  linkedInvoices: readonly InvoiceMatchLike[],
+  range: { from: Date; to: Date },
+  now: Date,
+): FixedExpenseRangeStats {
+  const anchor = effectiveAnchor(expense)
+  const startBound = new Date(
+    Math.max(range.from.getTime(), anchor.getTime(), expense.createdAt.getTime()),
+  )
+  const firstIdx = Math.max(0, periodIndexFor(expense.frequency, anchor, startBound))
+  const lastIdx = periodIndexFor(expense.frequency, anchor, range.to)
+
+  if (lastIdx < firstIdx) {
+    return { latestStatus: "PENDING", arrivedCount: 0, totalCount: 0, overdueCount: 0 }
+  }
+
+  let arrivedCount = 0
+  let overdueCount = 0
+  let latestStatus: FixedExpensePeriodStatus = "PENDING"
+  for (let k = firstIdx; k <= lastIdx; k++) {
+    const status = classifyPeriod(
+      periodBounds(expense, k),
+      expense.gracePeriodDays,
+      linkedInvoices,
+      now,
+    )
+    if (status === "ARRIVED") arrivedCount++
+    else if (status === "OVERDUE") overdueCount++
+    if (k === lastIdx) latestStatus = status
+  }
+
+  return { latestStatus, arrivedCount, totalCount: lastIdx - firstIdx + 1, overdueCount }
+}
+
 export type TimelineEntry = {
   index: number
   start: Date
