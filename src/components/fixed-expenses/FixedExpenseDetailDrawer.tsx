@@ -118,13 +118,11 @@ export function FixedExpenseDetailDrawer({
       <div className="flex items-center justify-between px-5.5 py-4.5 border-b border-hover shrink-0">
         <div className="min-w-0 pr-8">
           <SheetTitle className="text-base font-bold text-heading truncate">{expense.name}</SheetTitle>
-          <div className="flex items-center gap-2 mt-1.5">
-            <FixedExpenseStatusBadge status={expense.currentStatus} />
-            <CategoryBadge category={expense.category} />
-            {paused && (
+          {paused && (
+            <div className="flex items-center gap-2 mt-1.5">
               <span className="text-xs font-bold text-dim">Paused</span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -138,6 +136,7 @@ export function FixedExpenseDetailDrawer({
             ...(senderLabel && vendorLabel
               ? [{ label: "Sender", value: senderLabel }]
               : []),
+            { label: "Category", value: <CategoryBadge category={expense.category} /> },
             { label: "Frequency", value: FREQUENCY_LABELS[expense.frequency] },
             {
               label: "Expected amount",
