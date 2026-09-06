@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { buildFixedExpenseMatchWhere, matchesExpense, periodTimeline } from "./fixed-expenses"
+import { buildFixedExpenseMatchWhere, matchesExpense, periodTimeline, rangeExpenseStats } from "./fixed-expenses"
 
 // matchesExpense only reads these three fields off each side.
 const invoice = (over: Partial<{ vendorNormalized: string | null; senderEmail: string | null; gmailCredentialId: string | null }>) => ({
@@ -142,4 +142,37 @@ test("periodTimeline with no linked invoices still floors at the creation period
   assert.equal(entries.length, 1, "only the current period when nothing was absorbed")
   assert.equal(entries[0].status, "PENDING") // Aug grace window is still open on the 24th
   assert.equal(hasMore, false)
+})
+
+// ── rangeExpenseStats ────────────────────────────────────────────
+
+test("rangeExpenseStats: monthly expense over a quarter with mixed arrivals", () => {
+  const exp = timelineExpense({ anchorDate: new Date("2026-01-01"), createdAt: new Date("2026-01-01") })
+  const range = { from: new Date("2026-04-01"), to: new Date("2026-06-30") }
+  const now = new Date("2026-07-10") // past June's grace window (Jul 1 + 5)
+  const stats = rangeExpenseStats(exp, [linkedOn("2026-04-10"), linkedOn("2026-05-10")], range, now)
+  assert.equal(stats.totalCount, 3) // Apr, May, Jun
+  assert.equal(stats.arrivedCount, 2) // Apr + May arrived
+  assert.equal(stats.overdueCount, 1) // Jun missed
+  assert.equal(stats.latestStatus, "OVERDUE") // latest in-range period is June
+})
+
+test("rangeExpenseStats: periods before the expense existed are not counted as overdue", () => {
+  // Anchor is Jan but the expense was only created mid-May; Jan–Apr predate it.
+  const exp = timelineExpense({ anchorDate: new Date("2026-01-01"), createdAt: new Date("2026-05-15") })
+  const range = { from: new Date("2026-01-01"), to: new Date("2026-06-30") }
+  const now = new Date("2026-07-10")
+  const stats = rangeExpenseStats(exp, [], range, now)
+  assert.equal(stats.totalCount, 2) // only May + Jun, not the four pre-creation months
+  assert.equal(stats.overdueCount, 2)
+})
+
+test("rangeExpenseStats: range entirely before the first period → totalCount 0", () => {
+  const exp = timelineExpense({ anchorDate: new Date("2026-08-01"), createdAt: new Date("2026-08-01") })
+  const range = { from: new Date("2026-01-01"), to: new Date("2026-03-31") }
+  const now = new Date("2026-09-01")
+  const stats = rangeExpenseStats(exp, [], range, now)
+  assert.equal(stats.totalCount, 0)
+  assert.equal(stats.arrivedCount, 0)
+  assert.equal(stats.overdueCount, 0)
 })
