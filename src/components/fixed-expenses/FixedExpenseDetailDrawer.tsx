@@ -387,6 +387,7 @@ function InvoiceDrawerLoader({
     return (
       <SheetContent
         side="right"
+        forceOverlay
         className="w-110 sm:max-w-110 gap-0 bg-white border-l border-[#E8EDFA]"
       >
         <SheetTitle className="sr-only">Invoice</SheetTitle>
