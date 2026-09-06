@@ -9,6 +9,7 @@ import { SpendPieChart } from "@/components/dashboard/SpendPieChart"
 import { TaxPaidCard } from "@/components/dashboard/TaxPaidCard"
 import { TopVendorsCard } from "@/components/dashboard/TopVendorsCard"
 import { SpendTrendCard } from "@/components/dashboard/SpendTrendCard"
+import { FixedExpensesCard } from "@/components/dashboard/FixedExpensesCard"
 import { DashboardDateRange } from "@/components/dashboard/DashboardDateRange"
 import { resolveDateRange } from "@/lib/date-range"
 import { isDashboardPreset, type DashboardScope } from "@/lib/dashboard-range"
@@ -60,6 +61,8 @@ export default function DashboardPage() {
             <TopVendorsCard rows={data.topVendors} rangeLabel={rangeLabel} />
             <TaxPaidCard rows={data.reclaimableVat} rangeLabel={rangeLabel} />
           </div>
+
+          <FixedExpensesCard range={range} rangeLabel={rangeLabel} />
         </>
       )}
     </div>
@@ -91,6 +94,7 @@ function DashboardSkeleton() {
           <Skeleton key={i} className="h-56 md:h-auto rounded-[14px] bg-hover" />
         ))}
       </div>
+      <Skeleton className="h-64 rounded-[14px] bg-hover" />
     </div>
   )
 }

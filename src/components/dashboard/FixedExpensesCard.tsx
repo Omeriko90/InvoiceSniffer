@@ -50,7 +50,7 @@ export function FixedExpensesCard({
   const [selected, setSelected] = useState<DashboardFixedExpense | null>(null)
   const q = useDebounced(search.toLowerCase(), 250)
 
-  const expenses = data?.expenses ?? []
+  const expenses = useMemo(() => data?.expenses ?? [], [data])
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
