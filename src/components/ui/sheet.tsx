@@ -41,14 +41,19 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  forceOverlay = false,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  // Base UI drops a nested dialog's backdrop by default, which also disables
+  // click-outside-to-close for it. Force it on when this sheet is stacked over
+  // another (e.g. the invoice drawer opened from the fixed-expense drawer).
+  forceOverlay?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay forceRender={forceOverlay} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}

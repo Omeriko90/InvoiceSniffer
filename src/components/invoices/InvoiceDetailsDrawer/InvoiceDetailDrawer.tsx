@@ -112,6 +112,7 @@ export function InvoiceDetailDrawer({
   return (
     <SheetContent
       side="right"
+      forceOverlay
       className="w-125 sm:max-w-125 gap-0 bg-white border-l border-border"
       style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
     >
