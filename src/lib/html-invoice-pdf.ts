@@ -97,8 +97,9 @@ function loadFonts(): { regular: Buffer; bold: Buffer } {
 
 const bidi = bidiFactory()
 
-// A line reordered into visual (left-to-right draw) order, plus whether its base
-// paragraph direction is RTL — which decides right- vs left-alignment.
+// pdf-lib (via fontkit) already reorders RTL runs when drawing, so text is kept
+// in logical order; we only detect base direction to choose right- vs left-
+// alignment. Reordering the string ourselves would double-reverse it.
 type VisualLine = { text: string; rtl: boolean }
 
 // Collapse the whitespace that trips up layout without touching script content:
@@ -110,8 +111,7 @@ function normalizeWhitespace(input: string): string {
 function toVisual(logical: string): VisualLine {
   const levels = bidi.getEmbeddingLevels(logical, "auto")
   const rtl = (levels.paragraphs[0]?.level ?? 0) % 2 === 1
-  const text = bidi.getReorderedString(logical, levels, 0, logical.length)
-  return { text, rtl }
+  return { text: logical, rtl }
 }
 
 // Break a logical line into pieces that each fit CONTENT_WIDTH, splitting on
