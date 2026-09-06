@@ -1,4 +1,4 @@
-import { fetchDashboard } from "@/api/dashboard"
+import { fetchDashboard, fetchDashboardFixedExpenses } from "@/api/dashboard"
 import { createQueryKeys } from "@lukemorales/query-key-factory"
 
 export const dashboardKeys = createQueryKeys("dashboard", {
@@ -6,5 +6,9 @@ export const dashboardKeys = createQueryKeys("dashboard", {
   summary: (range: { from: string; to: string }) => ({
     queryKey: [range],
     queryFn: () => fetchDashboard(range),
+  }),
+  fixedExpenses: (range: { from: string; to: string }) => ({
+    queryKey: [range],
+    queryFn: () => fetchDashboardFixedExpenses(range),
   }),
 })
