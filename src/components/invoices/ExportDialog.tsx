@@ -17,6 +17,7 @@ import {
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import {
   INVOICE_DATE_PRESETS,
+  INVOICE_DATE_PRESET_LABELS,
   resolveInvoiceDateRange,
   type InvoiceDatePreset,
 } from "@/lib/invoice-date-filter"
@@ -29,7 +30,6 @@ import {
 } from "@/api/exports"
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
-import { DateRangePreset, PRESET_LABELS } from "@/lib/date-range"
 import { cn } from "@/lib/utils"
 
 type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
@@ -215,7 +215,7 @@ export function ExportDialog({
                     on ? "bg-primary-soft text-primary-strong" : "bg-hover text-text-secondary",
                   )}
                 >
-                  {PRESET_LABELS[p as DateRangePreset]}
+                  {INVOICE_DATE_PRESET_LABELS[p]}
                 </Button>
               )
             })}
