@@ -294,9 +294,19 @@ export async function renderBodyInvoicePdf(meta: BodyInvoiceMeta): Promise<Uint8
   cursor.gap(6)
   cursor.rule()
 
-  // Line-items table — only when we actually extracted items; otherwise the
-  // header + totals stand on their own (decision: no raw email body fallback).
-  if (meta.lineItems.length > 0) {
+  const net = meta.taxAmount != null ? meta.totalAmount - meta.taxAmount : meta.totalAmount
+  const items: BodyLineItem[] =
+    meta.lineItems.length > 0
+      ? meta.lineItems
+      : [
+          {
+            description: `${meta.vendorName ?? "Charge"} — ${DOCUMENT_TYPE_LABELS[meta.documentType]}`,
+            quantity: 1,
+            price: net,
+          },
+        ]
+
+  {
     cursor.gap(2)
     cursor.row([
       { text: "Description", x: COL_DESC.x, width: COL_DESC.width, align: "left", font: bold, size: BODY_SIZE, color: MUTED },
@@ -306,7 +316,7 @@ export async function renderBodyInvoicePdf(meta: BodyInvoiceMeta): Promise<Uint8
     ])
     cursor.gap(4)
 
-    for (const item of meta.lineItems) {
+    for (const item of items) {
       const amount =
         item.quantity != null && item.price != null
           ? item.quantity * item.price
