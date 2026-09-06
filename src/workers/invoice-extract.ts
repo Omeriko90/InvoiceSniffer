@@ -3,7 +3,12 @@ import { prisma } from "@/lib/prisma"
 import { getGmailClient, buildGmailMessageLink } from "@/lib/gmail"
 import { redisUrl,type ExtractionJobData } from "@/lib/queues"
 import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
-import { extractorEnabled, extractInvoiceFromPdf, type LlmExtraction } from "@/lib/llm-extractor"
+import {
+  extractorEnabled,
+  extractInvoiceFromPdf,
+  extractInvoiceFromText,
+  type LlmExtraction,
+} from "@/lib/llm-extractor"
 import { categorizerEnabled, categorizeInvoice } from "@/lib/llm-categorizer"
 import type { InvoiceCategory } from "@/lib/invoice-categories"
 import { linkInvoiceToMatchingFixedExpense } from "@/lib/link-fixed-expense"
@@ -182,6 +187,15 @@ async function extractInvoice(
         // fallback below still gets a shot.
         if (llm.category !== "UNCATEGORIZED") visionCategory = llm.category
       }
+    }
+  }
+
+  if (extractorEnabled() && !docBytes && bodyText.trim()) {
+    const llm = await extractInvoiceFromText({ bodyText, subject, senderEmail })
+    if (llm) {
+      extracted = applyLlmExtraction(extracted, llm)
+      extractionMethod = "AI"
+      visionCategory = llm.category
     }
   }
 

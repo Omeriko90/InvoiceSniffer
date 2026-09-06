@@ -25,9 +25,6 @@ test("renders a valid, loadable PDF", async () => {
   assert.ok(doc.getPageCount() >= 1)
 })
 
-// The Apple/Google/Manychat receipts this feature targets are often Israeli —
-// the vendor and line-item descriptions mix English with Hebrew. The embedded
-// Heebo font + bidi layout must render (and reorder) these without throwing.
 test("does not throw on Hebrew fields + tax totals", async () => {
   const bytes = await renderBodyInvoicePdf(
     meta({
@@ -50,9 +47,8 @@ test("paginates a long line-item table across multiple pages", async () => {
   assert.ok(doc.getPageCount() > 1)
 })
 
-// No line items extracted → header + totals only, no table, still a valid doc.
-test("renders header + totals only when there are no line items", async () => {
-  const bytes = await renderBodyInvoicePdf(meta({ lineItems: [] }))
+test("renders a fallback summary row when there are no line items", async () => {
+  const bytes = await renderBodyInvoicePdf(meta({ lineItems: [], vendorName: "PayPal", documentType: "RECEIPT" }))
   assert.equal(Buffer.from(bytes.slice(0, 5)).toString(), "%PDF-")
   const doc = await PDFDocument.load(bytes)
   assert.ok(doc.getPageCount() >= 1)
@@ -80,8 +76,8 @@ test("parseLineItems coerces malformed JSON and drops empty rows", () => {
   assert.deepEqual(
     parseLineItems([
       { description: "Widget", quantity: 2, price: 5 },
-      { description: null, quantity: null, price: null }, // all-null → dropped
-      { description: "No numbers", quantity: "x", price: NaN }, // bad types → nulled
+      { description: null, quantity: null, price: null },
+      { description: "No numbers", quantity: "x", price: NaN },
       "garbage",
     ]),
     [
