@@ -81,9 +81,13 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
   const trackExport = useCallback(
     (id: string) => {
       resolved.current.delete(id)
+      // Transient "building" toast: shows for 5s then disappears on its own.
+      // Polling continues in the background regardless, and a separate toast
+      // fires on completion — so a long build doesn't leave a toast hanging.
       toast.loading("Building your PDF…", {
         id: `export-${id}`,
-        description: "This can take a moment while we gather your invoices.",
+        description: "We'll let you know when it's ready to download.",
+        duration: 5000,
       })
       persist(Array.from(new Set([...readStored(STORAGE_KEY), id])))
     },
@@ -113,6 +117,11 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
       if (!data || !TERMINAL.has(data.status) || resolved.current.has(data.id)) return
       resolved.current.add(data.id)
 
+      // The transient "building" toast may still be on screen if the build
+      // finished within its 5s window — dismiss it so the completion shows as a
+      // distinct, fresh toast rather than morphing the old one in place.
+      toast.dismiss(`export-${data.id}`)
+
       if (data.status === "READY") {
         newlyReady.push(data.id)
         const skippedNote =
@@ -120,7 +129,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
             ? ` ${data.skippedCount} invoice${data.skippedCount === 1 ? "" : "s"} couldn't be included and ${data.skippedCount === 1 ? "was" : "were"} skipped.`
             : ""
         toast.success("Your PDF is ready", {
-          id: `export-${data.id}`,
+          id: `export-ready-${data.id}`,
           description: `Download ${data.fileName ?? "your export"}.${skippedNote}`,
           action: { label: "Download", onClick: () => downloadExport(data.id) },
           // Stay until dismissed — a completion that auto-hides after a few
@@ -130,7 +139,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
         })
       } else {
         toast.error("Export failed", {
-          id: `export-${data.id}`,
+          id: `export-ready-${data.id}`,
           description:
             data.status === "EXPIRED"
               ? "The export expired before it could be downloaded."

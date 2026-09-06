@@ -39,6 +39,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast: "cn-toast",
+          // Sonner's default description color is very low-contrast against the
+          // white popover; pin it to the semantic secondary text token so it's
+          // actually legible.
+          description: "!text-text-secondary",
         },
       }}
       {...props}
