@@ -24,6 +24,13 @@ export interface LearnedRule {
   type: RuleType
 }
 
+export interface WhatsAppNumberInfo {
+  id: string
+  phoneE164: string
+  verified: boolean
+  createdAt: string
+}
+
 export interface SettingsData {
   gmails: GmailConnection[]
   members: Member[]
@@ -33,4 +40,15 @@ export interface SettingsData {
   displayCurrency: string
   // Max number of *connected* Gmail mailboxes this org's plan allows.
   maxGmailAccounts: number
+  // Linked WhatsApp numbers + the per-plan cap.
+  whatsappNumbers: WhatsAppNumberInfo[]
+  maxWhatsAppNumbers: number
+}
+
+// Returned by POST /api/whatsapp — the pending number plus the code + wa.me link
+// the user taps to prove ownership.
+export interface WhatsAppRegistration {
+  number: WhatsAppNumberInfo
+  verificationCode: string
+  waLink: string | null
 }
