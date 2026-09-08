@@ -63,6 +63,18 @@ async function main() {
     process.exit(0)
   }
 
+  // Inbound WhatsApp media → invoices. DB-driven (the PENDING
+  // WhatsAppInboundMessage rows are the work list) — no queue workers or Redis
+  // drain. Triggered on-demand by the webhook (see triggerWhatsAppIngest).
+  if (mode === "whatsapp-ingest") {
+    const { processPendingWhatsApp } = await import("./whatsapp-ingest")
+    const count = await processPendingWhatsApp()
+    log.info(`whatsapp-ingest: processed ${count} message(s); shutting down`)
+    await prisma.$disconnect()
+    await shutdownPostHog()
+    process.exit(0)
+  }
+
   // Missing-invoice detector for fixed expenses. Also DB-driven (the FixedExpense
   // rows are the work list) — no queue workers or Redis drain. Scheduled via Cloud
   // Scheduler to fire ~5 days before month end.
