@@ -131,6 +131,23 @@ enum TransactionStatus {
   NO_INVOICE
 }
 
+// Which inbound channel an invoice arrived through. GMAIL invoices carry the
+// gmail* fields; WHATSAPP invoices carry the whatsapp* fields and a persisted
+// r2Key for the source file. Defaults to GMAIL for all pre-WhatsApp rows.
+enum InvoiceSource {
+  GMAIL
+  WHATSAPP
+}
+
+// Lifecycle of a WhatsApp media message queued for extraction. Drives the
+// DB-driven whatsapp-ingest worker drain (see src/workers/whatsapp-ingest.ts).
+enum WhatsAppInboundStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
 // ─── Models ───────────────────────────────────────────────
 
 model Organization {
@@ -145,17 +162,19 @@ model Organization {
   displayCurrency   String   @default("USD")
   createdAt         DateTime @default(now())
 
-  users                 User[]
-  gmailCredentials      GmailCredential[]
-  invoices              Invoice[]
-  vendorAliases         VendorAlias[]
-  vendorStats           VendorStats[]
-  anomalyLogs           AnomalyLog[]
-  exportJobs            ExportJob[]
-  transactions          Transaction[]
-  csvMappings           CsvMapping[]
-  classificationBatches ClassificationBatch[]
-  fixedExpenses         FixedExpense[]
+  users                   User[]
+  gmailCredentials        GmailCredential[]
+  invoices                Invoice[]
+  vendorAliases           VendorAlias[]
+  vendorStats             VendorStats[]
+  anomalyLogs             AnomalyLog[]
+  exportJobs              ExportJob[]
+  transactions            Transaction[]
+  csvMappings             CsvMapping[]
+  classificationBatches   ClassificationBatch[]
+  fixedExpenses           FixedExpense[]
+  whatsappNumbers         WhatsAppNumber[]
+  whatsappInboundMessages WhatsAppInboundMessage[]
 }
 
 model User {
@@ -241,14 +260,22 @@ model GmailCredential {
 model Invoice {
   id                   String           @id @default(cuid())
   organizationId       String
+  // Inbound channel. GMAIL rows populate the gmail*/email fields below; WHATSAPP
+  // rows leave them null and populate the whatsapp* fields + r2Key instead.
+  source               InvoiceSource    @default(GMAIL)
   gmailCredentialId    String? // source mailbox; nullable only for pre-migration orphans
-  gmailMessageId       String
-  gmailThreadId        String
-  gmailLink            String
-  senderEmail          String
+  gmailMessageId       String? // null for non-Gmail sources
+  gmailThreadId        String? // null for non-Gmail sources
+  gmailLink            String? // null for non-Gmail sources
+  senderEmail          String? // null for non-Gmail sources
   senderName           String?
-  subject              String
-  emailDate            DateTime
+  subject              String? // null for non-Gmail sources
+  emailDate            DateTime? // null for non-Gmail sources
+  // WhatsApp provenance (source = WHATSAPP): sender phone (E.164), Meta's wamid,
+  // and the R2 key of the persisted media file.
+  whatsappFromPhone    String?
+  whatsappMessageId    String?
+  r2Key                String?
   vendorName           String?
   vendorNormalized     String?
   invoiceNumber        String?
@@ -260,8 +287,8 @@ model Invoice {
   totalAmount          Decimal          @db.Decimal(12, 2)
   currency             String           @default("USD")
   taxAmount            Decimal?         @db.Decimal(12, 2)
-  displayAmount      Decimal?         @db.Decimal(12, 2)
-  displayCurrency    String?
+  displayAmount        Decimal?         @db.Decimal(12, 2)
+  displayCurrency      String?
   fxRate               Decimal?         @db.Decimal(18, 8)
   fxAsOf               DateTime?
   lineItems            Json             @default("[]")
@@ -299,6 +326,7 @@ model Invoice {
   transactions    Transaction[]
 
   @@unique([organizationId, gmailMessageId])
+  @@unique([organizationId, whatsappMessageId])
   @@index([organizationId, emailDate])
   @@index([organizationId, vendorNormalized])
   @@index([organizationId, status])
@@ -309,6 +337,52 @@ model Invoice {
   // Powers the fixed-expense detail drawer's per-period invoice lookup.
   @@index([organizationId, fixedExpenseId])
   @@index([gmailCredentialId])
+}
+
+// ─── WhatsApp ─────────────────────────────────────────────
+
+// A user's personal phone number linked to an org for WhatsApp invoice intake.
+// Ownership is proven by the inbound-code flow: register creates an unverified
+// row with a one-time verificationCode; the row flips verified when that code
+// arrives via WhatsApp from this number. phoneE164 is globally unique — a phone
+// links to exactly one org.
+model WhatsAppNumber {
+  id               String    @id @default(cuid())
+  organizationId   String
+  phoneE164        String    @unique
+  label            String? // user-facing display name
+  verified         Boolean   @default(false)
+  verificationCode String? // one-time code, cleared on verify
+  verifiedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// A WhatsApp media message queued for extraction. The webhook downloads the
+// media to R2 and inserts a PENDING row (deduped on Meta's wamid); the
+// whatsapp-ingest worker drains PENDING rows into Invoices.
+model WhatsAppInboundMessage {
+  id                String                @id @default(cuid())
+  organizationId    String
+  whatsappMessageId String                @unique // Meta wamid — idempotent dedup on webhook retries
+  fromPhoneE164     String
+  r2Key             String? // persisted media in R2
+  mimeType          String?
+  caption           String?
+  status            WhatsAppInboundStatus @default(PENDING)
+  error             String?
+  invoiceId         String? // set when extraction produced an invoice
+  createdAt         DateTime              @default(now())
+  processedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([organizationId])
 }
 
 // ─── Fixed expenses ───────────────────────────────────────
