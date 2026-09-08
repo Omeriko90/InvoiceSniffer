@@ -34,10 +34,10 @@ export type ExportInvoiceRow = {
 // and lineItems feed the structured template rendered for body-only invoices
 // (those with no PDF attachment) — see renderBodyInvoicePdf.
 export type PdfExportInvoice = ExportInvoiceRow & {
-  gmailMessageId: string
+  gmailMessageId: string | null
   gmailCredentialId: string | null
   attachmentMeta: AttachmentMeta[]
-  senderEmail: string
+  senderEmail: string | null
   lineItems: BodyLineItem[]
 }
 
@@ -152,10 +152,10 @@ function toPdfExportInvoice(r: {
   totalAmount: { toString(): string }
   currency: string
   taxAmount: { toString(): string } | null
-  gmailMessageId: string
+  gmailMessageId: string | null
   gmailCredentialId: string | null
   attachmentMeta: unknown
-  senderEmail: string
+  senderEmail: string | null
   lineItems: unknown
 }): PdfExportInvoice {
   return {

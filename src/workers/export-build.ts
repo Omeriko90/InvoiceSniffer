@@ -73,8 +73,9 @@ async function buildOne(job: {
       let bytes: Uint8Array | null
       if (pdfMeta) {
         // Attachment PDF: lives in the invoice's Gmail mailbox, so we need its
-        // credential to fetch the bytes. No credential means nothing to fetch.
-        if (!inv.gmailCredentialId) {
+        // credential + message id to fetch the bytes. Missing either means
+        // nothing to fetch (e.g. non-Gmail sources have no Gmail attachment).
+        if (!inv.gmailCredentialId || !inv.gmailMessageId) {
           skipped.push({ invoiceId: inv.id, vendorName: inv.vendorName, reason: "no_source" })
           continue
         }

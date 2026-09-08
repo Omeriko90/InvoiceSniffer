@@ -40,7 +40,7 @@ export type BodyInvoiceMeta = {
   totalAmount: number
   currency: string
   taxAmount: number | null
-  senderEmail: string
+  senderEmail: string | null
   lineItems: BodyLineItem[]
 }
 

@@ -98,7 +98,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
             <Panel
               icon={<FileText size={16} className="text-white" />}
               title={invoice.vendorName ?? "Unknown vendor"}
-              subtitle={invoice.senderEmail}
+              subtitle={invoice.senderEmail ?? ""}
               accentClass="bg-success"
             >
               <Field
@@ -123,7 +123,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         </div>
 
         {/* Gmail link */}
-        {invoice && (
+        {invoice?.gmailLink && (
           <a
             href={invoice.gmailLink}
             target="_blank"
@@ -146,7 +146,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
         </div>
       )}
 
-      {invoice && (
+      {invoice?.gmailLink && (
         <a
           href={invoice.gmailLink}
           target="_blank"

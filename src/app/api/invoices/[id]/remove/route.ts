@@ -48,7 +48,9 @@ export async function POST(
       where: { id: invoice.id },
       data: { removedAt: new Date(), removalReason: reason },
     })
-    if (shouldMute) {
+    // Sender-mute learning keys on the email address; skip for channels
+    // without one (e.g. WhatsApp).
+    if (shouldMute && invoice.senderEmail) {
       await muteSender(
         tx,
         organizationId,

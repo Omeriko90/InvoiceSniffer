@@ -124,3 +124,47 @@ export async function triggerExportBatch(): Promise<void> {
     })
   }
 }
+
+// Kick off a one-shot drain of inbound WhatsApp media. DB-driven like the export
+// path (the PENDING WhatsAppInboundMessage rows are the work list) — no Redis.
+//
+// Production (WORKER_TRIGGER=cloudrun): run the Cloud Run Job with
+// MODE=whatsapp-ingest. Local dev: process inline (fire-and-forget) so the flow
+// works without a separate worker. Errors are swallowed — the row stays PENDING
+// and the next trigger (or the daily drain) picks it up.
+export async function triggerWhatsAppIngest(): Promise<void> {
+  if (process.env.WORKER_TRIGGER !== "cloudrun") {
+    void import("@/workers/whatsapp-ingest")
+      .then((m) => m.processPendingWhatsApp())
+      .catch((err) =>
+        log.error("triggerWhatsAppIngest: in-process drain failed", {
+          error: err instanceof Error ? err.message : String(err),
+        })
+      )
+    return
+  }
+
+  const project = process.env.GCP_PROJECT_ID
+  const region = process.env.GCP_REGION
+  const jobName = process.env.WORKER_JOB_NAME
+
+  if (!project || !region || !jobName) {
+    log.error("triggerWhatsAppIngest: missing GCP_PROJECT_ID / GCP_REGION / WORKER_JOB_NAME")
+    return
+  }
+
+  try {
+    const { JobsClient } = await import("@google-cloud/run")
+    const client = new JobsClient()
+    await client.runJob({
+      name: `projects/${project}/locations/${region}/jobs/${jobName}`,
+      overrides: {
+        containerOverrides: [{ env: [{ name: "MODE", value: "whatsapp-ingest" }] }],
+      },
+    })
+  } catch (err) {
+    log.error("triggerWhatsAppIngest: failed to start Cloud Run Job", {
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+}

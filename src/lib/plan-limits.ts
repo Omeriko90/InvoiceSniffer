@@ -12,3 +12,15 @@ export const MAX_GMAIL_ACCOUNTS: Record<PlanTier, number> = {
 export function maxGmailAccounts(tier: PlanTier): number {
   return MAX_GMAIL_ACCOUNTS[tier]
 }
+
+// Max number of WhatsApp phone numbers an org may link, by plan tier. Each
+// linked number is a person who can forward invoices into the org.
+export const MAX_WHATSAPP_NUMBERS: Record<PlanTier, number> = {
+  FREE: 1,
+  PRO: 3,
+  BUSINESS: 10,
+}
+
+export function maxWhatsAppNumbers(tier: PlanTier): number {
+  return MAX_WHATSAPP_NUMBERS[tier]
+}
