@@ -22,6 +22,28 @@ export function whatsappEnabled(): boolean {
   return Boolean(accessToken() && phoneNumberId() && process.env.WHATSAPP_APP_SECRET)
 }
 
+const WHATSAPP_VARS = [
+  "WHATSAPP_ACCESS_TOKEN",
+  "WHATSAPP_PHONE_NUMBER_ID",
+  "WHATSAPP_APP_SECRET",
+  "WHATSAPP_VERIFY_TOKEN",
+  "WHATSAPP_BUSINESS_NUMBER",
+] as const
+
+// Warn (never throw) about a half-configured WhatsApp integration at startup:
+// the feature is optional, so all-unset is fine (silently off), but some-set is
+// almost certainly a mistake that would fail webhook verification or media
+// fetches at runtime. Called from instrumentation.register().
+export function warnWhatsAppConfig(): void {
+  const set = WHATSAPP_VARS.filter((v) => process.env[v])
+  if (set.length === 0 || set.length === WHATSAPP_VARS.length) return
+  const missing = WHATSAPP_VARS.filter((v) => !process.env[v])
+  log.warn(
+    `whatsapp: partially configured — missing ${missing.join(", ")}. ` +
+      "Inbound WhatsApp invoices will not work until all WHATSAPP_* vars are set."
+  )
+}
+
 // The business number in wa.me / display form (digits only, no +), used to build
 // the click-to-chat link a user taps to send their verification code.
 export function whatsappBusinessNumber(): string | null {

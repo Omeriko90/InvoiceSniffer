@@ -89,6 +89,26 @@ Local: `MODE=fixed-expenses-check npm run worker:batch`.
 | `R2_SECRET_ACCESS_KEY` | R2 credentials |
 | `R2_BUCKET` | Bucket name |
 
+## WhatsApp invoice intake (optional)
+
+Lets users forward invoices (PDF/photo) to the app's WhatsApp number over the
+**Meta WhatsApp Business Cloud API**. All-unset = feature off; set them all to
+enable it (a partial set logs a startup warning). Users link their own phone in
+Settings → WhatsApp; the inbound webhook is `POST <NEXTAUTH_URL>/api/whatsapp/webhook`.
+Media is persisted to R2 (its download URL expires ~5 min), so R2 must be
+configured too. Processing reuses the Cloud Run Job (`MODE=whatsapp-ingest`).
+
+For dev/testing, Meta provisions a **free test number** automatically (no
+purchase); production needs a real owned number + Meta Business Verification.
+
+| Var | Purpose |
+|---|---|
+| `WHATSAPP_ACCESS_TOKEN` | Graph API token (system-user / permanent token) for the WhatsApp app |
+| `WHATSAPP_PHONE_NUMBER_ID` | The business number's phone-number id (Graph API), used to send replies |
+| `WHATSAPP_BUSINESS_NUMBER` | The business number in display form (digits), used to build the `wa.me` link users tap |
+| `WHATSAPP_APP_SECRET` | Meta app secret — verifies the inbound `X-Hub-Signature-256` HMAC |
+| `WHATSAPP_VERIFY_TOKEN` | Arbitrary shared secret you set in the Meta webhook config; echoed back on the GET verify handshake |
+
 ## LLM classifier (invoice detection)
 
 Second opinion on borderline invoice-detection scores. Runs on Google Gemini
