@@ -56,15 +56,17 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
           <span className="text-sm text-text-secondary">
             {fmtDate(inv.date)}
           </span>
-          <a
-            href={inv.gmailLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-[5px] text-xs font-semibold text-primary-strong hover:underline justify-end"
-          >
-            <ExternalLink size={13} />
-            Email
-          </a>
+          {inv.gmailLink && (
+            <a
+              href={inv.gmailLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-[5px] text-xs font-semibold text-primary-strong hover:underline justify-end"
+            >
+              <ExternalLink size={13} />
+              Email
+            </a>
+          )}
         </div>
       ))}
     </div>

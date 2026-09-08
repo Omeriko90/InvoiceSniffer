@@ -107,6 +107,15 @@ export async function GET(
     )
   }
 
+  // Only Gmail-sourced invoices have an attachment served from the Gmail API.
+  if (!invoice.gmailMessageId) {
+    return errorPage(
+      400,
+      "Attachment unavailable",
+      "This invoice didn't arrive by email, so it has no Gmail attachment to fetch."
+    )
+  }
+
   const attachments = invoice.attachmentMeta as AttachmentMeta[]
   const meta = attachments[Number(index)]
   if (!meta || meta.size > MAX_ATTACHMENT_BYTES) {

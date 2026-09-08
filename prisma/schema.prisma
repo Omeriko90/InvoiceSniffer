@@ -267,10 +267,14 @@ model Invoice {
   gmailMessageId       String? // null for non-Gmail sources
   gmailThreadId        String? // null for non-Gmail sources
   gmailLink            String? // null for non-Gmail sources
-  senderEmail          String? // null for non-Gmail sources
+  senderEmail          String? // null for non-Gmail sources (WhatsApp senders have no email)
   senderName           String?
-  subject              String? // null for non-Gmail sources
-  emailDate            DateTime? // null for non-Gmail sources
+  // Channel-neutral title + received timestamp — always set. For Gmail these are
+  // the email subject/received date; for WhatsApp, the media caption (or a
+  // generated title) and the message arrival time. Kept NOT NULL so dashboards
+  // and fixed-expense matching (which key off emailDate) work across channels.
+  subject              String
+  emailDate            DateTime
   // WhatsApp provenance (source = WHATSAPP): sender phone (E.164), Meta's wamid,
   // and the R2 key of the persisted media file.
   whatsappFromPhone    String?

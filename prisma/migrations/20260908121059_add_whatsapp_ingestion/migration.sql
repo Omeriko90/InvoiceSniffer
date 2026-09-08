@@ -12,9 +12,7 @@ ADD COLUMN     "whatsappMessageId" TEXT,
 ALTER COLUMN "gmailMessageId" DROP NOT NULL,
 ALTER COLUMN "gmailThreadId" DROP NOT NULL,
 ALTER COLUMN "gmailLink" DROP NOT NULL,
-ALTER COLUMN "senderEmail" DROP NOT NULL,
-ALTER COLUMN "subject" DROP NOT NULL,
-ALTER COLUMN "emailDate" DROP NOT NULL;
+ALTER COLUMN "senderEmail" DROP NOT NULL;
 
 -- CreateTable
 CREATE TABLE "WhatsAppNumber" (

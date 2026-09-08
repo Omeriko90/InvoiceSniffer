@@ -31,27 +31,31 @@ export async function POST(
       data: { removedAt: null, removalReason: null },
     })
 
-    // No other removed invoice from this sender → nothing left justifying the
-    // mute, so deactivate the user's IGNORE rule (Settings can re-add it).
-    const otherRemoved = await tx.invoice.count({
-      where: {
-        organizationId,
-        senderEmail: invoice.senderEmail,
-        removedAt: { not: null },
-        id: { not: invoice.id },
-      },
-    })
-    if (otherRemoved === 0) {
-      await tx.vendorAlias.updateMany({
+    // Sender-mute learning keys on the email address; skip for channels
+    // without one (e.g. WhatsApp).
+    if (invoice.senderEmail) {
+      // No other removed invoice from this sender → nothing left justifying the
+      // mute, so deactivate the user's IGNORE rule (Settings can re-add it).
+      const otherRemoved = await tx.invoice.count({
         where: {
           organizationId,
-          senderEmail: invoice.senderEmail.toLowerCase(),
-          type: "IGNORE",
-          source: "USER",
-          active: true,
+          senderEmail: invoice.senderEmail,
+          removedAt: { not: null },
+          id: { not: invoice.id },
         },
-        data: { active: false },
       })
+      if (otherRemoved === 0) {
+        await tx.vendorAlias.updateMany({
+          where: {
+            organizationId,
+            senderEmail: invoice.senderEmail.toLowerCase(),
+            type: "IGNORE",
+            source: "USER",
+            active: true,
+          },
+          data: { active: false },
+        })
+      }
     }
   })
 

@@ -217,16 +217,18 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
 
       <div className="flex flex-col gap-2.5 px-5.5 py-6 border-t border-secondary shrink-0">
         <div className="flex gap-2.5">
-            <Button
-              variant="outline"
-              className="flex-1"
-              size="xl"
-              nativeButton={false}
-              render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
-            >
-              <ExternalLink size={15} strokeWidth={1.5} />
-              Open in Gmail
-            </Button>
+            {invoice.gmailLink && (
+              <Button
+                variant="outline"
+                className="flex-1"
+                size="xl"
+                nativeButton={false}
+                render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
+              >
+                <ExternalLink size={15} strokeWidth={1.5} />
+                Open in Gmail
+              </Button>
+            )}
             <Button
               className="flex-1"
               size="xl"

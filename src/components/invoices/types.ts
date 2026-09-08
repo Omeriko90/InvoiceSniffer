@@ -27,8 +27,8 @@ export type InvoiceRow = {
   status: InvoiceStatus
   category: InvoiceCategory
   documentType: DocumentType
-  gmailLink: string
-  senderEmail: string
+  gmailLink: string | null
+  senderEmail: string | null
   senderName: string | null
   subject: string
   attachmentMeta: AttachmentMeta[]

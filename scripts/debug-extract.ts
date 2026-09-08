@@ -57,6 +57,7 @@ async function main() {
       return
     }
     if (!inv.gmailCredentialId) throw new Error(`Invoice ${inv.id} has no gmailCredentialId`)
+    if (!inv.gmailMessageId) throw new Error(`Invoice ${inv.id} has no gmailMessageId`)
     gmailMessageId = inv.gmailMessageId
     credentialId = inv.gmailCredentialId
     console.log(`Debugging most recent zero-amount invoice: "${inv.subject}"`)
