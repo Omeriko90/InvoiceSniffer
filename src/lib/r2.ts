@@ -73,3 +73,31 @@ export async function exportObjectExists(key: string): Promise<boolean> {
     return false
   }
 }
+
+// Object key for a WhatsApp media file. Scoped by org (cross-tenant isolation)
+// and keyed by Meta's wamid so a re-delivered webhook overwrites rather than
+// duplicates. Unlike Gmail attachments (re-fetched on demand), WhatsApp media
+// must be persisted — its download URL expires ~5 minutes after delivery.
+export function whatsappMediaKey(organizationId: string, wamid: string, ext: string): string {
+  return `whatsapp/${organizationId}/${wamid.replace(/[^\w.-]/g, "_")}.${ext}`
+}
+
+// Store arbitrary bytes at a key (WhatsApp media). Generic sibling of
+// putExportObject with the same client/bucket.
+export async function putObject(
+  key: string,
+  body: Buffer | Uint8Array,
+  contentType: string
+): Promise<void> {
+  await getClient().send(
+    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType })
+  )
+}
+
+// Read an object's bytes back (the whatsapp-ingest worker pulls the persisted
+// media to feed the extraction core).
+export async function getObjectBytes(key: string): Promise<Buffer> {
+  const res = await getClient().send(new GetObjectCommand({ Bucket: BUCKET, Key: key }))
+  const body = res.Body as { transformToByteArray(): Promise<Uint8Array> }
+  return Buffer.from(await body.transformToByteArray())
+}
