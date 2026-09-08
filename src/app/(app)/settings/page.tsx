@@ -9,6 +9,7 @@ import { WorkspaceMembersCard } from "@/components/settings/WorkspaceMembersCard
 import { LearnedRulesCard } from "@/components/settings/LearnedRulesCard"
 import { ReconcileSettingsCard } from "@/components/settings/ReconcileSettingsCard"
 import { CurrencyPreferenceCard } from "@/components/settings/CurrencyPreferenceCard"
+import { WhatsAppCard } from "@/components/settings/WhatsAppCard"
 
 export default function SettingsPage() {
   const { data, isPending } = useSettings()
@@ -22,10 +23,16 @@ export default function SettingsPage() {
       </Suspense>
       <div className="grid grid-cols-2 gap-3.5">
         <GmailConnectionCard gmails={data.gmails} maxGmailAccounts={data.maxGmailAccounts} />
-        <WorkspaceMembersCard members={data.members} />
+        <WhatsAppCard
+          numbers={data.whatsappNumbers}
+          maxWhatsAppNumbers={data.maxWhatsAppNumbers}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3.5">
+        <WorkspaceMembersCard members={data.members} />
         <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
+      </div>
+      <div className="grid grid-cols-2 gap-3.5">
         <CurrencyPreferenceCard displayCurrency={data.displayCurrency} />
       </div>
       <LearnedRulesCard rules={data.rules} />
