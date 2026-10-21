@@ -1,12 +1,12 @@
-import { ExportsHistoryClient } from "@/components/exports/ExportsHistoryClient"
+import { ExportsHistory } from "@/components/exports/ExportsHistory"
 
 export default function Page() {
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-secondary">
-        Your invoice exports. Files stay available for re-download until they expire.
+    <div className="flex flex-col gap-6 h-full min-h-0">
+      <p className="text-lg font-medium text-text-secondary">
+        Your invoice exports
       </p>
-      <ExportsHistoryClient />
+      <ExportsHistory />
     </div>
   )
 }

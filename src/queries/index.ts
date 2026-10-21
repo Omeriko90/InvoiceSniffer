@@ -1,5 +1,6 @@
 import { alertsKeys } from "./alerts";
 import { dashboardKeys } from "./dashboard";
+import { exportsKeys } from "./export";
 import { fixedExpensesKeys } from "./fixed-expenses";
 import { gmailKeys } from "./gmail";
 import { importKeys } from "./import";
@@ -16,4 +17,5 @@ export const queries = {
   invoices: invoicesKeys,
   reconcile: reconcileKeys,
   settings: settingsKeys,
+  exports: exportsKeys,
 };
