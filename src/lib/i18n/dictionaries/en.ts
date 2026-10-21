@@ -117,6 +117,16 @@ export const en = {
       reconnect_title: "Reconnect Gmail to resume detecting invoices",
       out_of_sync: "Gmail out of sync · reconnect",
     },
+    pageTitle: {
+      dashboard: "Dashboard",
+      invoices: "Invoices",
+      import: "Import CSV",
+      reconcile: "Reconcile",
+      fixed_expenses: "Fixed Expenses",
+      alerts: "Alerts",
+      exports: "Exports",
+      settings: "Settings",
+    },
   },
   auth: {
     google: {
@@ -124,6 +134,35 @@ export const en = {
     },
     divider: {
       or: "or",
+    },
+    brand: {
+      headline: "Invoices in. Transactions matched. Books done.",
+      subtitle: "Connect Gmail, upload a statement, and let InvoiceSniffer match every charge to its invoice — flagging anomalies and building your accountant export automatically.",
+      features: {
+        autoDetect: "Auto-detects invoices & receipts from your inbox",
+        learns: "Learns from your corrections over time",
+        neverStores: "Never stores your invoice files",
+      },
+    },
+    onboarding: {
+      title: "Connect your Gmail",
+      description: "We scan your inbox for invoices & receipts and store only the details — sender, amount, date, and a link back to the original email.",
+      neverStored: "Your invoice files are never stored.",
+      connectGmail: "Connect Gmail",
+      access: "Read-only access · encrypted · revoke anytime",
+      skip: "Skip for now",
+    },
+    signin: {
+      title: "Welcome back",
+      subtitle: "Sign in to your workspace.",
+      newPrompt: "New to InvoiceSniffer?",
+      createAccount: "Create an account",
+    },
+    signup: {
+      title: "Create your account",
+      subtitle: "Start reconciling invoices in minutes.",
+      haveAccount: "Already have an account?",
+      signIn: "Sign in",
     },
   },
   import_csv: {

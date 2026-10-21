@@ -116,6 +116,16 @@ export const he = {
       reconnect_title: "התחברות מחדש ל‑Gmail כדי להמשיך בזיהוי חשבוניות",
       out_of_sync: "Gmail לא מסונכרן · התחברות מחדש",
     },
+    pageTitle: {
+      dashboard: "לוח בקרה",
+      invoices: "חשבוניות",
+      import: "ייבוא CSV",
+      reconcile: "התאמה",
+      fixed_expenses: "הוצאות קבועות",
+      alerts: "התראות",
+      exports: "ייצוא",
+      settings: "הגדרות",
+    },
   },
   auth: {
     google: {
@@ -123,6 +133,35 @@ export const he = {
     },
     divider: {
       or: "או",
+    },
+    brand: {
+      headline: "חשבוניות נכנסות. תנועות מותאמות. הנהלת חשבונות מוכנה.",
+      subtitle: "חברו את Gmail, העלו דוח, ותנו ל‑InvoiceSniffer להתאים כל חיוב לחשבונית שלו — לסמן חריגות ולבנות את ייצוא רואה החשבון באופן אוטומטי.",
+      features: {
+        autoDetect: "מזהה אוטומטית חשבוניות וקבלות מתיבת הדואר",
+        learns: "לומד מהתיקונים שלכם עם הזמן",
+        neverStores: "לעולם לא שומר את קובצי החשבוניות",
+      },
+    },
+    onboarding: {
+      title: "חברו את ה‑Gmail שלכם",
+      description: "אנו סורקים את תיבת הדואר לאיתור חשבוניות וקבלות ושומרים רק את הפרטים — שולח, סכום, תאריך וקישור חזרה לאימייל המקורי.",
+      neverStored: "קובצי החשבוניות שלכם לעולם אינם נשמרים.",
+      connectGmail: "חיבור Gmail",
+      access: "גישה לקריאה בלבד · מוצפן · ניתן לבטל בכל עת",
+      skip: "דלגו בינתיים",
+    },
+    signin: {
+      title: "ברוכים השבים",
+      subtitle: "התחברו לסביבת העבודה שלכם.",
+      newPrompt: "חדשים ב‑InvoiceSniffer?",
+      createAccount: "יצירת חשבון",
+    },
+    signup: {
+      title: "יצירת החשבון שלכם",
+      subtitle: "התחילו להתאים חשבוניות תוך דקות.",
+      haveAccount: "כבר יש לכם חשבון?",
+      signIn: "התחברות",
     },
   },
   import_csv: {
