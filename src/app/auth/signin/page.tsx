@@ -2,8 +2,10 @@ import Link from "next/link"
 import { SignInForm } from "./SignInForm"
 import { AuthBrandHeader } from "@/components/auth/AuthBrandHeader"
 import { BrandPanel } from "@/components/auth/BrandPanel"
+import { getT } from "@/lib/i18n/getLocale.server"
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  const t = await getT()
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
@@ -13,14 +15,14 @@ export default function SignInPage() {
 
           <AuthBrandHeader />
 
-          <h1 style={{ fontSize: "27px", fontWeight: 800, letterSpacing: "-0.02em", color: "#1E293B", margin: "0 0 6px" }}>Welcome back</h1>
-          <p style={{ fontSize: "14px", color: "#64748B", margin: "0 0 26px" }}>Sign in to your workspace.</p>
+          <h1 style={{ fontSize: "27px", fontWeight: 800, letterSpacing: "-0.02em", color: "#1E293B", margin: "0 0 6px" }}>{t("auth.signin.title")}</h1>
+          <p style={{ fontSize: "14px", color: "#64748B", margin: "0 0 26px" }}>{t("auth.signin.subtitle")}</p>
 
           <SignInForm />
 
           <p className="text-sm text-text-secondary text-center mt-5.5">
-            New to InvoiceSniffer?{" "}
-            <Link href="/auth/signup" className="text-primary font-bold hover:opacity-80">Create an account</Link>
+            {t("auth.signin.newPrompt")}{" "}
+            <Link href="/auth/signup" className="text-primary font-bold hover:opacity-80">{t("auth.signin.createAccount")}</Link>
           </p>
         </div>
       </div>

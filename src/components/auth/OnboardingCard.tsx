@@ -1,8 +1,10 @@
 import { Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import { GoogleLogo } from "./GoogleLogo"
+import { getT } from "@/lib/i18n/getLocale.server"
 
-export function OnboardingCard() {
+export async function OnboardingCard() {
+  const t = await getT()
   return (
     <div className="w-full text-center flex flex-col items-center max-w-110 bg-surface border border-border rounded-lg shadow-card py-9 px-8.5">
       {/* Logo */}
@@ -17,12 +19,12 @@ export function OnboardingCard() {
       </p>
 
       <h1 className="text-2xl font-extrabold text-heading tracking-[-0.02em] mb-2">
-        Connect your Gmail
+        {t("auth.onboarding.title")}
       </h1>
 
       <p className="text-sm text-text-secondary leading-relaxed mb-5.5">
-        We scan your inbox for invoices &amp; receipts and store only the details — sender, amount, date, and a link back to the original email.{" "}
-        <strong className="text-subtle">Your invoice files are never stored.</strong>
+        {t("auth.onboarding.description")}{" "}
+        <strong className="text-subtle">{t("auth.onboarding.neverStored")}</strong>
       </p>
 
       <Link
@@ -30,16 +32,16 @@ export function OnboardingCard() {
         className="w-full h-11.5 gap-2.5 text-base font-bold rounded-lg flex items-center justify-center text-white"
       >
         <GoogleLogo />
-        Connect Gmail
+        {t("auth.onboarding.connectGmail")}
       </Link>
 
       <div className="flex items-center justify-center gap-1.75 mt-1 text-xs text-dim">
         <Lock size={13} strokeWidth={1.5} className="shrink-0" />
-        <span>Read-only access · encrypted · revoke anytime</span>
+        <span>{t("auth.onboarding.access")}</span>
       </div>
 
       <Link href="/" className="mt-5 text-sm text-dim hover:text-text-secondary transition-colors">
-        Skip for now
+        {t("auth.onboarding.skip")}
       </Link>
     </div>
   )
