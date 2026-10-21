@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 
 // Single source of truth for transaction reconcile statuses.
@@ -19,6 +20,14 @@ export const STATUS_META = {
   NO_INVOICE: { label: "No invoice", badge: "bg-hover text-text-secondary",  bar: "bg-faint" },
 } as const satisfies Record<TxnStatus, StatusMeta>
 
+// Status labels resolved via i18n; STATUS_META.label kept as a non-visible fallback.
+const STATUS_LABEL_KEYS: Record<TxnStatus, string> = {
+  MATCHED: "reconcile.status.matched",
+  POSSIBLE: "reconcile.status.possible",
+  UNMATCHED: "reconcile.status.missing",
+  NO_INVOICE: "reconcile.status.noInvoice",
+}
+
 export function StatusBadge({
   status,
   confirmed,
@@ -28,8 +37,12 @@ export function StatusBadge({
   confirmed?: boolean
   className?: string
 }) {
+  const t = useT()
   const meta = STATUS_META[status]
-  const label = confirmed && status === "MATCHED" ? "Confirmed" : meta.label
+  const label =
+    confirmed && status === "MATCHED"
+      ? t("reconcile.status.confirmed")
+      : t(STATUS_LABEL_KEYS[status] as never)
   return (
     <Badge className={cn("h-auto text-xs font-bold px-2.5 py-0.5", meta.badge, className)}>
       {label}

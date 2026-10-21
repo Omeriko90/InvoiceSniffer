@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ArrowLeft } from "lucide-react"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { Button } from "@/components/ui/button"
 import { fetchMatch, reconcileAction } from "@/api/reconcile"
 import { resolveDateRange } from "@/lib/date-range"
@@ -27,12 +28,12 @@ import type {
   SessionFileInput,
 } from "@/api-types/reconcile"
 
-const ACTION_MSG: Record<string, string> = {
-  confirm: "Match confirmed",
-  reject: "Match rejected — alias learned",
-  no_invoice: "Marked as no invoice needed",
-  undo: "Reverted",
-  link: "Invoice linked — alias learned",
+const ACTION_MSG_KEY: Record<string, string> = {
+  confirm: "reconcile.toast.matchConfirmed",
+  reject: "reconcile.toast.matchRejected",
+  no_invoice: "reconcile.toast.markedNoInvoice",
+  undo: "reconcile.toast.reverted",
+  link: "reconcile.toast.invoiceLinked",
 }
 
 function candidateToInvoice(c: CandidateResult): MatchInvoice {
@@ -53,6 +54,7 @@ function candidateToInvoice(c: CandidateResult): MatchInvoice {
 }
 
 export function ReconcileSession() {
+  const t = useT()
   const [scope, setScope] = useState<DateRangeScope>({ preset: "month" })
   const [files, setFiles] = useState<SessionFileInput[]>([])
   const [result, setResult] = useState<MatchResponse | null>(null)
@@ -93,7 +95,7 @@ export function ReconcileSession() {
   async function persist(payload: ReconcileAction, msgKey: string) {
     try {
       await reconcileAction(payload)
-      toast.success(ACTION_MSG[msgKey])
+      toast.success(t(ACTION_MSG_KEY[msgKey] as never))
     } catch (e) {
       toast.error((e as Error).message)
       throw e
@@ -123,7 +125,7 @@ export function ReconcileSession() {
           aiSuggested: false,
           matchConfidence: null,
           matchConfirmed: false,
-          matchReason: "You rejected the suggested match",
+          matchReason: t("reconcile.reason.rejected"),
         }))
       } else if (action === "no_invoice") {
         await persist({ action: "no_invoice", merchant: row.merchant }, "no_invoice")
@@ -135,7 +137,7 @@ export function ReconcileSession() {
           aiSuggested: false,
           matchConfidence: null,
           matchConfirmed: false,
-          matchReason: "You marked this — won’t be flagged",
+          matchReason: t("reconcile.reason.noInvoiceNeeded"),
         }))
       } else if (action === "undo") {
         const orig = originals.current.get(id)
@@ -171,7 +173,7 @@ export function ReconcileSession() {
         status: "MATCHED",
         matchConfirmed: true,
         matchConfidence: candidate.confidence ?? 1,
-        matchReason: "Linked by you — alias learned",
+        matchReason: t("reconcile.reason.linkedByYou"),
         collision: candidate.status === "MATCHED",
         aiSuggested: false,
         invoice: candidateToInvoice(candidate),
@@ -188,17 +190,17 @@ export function ReconcileSession() {
   const tabs = useMemo(() => {
     const byTab = (t: TabId) => rows.filter((r) => TAB_FOR_STATUS[r.status] === t).length
     const list: { id: TabId; label: string; count: number }[] = [
-      { id: "all", label: "All", count: rows.length },
-      { id: "matched", label: "Matched", count: byTab("matched") },
-      { id: "possible", label: "Possible", count: byTab("possible") },
-      { id: "missing", label: "Missing invoice", count: byTab("missing") },
-      { id: "none", label: "No invoice", count: byTab("none") },
-      { id: "invoices", label: "Invoices w/o charge", count: result?.unreconciledInvoices.length ?? 0 },
+      { id: "all", label: t("reconcile.tab.all"), count: rows.length },
+      { id: "matched", label: t("reconcile.tab.matched"), count: byTab("matched") },
+      { id: "possible", label: t("reconcile.tab.possible"), count: byTab("possible") },
+      { id: "missing", label: t("reconcile.tab.missing"), count: byTab("missing") },
+      { id: "none", label: t("reconcile.tab.none"), count: byTab("none") },
+      { id: "invoices", label: t("reconcile.tab.invoices"), count: result?.unreconciledInvoices.length ?? 0 },
     ]
     const collisions = rows.filter((r) => r.collision).length
-    if (collisions > 0) list.push({ id: "collisions", label: "Already reconciled", count: collisions })
+    if (collisions > 0) list.push({ id: "collisions", label: t("reconcile.tab.collisions"), count: collisions })
     return list
-  }, [rows, result])
+  }, [rows, result, t])
 
   const filtered = useMemo(() => {
     if (tab === "all") return rows
@@ -233,7 +235,7 @@ export function ReconcileSession() {
           onClick={() => setResult(null)}
         >
           <ArrowLeft size={14} />
-          Files &amp; date range
+          {t("reconcile.session.filesAndDateRange")}
         </Button>
         <Button
           size="sm"
@@ -242,7 +244,7 @@ export function ReconcileSession() {
           disabled={reconciling}
           onClick={runMatch}
         >
-          {reconciling ? "Re-running…" : "Re-run match"}
+          {reconciling ? t("reconcile.session.reRunning") : t("reconcile.session.reRunMatch")}
         </Button>
       </div>
 

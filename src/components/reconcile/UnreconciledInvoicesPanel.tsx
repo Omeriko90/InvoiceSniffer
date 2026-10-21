@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
 import { ExternalLink, FileText } from "lucide-react"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { fmtMoney } from "@/lib/money"
 import { fmtDate } from "@/lib/date"
 import type { MatchInvoice } from "@/api-types/reconcile"
@@ -7,15 +8,16 @@ import type { MatchInvoice } from "@/api-types/reconcile"
 // Invoices in the selected window that no uploaded charge matched — i.e. you may
 // be missing a bank/card charge for them, or haven't uploaded the right file.
 export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice[] }) {
+  const t = useT()
   if (invoices.length === 0) {
     return (
       <div className="bg-card border border-border rounded-lg flex flex-col items-center justify-center py-16 px-8">
         <div className="w-14 h-14 rounded-xl bg-hover flex items-center justify-center mb-4">
           <FileText size={26} strokeWidth={1.5} className="text-dim" />
         </div>
-        <p className="text-base font-bold text-heading mb-1">Every invoice is accounted for</p>
+        <p className="text-base font-bold text-heading mb-1">{t("reconcile.unreconciled.emptyTitle")}</p>
         <p className="text-sm text-text-secondary text-center max-w-[340px] leading-[1.6]">
-          Each invoice in this window matched a charge in your uploaded files.
+          {t("reconcile.unreconciled.emptyDescription")}
         </p>
       </div>
     )
@@ -27,7 +29,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
         className="grid px-[18px] py-3 bg-raised border-b border-border"
         style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
       >
-        {["Vendor", "Invoice #", "Amount", "Date", ""].map((h, i) => (
+        {[t("reconcile.unreconciled.vendor"), t("reconcile.unreconciled.invoiceNumber"), t("reconcile.unreconciled.amount"), t("reconcile.unreconciled.date"), ""].map((h, i) => (
           <span
             key={i}
             className="text-xs font-bold text-text-secondary"
@@ -45,7 +47,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
           style={{ gridTemplateColumns: "1.8fr 1fr .9fr 1fr .8fr", gap: "14px" }}
         >
           <span className="text-sm font-semibold text-foreground truncate">
-            {inv.vendorName ?? "Unknown vendor"}
+            {inv.vendorName ?? t("reconcile.unknownVendor")}
           </span>
           <span className="text-sm text-text-secondary font-mono truncate">
             {inv.invoiceNumber ?? "—"}
@@ -63,7 +65,7 @@ export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice
             className="flex items-center gap-[5px] text-xs font-semibold text-primary-strong hover:underline justify-end"
           >
             <ExternalLink size={13} />
-            Email
+            {t("reconcile.unreconciled.email")}
           </a>
         </div>
       ))}

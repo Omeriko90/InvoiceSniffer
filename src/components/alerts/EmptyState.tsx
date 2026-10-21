@@ -1,17 +1,19 @@
 // Client component by import — only ever rendered from the Alerts page.
 import { BellOff } from "lucide-react"
 import { EmptyState as EmptyStateShell } from "@/components/ui/empty-state"
+import { useT } from "@/components/i18n/LocaleProvider"
 
 export function EmptyState({ filtered }: { filtered: boolean }) {
+  const t = useT()
   return (
     <EmptyStateShell
       className="max-w-[880px]"
       icon={BellOff}
-      title={filtered ? "No alerts in this category" : "No alerts right now"}
+      title={filtered ? t("alerts.empty.filteredTitle") : t("alerts.empty.title")}
       description={
         filtered
-          ? "Try a different severity filter — you're all caught up here."
-          : "We'll flag unusual spend, spikes, missing recurring invoices, and new vendors as they come in."
+          ? t("alerts.empty.filteredDescription")
+          : t("alerts.empty.description")
       }
     />
   )

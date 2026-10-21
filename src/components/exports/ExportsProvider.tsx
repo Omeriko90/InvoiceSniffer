@@ -3,6 +3,7 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState } from "react"
 import { useQueries } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { fetchExportStatus, downloadExport } from "@/api/exports"
 
 // Tracks in-flight async PDF exports at the app-shell level so polling and the
@@ -57,6 +58,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
   // Lazy init from localStorage. Safe against SSR (readStored returns [] when
   // there's no window) and against hydration mismatch, since this provider
   // renders no DOM derived from activeIds.
+  const t = useT()
   const [activeIds, setActiveIds] = useState<string[]>(() => readStored(STORAGE_KEY))
   // Finished-but-unviewed export ids; drives the nav badge, persisted so it
   // survives reloads until the user opens the Exports page.
@@ -81,17 +83,14 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
   const trackExport = useCallback(
     (id: string) => {
       resolved.current.delete(id)
-      // Transient "building" toast: shows for 5s then disappears on its own.
-      // Polling continues in the background regardless, and a separate toast
-      // fires on completion — so a long build doesn't leave a toast hanging.
-      toast.loading("Building your PDF…", {
+      toast.loading(t("exports.toast.building.title"), {
         id: `export-${id}`,
-        description: "We'll let you know when it's ready to download.",
+        description: t("exports.toast.building.description"),
         duration: 5000,
       })
       persist(Array.from(new Set([...readStored(STORAGE_KEY), id])))
     },
-    [persist]
+    [persist, t]
   )
 
   const results = useQueries({
@@ -126,24 +125,27 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
         newlyReady.push(data.id)
         const skippedNote =
           data.skippedCount > 0
-            ? ` ${data.skippedCount} invoice${data.skippedCount === 1 ? "" : "s"} couldn't be included and ${data.skippedCount === 1 ? "was" : "were"} skipped.`
+            ? " " + t("exports.toast.ready.skippedNote", { count: data.skippedCount })
             : ""
-        toast.success("Your PDF is ready", {
-          id: `export-ready-${data.id}`,
-          description: `Download ${data.fileName ?? "your export"}.${skippedNote}`,
-          action: { label: "Download", onClick: () => downloadExport(data.id) },
+        toast.success(t("exports.toast.ready.title"), {
+          id: `export-${data.id}`,
+          description:
+            t("exports.toast.ready.description", {
+              fileName: data.fileName ?? t("exports.toast.ready.defaultFileName"),
+            }) + skippedNote,
+          action: { label: t("exports.download"), onClick: () => downloadExport(data.id) },
           // Stay until dismissed — a completion that auto-hides after a few
           // seconds is easy to miss. The unread nav badge is the fallback for
           // when the tab wasn't open at completion.
           duration: Infinity,
         })
       } else {
-        toast.error("Export failed", {
-          id: `export-ready-${data.id}`,
+        toast.error(t("exports.toast.failed.title"), {
+          id: `export-${data.id}`,
           description:
             data.status === "EXPIRED"
-              ? "The export expired before it could be downloaded."
-              : "We couldn't build this export. Please try again.",
+              ? t("exports.toast.failed.expired")
+              : t("exports.toast.failed.generic"),
         })
       }
 
@@ -158,7 +160,7 @@ export function ExportsProvider({ children }: { children: React.ReactNode }) {
     if (newlyReady.length > 0) {
       persistReady(Array.from(new Set([...readStored(READY_KEY), ...newlyReady])))
     }
-  }, [results, activeIds, persist, persistReady])
+  }, [results, activeIds, persist, persistReady, t])
 
   return (
     <ExportsContext.Provider value={{ trackExport, readyCount: readyIds.length, markReadyViewed }}>

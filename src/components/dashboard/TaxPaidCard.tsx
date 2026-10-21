@@ -1,15 +1,17 @@
 // Client component by import — only ever rendered from <DashboardPage>.
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { TaxByCurrency } from "@/api-types/dashboard"
 
 export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; rangeLabel: string }) {
+  const t = useT()
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-base font-bold text-heading leading-none">
-            Reclaimable VAT — {rangeLabel}
+            {t("dashboard.taxPaid.title", { rangeLabel })}
           </h2>
           <p className="text-xs font-semibold text-text-secondary leading-none">
             Breakdown by currency
@@ -17,8 +19,8 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
         </div>
 
         {rows.length === 0 ? (
-          <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
-            No tax recorded on invoices in the selected range.
+          <p className="text-sm text-text-secondary py-6 text-center">
+            {t("dashboard.taxPaid.empty")}
           </p>
         ) : (
           <div className="flex-1 flex flex-col justify-center gap-3">
@@ -29,7 +31,7 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
                     {r.currency}
                   </span>
                   <span className="text-xs text-text-secondary shrink-0">
-                    · {r.count} {r.count === 1 ? "invoice" : "invoices"}
+                    · {t("dashboard.taxPaid.invoiceCount", { count: r.count })}
                   </span>
                 </span>
                 <span className="text-base font-extrabold text-heading shrink-0 tabular-nums">
@@ -38,8 +40,7 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
               </div>
             ))}
             <p className="text-xs text-dim leading-snug pt-1">
-              Reclaimable VAT from tax invoices this month. Not a
-              guaranteed-complete total.
+              {t("dashboard.taxPaid.note")}
             </p>
           </div>
         )}

@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <MatchDrawer>.
 import { ArrowDown, CreditCard, ExternalLink, FileText, TriangleAlert } from "lucide-react"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { InfoBox } from "@/components/ui/info-box"
 import { ActionButton } from "@/components/reconcile/ActionButton"
@@ -11,22 +12,24 @@ import { fmtMoney } from "@/lib/money"
 import type { RunAction, TransactionRow } from "@/components/reconcile/types"
 
 function Header({ transaction }: { transaction: TransactionRow }) {
+  const t = useT()
   const { invoice } = transaction
   return (
     <>
       <SheetTitle className="text-lg font-bold text-heading">
-        {invoice ? "Confirm this match" : "Transaction detail"}
+        {invoice ? t("reconcile.drawer.confirmThisMatch") : t("reconcile.drawer.transactionDetail")}
       </SheetTitle>
       <SheetDescription className="text-[12.5px] text-text-secondary">
         {invoice
-          ? "Check that the invoice matches this charge before confirming."
-          : "No invoice is linked to this charge yet."}
+          ? t("reconcile.drawer.checkInvoiceMatches")
+          : t("reconcile.drawer.noInvoiceLinkedYet")}
       </SheetDescription>
     </>
   )
 }
 
 function Content({ transaction }: { transaction: TransactionRow }) {
+  const t = useT()
   const { invoice } = transaction
 
   // Match signal — do the two sides agree on amount / date?
@@ -38,12 +41,12 @@ function Content({ transaction }: { transaction: TransactionRow }) {
     <>
       <SheetHeader className="px-5.5 py-5 border-b border-hover">
         <SheetTitle className="text-lg font-bold text-heading">
-          {invoice ? "Confirm this match" : "Transaction detail"}
+          {invoice ? t("reconcile.drawer.confirmThisMatch") : t("reconcile.drawer.transactionDetail")}
         </SheetTitle>
         <SheetDescription className="text-xs text-text-secondary">
           {invoice
-            ? "Check that the invoice matches this charge before confirming."
-            : "No invoice is linked to this charge yet."}
+            ? t("reconcile.drawer.checkInvoiceMatches")
+            : t("reconcile.drawer.noInvoiceLinkedYet")}
         </SheetDescription>
       </SheetHeader>
 
@@ -57,12 +60,12 @@ function Content({ transaction }: { transaction: TransactionRow }) {
             icon={<TriangleAlert size={16} className="text-warning-fg shrink-0 mt-px" />}
           >
             <div className="text-sm leading-relaxed text-warning-fg">
-              <p className="font-bold">Already reconciled</p>
+              <p className="font-bold">{t("reconcile.collision.title")}</p>
               <p>
-                This invoice was matched
-                {invoice.reconciledSourceFile ? ` against ${invoice.reconciledSourceFile}` : ""}
-                {invoice.reconciledAt ? ` on ${fmtDate(invoice.reconciledAt)}` : ""}. Confirming
-                again may mean a duplicate charge or a re-uploaded statement.
+                {t("reconcile.collision.matched")}
+                {invoice.reconciledSourceFile ? t("reconcile.collision.againstFile", { file: invoice.reconciledSourceFile }) : ""}
+                {invoice.reconciledAt ? t("reconcile.collision.onDate", { date: fmtDate(invoice.reconciledAt) }) : ""}
+                {t("reconcile.collision.confirmingAgain")}
               </p>
             </div>
           </InfoBox>
@@ -79,14 +82,14 @@ function Content({ transaction }: { transaction: TransactionRow }) {
       <div className="flex flex-col flex-1 items-stretch gap-3">
         <Panel
           icon={<CreditCard size={16} className="text-white" />}
-          title="Bank charge"
-          subtitle={transaction.sourceFile ?? "Imported transaction"}
+          title={t("reconcile.drawer.bankCharge")}
+          subtitle={transaction.sourceFile ?? t("reconcile.drawer.importedTransaction")}
           accentClass="bg-primary"
         >
-          <Field label="Merchant" value={transaction.merchant} />
-          <Field label="Amount" value={fmtMoney(transaction.amount, transaction.currency)} />
-          <Field label="Date" value={fmtDate(transaction.date)} />
-          <Field label="Currency" value={transaction.currency} />
+          <Field label={t("reconcile.field.merchant")} value={transaction.merchant} />
+          <Field label={t("reconcile.field.amount")} value={fmtMoney(transaction.amount, transaction.currency)} />
+          <Field label={t("reconcile.field.date")} value={fmtDate(transaction.date)} />
+          <Field label={t("reconcile.field.currency")} value={transaction.currency} />
         </Panel>
 
         <div className="hidden sm:flex items-center justify-center shrink-0">
@@ -97,19 +100,19 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           {invoice ? (
             <Panel
               icon={<FileText size={16} className="text-white" />}
-              title={invoice.vendorName ?? "Unknown vendor"}
+              title={invoice.vendorName ?? t("reconcile.unknownVendor")}
               subtitle={invoice.senderEmail}
               accentClass="bg-success"
             >
               <Field
-                label="Invoice #"
+                label={t("reconcile.field.invoiceNumber")}
                 value={invoice.invoiceNumber ?? "—"}
                 muted={!invoice.invoiceNumber}
               />
-              <Field label="Amount" value={fmtMoney(invoice.amount, invoice.currency)} />
-              <Field label="Invoice date" value={fmtDate(invoice.date)} />
+              <Field label={t("reconcile.field.amount")} value={fmtMoney(invoice.amount, invoice.currency)} />
+              <Field label={t("reconcile.field.invoiceDate")} value={fmtDate(invoice.date)} />
               <Field
-                label="Due date"
+                label={t("reconcile.field.dueDate")}
                 value={invoice.dueDate ? fmtDate(invoice.dueDate) : "—"}
                 muted={!invoice.dueDate}
               />
@@ -117,7 +120,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           ) : (
             <div className="flex-1 border border-dashed border-border rounded-[13px] flex flex-col items-center justify-center py-7 px-4 text-center">
               <FileText size={22} strokeWidth={1.5} className="text-faint mb-2" />
-              <p className="text-sm font-semibold text-dim">No invoice linked</p>
+              <p className="text-sm font-semibold text-dim">{t("reconcile.drawer.noInvoiceLinked")}</p>
             </div>
           )}
         </div>
@@ -131,7 +134,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
             className="flex items-center gap-1.75 text-sm font-semibold text-primary hover:underline w-fit"
           >
             <ExternalLink size={13} />
-            View source email
+            {t("reconcile.drawer.viewSourceEmail")}
           </a>
         )}
       </div>
@@ -139,9 +142,9 @@ function Content({ transaction }: { transaction: TransactionRow }) {
       {/* Match checks */}
       {invoice && (
         <div className="flex flex-wrap gap-2">
-          <CheckChip ok={amountMatch} label={amountMatch ? "Amounts match" : "Amounts differ"} />
+          <CheckChip ok={amountMatch} label={amountMatch ? t("reconcile.check.amountsMatch") : t("reconcile.check.amountsDiffer")} />
           {transaction.currency !== invoice.currency && (
-            <CheckChip ok={false} label="Currencies differ" />
+            <CheckChip ok={false} label={t("reconcile.check.currenciesDiffer")} />
           )}
         </div>
       )}
@@ -154,7 +157,7 @@ function Content({ transaction }: { transaction: TransactionRow }) {
           className="flex items-center gap-1.75 text-sm font-semibold text-primary hover:underline w-fit"
         >
           <ExternalLink size={13} />
-          View source email
+          {t("reconcile.drawer.viewSourceEmail")}
         </a>
       )}
     </>
@@ -172,46 +175,47 @@ function Footer({
   onFind: (txn: TransactionRow) => void
   pending: boolean
 }) {
+  const t = useT()
   return (
     <>
       {transaction.status === "MATCHED" && !transaction.matchConfirmed && (
         <>
           <ActionButton size="lg" variant="outline" disabled={pending} onClick={() => onRun(transaction.id, "reject")}>
-            ✕ Reject match
+            ✕ {t("reconcile.action.rejectMatch")}
           </ActionButton>
           <ActionButton size="lg" variant="green" disabled={pending} onClick={() => onRun(transaction.id, "confirm")}>
-            ✓ Confirm match
+            ✓ {t("reconcile.action.confirmMatch")}
           </ActionButton>
         </>
       )}
       {transaction.status === "MATCHED" && transaction.matchConfirmed && (
         <ActionButton size="lg" variant="outline" disabled={pending} onClick={() => onRun(transaction.id, "undo")}>
-          Undo confirmation
+          {t("reconcile.action.undoConfirmation")}
         </ActionButton>
       )}
       {transaction.status === "POSSIBLE" && (
         <>
           <ActionButton size="lg" variant="neutral" disabled={pending} onClick={() => onFind(transaction)}>
-            Change invoice
+            {t("reconcile.action.changeInvoice")}
           </ActionButton>
           <ActionButton size="lg" variant="blue" disabled={pending} onClick={() => onRun(transaction.id, "confirm")}>
-            Confirm match
+            {t("reconcile.action.confirmMatch")}
           </ActionButton>
         </>
       )}
       {transaction.status === "UNMATCHED" && (
         <>
           <ActionButton size="lg" variant="outline" disabled={pending} onClick={() => onRun(transaction.id, "no_invoice")}>
-            No invoice needed
+            {t("reconcile.action.noInvoiceNeeded")}
           </ActionButton>
           <ActionButton size="lg" variant="blue" disabled={pending} onClick={() => onFind(transaction)}>
-            Find invoice
+            {t("reconcile.action.findInvoice")}
           </ActionButton>
         </>
       )}
       {transaction.status === "NO_INVOICE" && (
         <ActionButton size="lg" variant="outline" disabled={pending} onClick={() => onRun(transaction.id, "undo")}>
-          Undo
+          {t("reconcile.action.undo")}
         </ActionButton>
       )}
     </>

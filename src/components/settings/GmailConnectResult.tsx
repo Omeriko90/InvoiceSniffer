@@ -4,41 +4,44 @@ import { useEffect, useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { track } from "@/lib/analytics"
+import { useT } from "@/components/i18n/LocaleProvider"
+import type { TranslationKey } from "@/lib/i18n/translate"
 
-// Friendly copy for each `gmail_error` code the OAuth callback can redirect
-// with (see src/app/api/gmail/callback/route.ts). `access_denied` comes from
-// Google itself when the user declines the consent screen.
-const ERROR_MESSAGES: Record<string, { title: string; description: string }> = {
+// Maps each `gmail_error` code the OAuth callback can redirect with (see
+// src/app/api/gmail/callback/route.ts) to its localized title/description keys.
+// `access_denied` comes from Google itself when the user declines consent.
+// Keys are resolved at display time since this map lives at module scope.
+const ERROR_KEYS: Record<string, { title: string; description: string }> = {
   account_limit: {
-    title: "Mailbox limit reached",
-    description: "Disconnect a mailbox or upgrade your plan to connect another.",
+    title: "settings.gmail.error.accountLimit.title",
+    description: "settings.gmail.error.accountLimit.description",
   },
   access_denied: {
-    title: "Gmail connection cancelled",
-    description: "You declined the permission request, so nothing was connected.",
+    title: "settings.gmail.error.accessDenied.title",
+    description: "settings.gmail.error.accessDenied.description",
   },
   token_exchange_failed: {
-    title: "Couldn't connect Gmail",
-    description: "Google sign-in didn't complete. Please try again.",
+    title: "settings.gmail.error.generic.title",
+    description: "settings.gmail.error.tokenExchangeFailed.description",
   },
   no_tokens: {
-    title: "Couldn't connect Gmail",
-    description: "Google didn't grant offline access. Try again and allow it when asked.",
+    title: "settings.gmail.error.generic.title",
+    description: "settings.gmail.error.noTokens.description",
   },
   missing_params: {
-    title: "Couldn't connect Gmail",
-    description: "The sign-in link was incomplete. Please start over.",
+    title: "settings.gmail.error.generic.title",
+    description: "settings.gmail.error.missingParams.description",
   },
   invalid_state: {
-    title: "Couldn't connect Gmail",
-    description: "The sign-in link expired or was invalid. Please try again.",
+    title: "settings.gmail.error.generic.title",
+    description: "settings.gmail.error.invalidState.description",
   },
 }
 
-const FALLBACK_ERROR = {
-  title: "Couldn't connect Gmail",
-  description: "Something went wrong connecting the mailbox. Please try again.",
-}
+const FALLBACK_ERROR_KEYS = {
+  title: "settings.gmail.error.generic.title",
+  description: "settings.gmail.error.fallback.description",
+} as const
 
 /**
  * Reads the `gmail_connected` / `gmail_error` query params set by the OAuth
@@ -46,6 +49,7 @@ const FALLBACK_ERROR = {
  * refresh doesn't re-fire the toast. Renders nothing.
  */
 export function GmailConnectResult() {
+  const t = useT()
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -61,17 +65,19 @@ export function GmailConnectResult() {
 
     if (connected) {
       track("account_connected")
-      toast.success("Gmail connected", {
-        description: "We'll start detecting invoices shortly.",
+      toast.success(t("settings.gmail.connectedToast.title"), {
+        description: t("settings.gmail.connectedToast.description"),
       })
     } else if (error) {
-      const { title, description } = ERROR_MESSAGES[error] ?? FALLBACK_ERROR
-      toast.error(title, { description })
+      const keys = ERROR_KEYS[error] ?? FALLBACK_ERROR_KEYS
+      toast.error(t(keys.title as TranslationKey), {
+        description: t(keys.description as TranslationKey),
+      })
     }
 
     // Drop the params so the toast doesn't reappear on refresh or navigation.
     router.replace(pathname, { scroll: false })
-  }, [connected, error, router, pathname])
+  }, [connected, error, router, pathname, t])
 
   return null
 }

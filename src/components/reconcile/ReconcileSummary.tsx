@@ -1,5 +1,6 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { MatchSummary } from "@/api-types/reconcile"
 
 function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
@@ -14,14 +15,15 @@ function Stat({ value, label, tone }: { value: number; label: string; tone: stri
 }
 
 export function ReconcileSummary({ summary }: { summary: MatchSummary }) {
+  const t = useT()
   return (
     <div className="flex flex-wrap gap-2.5">
-      <Stat value={summary.matched} label="Matched" tone="text-success-fg" />
-      <Stat value={summary.possible} label="Possible matches" tone="text-warning-fg" />
-      <Stat value={summary.chargesMissingInvoice} label="Charges missing an invoice" tone="text-danger-fg" />
-      <Stat value={summary.invoicesMissingCharge} label="Invoices missing a charge" tone="text-info-fg" />
+      <Stat value={summary.matched} label={t("reconcile.summary.matched")} tone="text-success-fg" />
+      <Stat value={summary.possible} label={t("reconcile.summary.possibleMatches")} tone="text-warning-fg" />
+      <Stat value={summary.chargesMissingInvoice} label={t("reconcile.summary.chargesMissingInvoice")} tone="text-danger-fg" />
+      <Stat value={summary.invoicesMissingCharge} label={t("reconcile.summary.invoicesMissingCharge")} tone="text-info-fg" />
       {summary.collisions > 0 && (
-        <Stat value={summary.collisions} label="Already reconciled" tone="text-warning-fg" />
+        <Stat value={summary.collisions} label={t("reconcile.summary.alreadyReconciled")} tone="text-warning-fg" />
       )}
     </div>
   )

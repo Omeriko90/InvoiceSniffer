@@ -8,21 +8,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatAmount } from "./helpers"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { PreviewTableProps } from "./types"
 
 export function PreviewTable({ rows, mapping }: PreviewTableProps) {
+  const t = useT()
   return (
     <div>
       <p className="text-xs font-bold text-text-secondary mb-2.5">
-        Preview (first 3 rows)
+      {t("import_csv.preview.heading")}
       </p>
       <div className="border border-border rounded-[10px] overflow-hidden">
         <Table className="text-start">
           <TableHeader>
             <TableRow className="border-border bg-background hover:bg-background">
-              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim">Date</TableHead>
-              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim">Merchant</TableHead>
-              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim text-end">Amount</TableHead>
+              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim">{t("import_csv.preview.col_date")}</TableHead>
+              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim">{t("import_csv.preview.col_merchant")}</TableHead>
+              <TableHead className="h-auto px-4 py-2.5 text-xs font-bold text-dim text-end">{t("import_csv.preview.col_amount")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

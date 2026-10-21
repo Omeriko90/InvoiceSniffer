@@ -1,11 +1,25 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
 import { Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { invoiceLabel } from "@/components/reconcile/helpers"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { TransactionRow } from "@/components/reconcile/types"
 
+// Invoice label resolved here via i18n rather than editing the sibling helpers.ts.
+function useInvoiceLabel(txn: TransactionRow): { text: string; muted: boolean } {
+  const t = useT()
+  if (txn.invoice) {
+    const vendor = txn.invoice.vendorName ?? t("reconcile.unknownVendor")
+    return {
+      text: txn.invoice.invoiceNumber ? `${vendor} — ${txn.invoice.invoiceNumber}` : vendor,
+      muted: false,
+    }
+  }
+  if (txn.status === "NO_INVOICE") return { text: t("reconcile.invoiceLabel.notRequired"), muted: true }
+  return { text: t("reconcile.invoiceLabel.notFound"), muted: true }
+}
+
 export function MatchedInvoiceCell({ txn }: { txn: TransactionRow }) {
-  const inv = invoiceLabel(txn)
+  const inv = useInvoiceLabel(txn)
 
   return (
     <div className="min-w-0">

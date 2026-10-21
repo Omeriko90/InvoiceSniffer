@@ -16,19 +16,14 @@ import {
 } from "@/components/ui/select"
 import { CategoryBadge } from "@/components/invoices/CategoryBadge"
 import { fmtAmount } from "@/components/invoices/helpers"
-import { FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
+import { type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { FixedExpenseStatusBadge } from "./FixedExpenseStatusBadge"
 import { FixedExpenseFormDialog } from "./FixedExpenseFormDialog"
 import { FixedExpenseDetailDrawer } from "./FixedExpenseDetailDrawer"
 import type { FixedExpenseRow } from "./types"
 
 const GRID = "1.4fr 1.2fr 1fr 0.9fr 0.9fr 0.9fr"
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "All" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "PAUSED", label: "Paused" },
-]
 
 export function FixedExpensesClient({
   expenses,
@@ -37,6 +32,21 @@ export function FixedExpensesClient({
   expenses: FixedExpenseRow[]
   mailboxes: { id: string; label: string }[]
 }) {
+  const t = useT()
+  const freqLabel = (f: FixedExpenseFrequency): string =>
+    ({
+      WEEKLY: t("fixed_expenses.frequency.weekly"),
+      BIWEEKLY: t("fixed_expenses.frequency.biweekly"),
+      MONTHLY: t("fixed_expenses.frequency.monthly"),
+      BIMONTHLY: t("fixed_expenses.frequency.bimonthly"),
+      QUARTERLY: t("fixed_expenses.frequency.quarterly"),
+      YEARLY: t("fixed_expenses.frequency.yearly"),
+    })[f]
+  const STATUS_OPTIONS = [
+    { value: "all", label: t("fixed_expenses.filter.all") },
+    { value: "ACTIVE", label: t("fixed_expenses.filter.active") },
+    { value: "PAUSED", label: t("fixed_expenses.filter.paused") },
+  ]
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -77,7 +87,7 @@ export function FixedExpensesClient({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search fixed expenses…"
+            placeholder={t("fixed_expenses.toolbar.search_placeholder")}
             className="h-auto ps-8.5 pe-2.75 py-2 text-sm border-border rounded-lg bg-surface"
           />
         </div>
@@ -98,7 +108,7 @@ export function FixedExpensesClient({
         <div className="flex-1" />
         <Button onClick={openCreate}>
           <Plus size={15} strokeWidth={2} />
-          New fixed expense
+          {t("fixed_expenses.toolbar.new")}
         </Button>
       </div>
 
@@ -108,7 +118,14 @@ export function FixedExpensesClient({
           className="grid px-4.5 py-3 bg-background border-b border-border"
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
-          {["Name", "Source", "Category", "Frequency", "Expected", "This period"].map((h) => (
+          {[
+            t("fixed_expenses.column.name"),
+            t("fixed_expenses.column.source"),
+            t("fixed_expenses.column.category"),
+            t("fixed_expenses.column.frequency"),
+            t("fixed_expenses.column.expected"),
+            t("fixed_expenses.column.this_period"),
+          ].map((h) => (
             <span key={h} className="text-xs font-bold text-text-secondary">
               {h}
             </span>
@@ -130,14 +147,14 @@ export function FixedExpensesClient({
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-heading truncate">{expense.name}</span>
                 {expense.status === "PAUSED" && (
-                  <span className="text-xs font-bold text-dim">Paused</span>
+                  <span className="text-xs font-bold text-dim">{t("fixed_expenses.paused")}</span>
                 )}
               </span>
               <span className="text-sm text-text-secondary truncate">
                 {expense.vendorName ?? expense.senderEmail ?? "—"}
               </span>
               <span className="min-w-0"><CategoryBadge category={expense.category} /></span>
-              <span className="text-sm text-text-secondary">{FREQUENCY_LABELS[expense.frequency]}</span>
+              <span className="text-sm text-text-secondary">{freqLabel(expense.frequency)}</span>
               <span className="text-sm text-text-primary font-semibold">
                 {expense.expectedAmount ? fmtAmount(expense.expectedAmount, expense.currency) : "—"}
               </span>
@@ -176,23 +193,24 @@ export function FixedExpensesClient({
 
 // Client component by import — only ever rendered from <FixedExpensesClient>.
 function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolean }) {
+  const t = useT()
   return (
     <div className="flex flex-col items-center justify-center text-center py-14 px-6">
       <div className="w-11.5 h-11.5 rounded-lg bg-info-bg flex items-center justify-center mb-3.5">
         <Repeat size={20} strokeWidth={1.8} className="text-primary" />
       </div>
       <p className="text-base font-bold text-heading mb-1">
-        {hasAny ? "No matching fixed expenses" : "Track your recurring bills"}
+        {hasAny ? t("fixed_expenses.empty.no_matches_title") : t("fixed_expenses.empty.title")}
       </p>
       <p className="text-sm text-text-secondary max-w-85 mb-4">
         {hasAny
-          ? "Try a different search or filter."
-          : "Add a fixed expense and we'll tell you each period whether its invoice has arrived."}
+          ? t("fixed_expenses.empty.no_matches_body")
+          : t("fixed_expenses.empty.body")}
       </p>
       {!hasAny && (
         <Button onClick={onCreate}>
           <Plus size={15} strokeWidth={2} />
-          New fixed expense
+          {t("fixed_expenses.toolbar.new")}
         </Button>
       )}
     </div>
