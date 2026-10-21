@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { deleteExportJob } from "@/lib/export-delete"
 import { NextResponse } from "next/server"
 
 // GET /api/exports/[id] — status poll for a single export job. Never returns the
@@ -23,4 +24,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     skippedCount: job.skippedCount,
     ready: job.status === "READY",
   })
+}
+
+// DELETE /api/exports/[id] — remove a single export (R2 object + DB row).
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id } = await params
+  const ok = await deleteExportJob(id, session.user.organizationId)
+  if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  return NextResponse.json({ success: true })
 }

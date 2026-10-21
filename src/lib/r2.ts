@@ -1,4 +1,11 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3"
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+} from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 // Cloudflare R2 is S3-compatible. Export result files (CSV/XLSX/PDF) are stored
@@ -62,6 +69,31 @@ export async function getSignedExportUrl(
     ResponseContentDisposition: `attachment; filename="${filename.replace(/[^\w .-]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
   })
   return getSignedUrl(getClient(), command, { expiresIn: ttlSeconds })
+}
+
+// Remove an export object from R2. Deleting a missing key is a no-op in S3/R2,
+// so callers don't need to check existence first.
+export async function deleteExportObject(key: string): Promise<void> {
+  await getClient().send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
+}
+
+// Bulk-remove export objects in a single R2 request (DeleteObjects handles up to
+// 1000 keys). Returns the keys R2 confirms gone so the caller can delete only
+// those DB rows and leave orphan-risk rows alone. Assumes <=1000 keys — bulk
+// delete is capped well below that upstream.
+export async function deleteExportObjects(
+  keys: string[]
+): Promise<{ deleted: string[]; errored: string[] }> {
+  if (keys.length === 0) return { deleted: [], errored: [] }
+  const res = await getClient().send(
+    new DeleteObjectsCommand({
+      Bucket: BUCKET,
+      Delete: { Objects: keys.map((Key) => ({ Key })) },
+    })
+  )
+  const deleted = (res.Deleted ?? []).map((d) => d.Key).filter((k): k is string => Boolean(k))
+  const errored = (res.Errors ?? []).map((e) => e.Key).filter((k): k is string => Boolean(k))
+  return { deleted, errored }
 }
 
 // Whether the object still exists in R2 (may have been lifecycle-expired).
