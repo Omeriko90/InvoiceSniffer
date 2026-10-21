@@ -3,12 +3,14 @@ import { useRef, useState } from "react"
 import { Upload, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/LocaleProvider"
 
 type DropzoneProps = {
   onFile: (file: File) => void
 }
 
 export function Dropzone({ onFile }: DropzoneProps) {
+  const t = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -37,15 +39,15 @@ export function Dropzone({ onFile }: DropzoneProps) {
       </div>
       <div className="text-center">
         <p className="text-base font-semibold text-heading">
-          Drag & drop your CSV here
+          {t("import_csv.dropzone.title")}
         </p>
         <p className="text-sm text-text-secondary mt-1">
-          Export transactions from your bank or card provider, then drop the file here.
+          {t("import_csv.dropzone.subtitle")}
         </p>
       </div>
       <Button variant="outline" size="sm" className="gap-1.5 text-sm mt-1 pointer-events-none">
         <FileText size={14} />
-        Browse files
+        {t("import_csv.dropzone.browse")}
       </Button>
       <input
         ref={inputRef}

@@ -1,6 +1,7 @@
 // Client component by import — only ever rendered from <FindInvoiceModal>.
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { CandidateRow } from "@/components/reconcile/CandidateRow"
 import { queries } from "@/queries"
 import type { CandidateResult } from "@/api-types/reconcile"
@@ -28,6 +29,7 @@ export function CandidateList({
   disabled: boolean
   onLink: (candidate: CandidateResult) => void
 }) {
+  const t = useT()
   const q = useDebounced(search, 250)
   const charge = {
     merchant: transaction.merchant,
@@ -40,11 +42,11 @@ export function CandidateList({
   return (
     <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
       {candidates.isLoading && (
-        <p className="text-sm text-dim py-6 text-center">Searching…</p>
+        <p className="text-sm text-dim py-6 text-center">{t("reconcile.candidates.searching")}</p>
       )}
       {candidates.data?.length === 0 && (
         <p className="text-sm text-dim py-6 text-center">
-          No invoices match — try a different search.
+          {t("reconcile.candidates.noMatch")}
         </p>
       )}
       {candidates.data?.map((c) => (

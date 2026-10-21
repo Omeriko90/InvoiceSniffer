@@ -7,11 +7,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { ColumnSelectProps } from "./types"
 
 export function ColumnSelect({ headers, value, onChange }: ColumnSelectProps) {
+  const t = useT()
   const items = [
-    { value: null, label: "— not mapped —" },
+    { value: null, label: t("import_csv.column_select.not_mapped") },
     ...headers.map((h) => ({ value: h, label: h })),
   ]
   return (
@@ -27,7 +29,7 @@ export function ColumnSelect({ headers, value, onChange }: ColumnSelectProps) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={null}>— not mapped —</SelectItem>
+        <SelectItem value={null}>{t("import_csv.column_select.not_mapped")}</SelectItem>
         {headers.map((h) => (
           <SelectItem key={h} value={h}>{h}</SelectItem>
         ))}

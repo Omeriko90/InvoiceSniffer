@@ -1,9 +1,11 @@
 // Client component by import — only ever rendered from <ImportWizard>.
 import { FileText, Info } from "lucide-react"
 import { Alert, AlertTitle } from "@/components/ui/alert"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { FileSummaryProps } from "./types"
 
 export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
+  const t = useT()
   return (
     <div className="bg-surface border border-border rounded-[14px] p-5 flex flex-col gap-4">
       <div className="flex items-start gap-3">
@@ -11,7 +13,7 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
         <div className="min-w-0">
           <p className="text-sm font-bold text-heading truncate">{parsed.fileName}</p>
           <p className="text-xs text-dim mt-0.5">
-            {parsed.records.length} rows · {parsed.headers.length} columns detected
+            {t("import_csv.file_summary.rows", { count: parsed.records.length })} · {t("import_csv.file_summary.columns_detected", { count: parsed.headers.length })}
           </p>
         </div>
       </div>
@@ -22,7 +24,7 @@ export function FileSummary({ parsed, savedMappingLabel }: FileSummaryProps) {
         >
           <Info size={16} strokeWidth={2} className="text-info-fg" />
           <AlertTitle className="font-normal text-sm text-info-fg">
-            Saved mapping for <strong>{savedMappingLabel}</strong> applied automatically.
+            {t("import_csv.file_summary.saved_mapping_prefix")} <strong>{savedMappingLabel}</strong> {t("import_csv.file_summary.saved_mapping_suffix")}
           </AlertTitle>
         </Alert>
       )}

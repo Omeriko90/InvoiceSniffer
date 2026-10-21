@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpdateSettlementLag } from "@/hooks/useUpdateSettlementLag";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 const OPTIONS = [30, 45, 60, 90, 180];
 
@@ -22,6 +23,7 @@ export function ReconcileSettingsCard({
 }: {
   settlementLagDays: number;
 }) {
+  const t = useT();
   const [value, setValue] = useState(String(settlementLagDays));
   const update = useUpdateSettlementLag();
 
@@ -30,9 +32,9 @@ export function ReconcileSettingsCard({
 
   function save() {
     update.mutate(parsed, {
-      onSuccess: () => toast.success("Reconcile settings saved"),
+      onSuccess: () => toast.success(t("settings.reconcile.saved")),
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to save"),
+        toast.error(e instanceof Error ? e.message : t("settings.reconcile.saveFailed")),
     });
   }
 
@@ -40,17 +42,15 @@ export function ReconcileSettingsCard({
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5">
         <h2 className="text-base font-bold text-heading leading-none mb-1.5">
-          Reconcile settings
+          {t("settings.reconcile.title")}
         </h2>
         <p className="text-xs text-text-secondary mb-[18px] leading-[1.55]">
-          Credit-card settlement lag — how many days a charge may post after its
-          invoice date. Increase this if your card bills 30, 60, or 90 days
-          after purchase.
+          {t("settings.reconcile.description")}
         </p>
 
         <div className="flex items-center gap-2.5">
           <label className="flex items-center gap-2.5 text-sm font-semibold text-text-primary">
-            Settlement lag:
+            {t("settings.reconcile.settlementLagLabel")}
           </label>
           <Select
             value={value}
@@ -69,7 +69,7 @@ export function ReconcileSettingsCard({
               ))}
             </SelectContent>
           </Select>
-          <span>days</span>
+          <span>{t("settings.reconcile.days")}</span>
         </div>
 
         <div className="mt-4">
@@ -77,7 +77,7 @@ export function ReconcileSettingsCard({
             onClick={save}
             disabled={!dirty || update.isPending}
           >
-            {update.isPending ? "Saving…" : "Save"}
+            {update.isPending ? t("settings.reconcile.saving") : t("settings.reconcile.save")}
           </Button>
         </div>
       </CardContent>

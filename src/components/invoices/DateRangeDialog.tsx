@@ -6,10 +6,8 @@ import { FormDialog } from "@/components/ui/form-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { isPreset, type InvoiceDateScope } from "@/lib/invoice-date-filter"
+import { useT } from "@/components/i18n/LocaleProvider"
 
-// Custom date-range picker. Seeded from the current scope when it's already a
-// custom range; presets start with an empty selection. Apply commits an ISO
-// {from,to} scope; Cancel leaves the existing scope untouched.
 export function DateRangeDialog({
   scope,
   onApply,
@@ -19,6 +17,7 @@ export function DateRangeDialog({
   onApply: (scope: { from: string; to: string }) => void
   onClose: () => void
 }) {
+  const t = useT()
   const [range, setRange] = useState<DateRange | undefined>(() =>
     isPreset(scope)
       ? undefined
@@ -39,19 +38,19 @@ export function DateRangeDialog({
     <FormDialog
       className="sm:max-w-105"
       footerClassName="gap-[8px]"
-      title="Custom date range"
+      title={t("invoices.dateRange.title")}
       description={
         canApply
           ? `${formatDate(range!.from!, "d MMM yyyy")} – ${formatDate(range!.to!, "d MMM yyyy")}`
-          : "Pick a start and end day."
+          : t("invoices.dateRange.pickPrompt")
       }
       footer={
         <>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("invoices.actions.cancel")}
           </Button>
           <Button onClick={apply} disabled={!canApply}>
-            Apply
+          {t("invoices.dateRange.apply")}
           </Button>
         </>
       }

@@ -1,13 +1,15 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 export function GmailLinkButton({ gmailLink }: { gmailLink: string }) {
+  const t = useT();
   return (
     <Button
       variant="ghost"
       size="icon-sm"
-      title="Open in Gmail"
+      title={t("invoices.openInGmail")}
       nativeButton={false}
       render={
         <a
@@ -20,5 +22,5 @@ export function GmailLinkButton({ gmailLink }: { gmailLink: string }) {
     >
       <ExternalLink size={14} strokeWidth={1.5} />
     </Button>
-  )
+  );
 }

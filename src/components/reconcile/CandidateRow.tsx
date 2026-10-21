@@ -1,4 +1,5 @@
 // Client component by import — only ever rendered from <FindInvoiceModal>.
+import { useT } from "@/components/i18n/LocaleProvider"
 import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { fmtMoney } from "@/lib/money"
@@ -14,12 +15,13 @@ export function CandidateRow({
   disabled: boolean
   onLink: () => void
 }) {
+  const t = useT()
   const c = candidate
   return (
     <div className="flex items-center gap-3 border border-border rounded-[11px] px-[13px] py-[11px]">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">
-          {c.vendorName ?? "Unknown vendor"}
+          {c.vendorName ?? t("reconcile.unknownVendor")}
           {c.invoiceNumber && (
             <span className="text-dim font-mono font-medium"> — {c.invoiceNumber}</span>
           )}
@@ -32,7 +34,7 @@ export function CandidateRow({
         <ConfidenceBar value={c.confidence} className="w-[86px] shrink-0" />
       )}
       <ActionButton variant="blue" disabled={disabled} onClick={onLink}>
-        Link
+        {t("reconcile.candidates.link")}
       </ActionButton>
     </div>
   )

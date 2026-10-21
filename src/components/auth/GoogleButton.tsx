@@ -1,8 +1,10 @@
 // Client component by import — only ever rendered from auth forms.
 import { Button } from "@/components/ui/button"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { GoogleLogo } from "./GoogleLogo"
 
 export function GoogleButton({ onClick }: { onClick: () => void }) {
+  const t = useT()
   return (
     <Button
       type="button"
@@ -12,7 +14,7 @@ export function GoogleButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
     >
       <GoogleLogo />
-      Continue with Google
+      {t("auth.google.continue")}
     </Button>
   )
 }

@@ -31,6 +31,7 @@ import {
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/LocaleProvider"
 
 type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
 
@@ -65,6 +66,7 @@ export function ExportDialog({
   format: ExportFormat
   onClose: () => void
 }) {
+  const t = useT()
   const { trackExport } = useExports()
   const isSpreadsheet = format === "csv" || format === "xlsx"
 
@@ -132,11 +134,11 @@ export function ExportDialog({
     if (!range) return
     const invoiceIds = invoices.filter((i) => selectedIds.has(i.id)).map((i) => i.id)
     if (invoiceIds.length === 0) {
-      toast.error("Select at least one invoice")
+      toast.error(t("invoices.export.toast.selectInvoice"))
       return
     }
     if (isSpreadsheet && columns.size === 0) {
-      toast.error("Select at least one column")
+      toast.error(t("invoices.export.toast.selectColumn"))
       return
     }
 
@@ -152,8 +154,8 @@ export function ExportDialog({
           dateRangeEnd: toISO,
         })
         triggerBrowserDownload(downloadUrl)
-        toast.success(`${FORMAT_LABELS[format]} export ready`, {
-          description: `${invoiceIds.length} invoice${invoiceIds.length === 1 ? "" : "s"} exported.`,
+        toast.success(t("invoices.export.toast.ready", { format: FORMAT_LABELS[format] }), {
+          description: t("invoices.export.toast.exportedCount", { count: invoiceIds.length }),
         })
       } else {
         const { exportJobId } = await createPdfExport({
@@ -166,7 +168,7 @@ export function ExportDialog({
       track("invoice_exported", { format, count: invoiceIds.length })
       onClose()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Export failed")
+      toast.error(err instanceof Error ? err.message : t("invoices.export.toast.failed"))
     } finally {
       setSubmitting(false)
     }
@@ -176,22 +178,26 @@ export function ExportDialog({
     <FormDialog
       className="sm:max-w-155"
       footerClassName="rounded-b-lg bg-surface flex items-center justify-end gap-2.5"
-      title={`Export invoices as ${FORMAT_LABELS[format]}`}
+      title={t("invoices.export.dialogTitle", { format: FORMAT_LABELS[format] })}
       description={
         format === "pdf"
-          ? "The selected invoices' PDFs are merged into a single document. You'll get a notification when it's ready to download."
-          : "Choose a date range, deselect any invoices you don't want, and pick which columns to include."
+          ? t("invoices.export.dialogDescription.pdf")
+          : t("invoices.export.dialogDescription.spreadsheet")
       }
       footer={
         <>
           <span className="text-[12.5px] text-text-secondary mr-auto">
-            {selectedIds.size} of {invoices.length} selected
+            {t("invoices.export.selectedCount", { selected: selectedIds.size, total: invoices.length })}
           </span>
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t("invoices.actions.cancel")}
           </Button>
           <Button onClick={handleExport} disabled={submitting || selectedIds.size === 0}>
-            {submitting ? "Working…" : format === "pdf" ? "Build PDF" : `Export ${FORMAT_LABELS[format]}`}
+            {submitting
+              ? t("invoices.export.working")
+              : format === "pdf"
+                ? t("invoices.export.buildPdf")
+                : t("invoices.export.submit", { format: FORMAT_LABELS[format] })}
           </Button>
         </>
       }
@@ -200,7 +206,7 @@ export function ExportDialog({
         {/* Date range */}
         <div className="flex flex-col gap-2.5">
           <p className="text-sm font-bold tracking-tight text-text-secondary">
-            Date range
+          {t("invoices.export.dateRange")}
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
             {EXPORT_PRESETS.map((p) => {
@@ -227,13 +233,13 @@ export function ExportDialog({
                 custom ? "bg-primary-soft text-primary-strong" : "bg-hover text-text-secondary",
               )}
             >
-              Custom
+              {t("invoices.export.custom")}
               </Button>
           </div>
           {custom && (
             <div className="flex flex-wrap items-center gap-2.5">
               <label className="flex items-center gap-2 text-sm text-text-secondary">
-                From
+                {t("invoices.export.from")}
                 <Input
                   type="date"
                   value={scope.from}
@@ -242,7 +248,7 @@ export function ExportDialog({
                 />
               </label>
               <label className="flex items-center gap-2 text-sm text-text-secondary">
-                To
+                {t("invoices.export.to")}
                 <Input
                   type="date"
                   value={scope.to}
@@ -279,7 +285,7 @@ export function ExportDialog({
         {isSpreadsheet && (
           <div className="flex flex-col gap-2.5">
             <p className="text-sm font-bold tracking-tight text-text-secondary">
-              Columns
+            {t("invoices.export.columns")}
             </p>
             <div className="flex flex-wrap gap-x-4.5 gap-y-2">
               {EXPORT_COLUMNS.map((col) => (
@@ -296,25 +302,25 @@ export function ExportDialog({
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-bold tracking-tight text-text-secondary">
-              Invoices
+              {t("invoices.export.invoicesLabel")}
             </p>
             {invoices.length > 0 && (
               <Button variant="link" size="inline" onClick={toggleAll}>
-                {allSelected ? "Deselect all" : "Select all"}
+                {allSelected ? t("invoices.export.deselectAll") : t("invoices.export.selectAll")}
               </Button>
             )}
           </div>
 
           <div className="border border-border rounded-lg overflow-hidden">
             {preview.isLoading ? (
-              <div className="px-3.5 py-6 text-center text-sm text-text-secondary">Loading…</div>
+              <div className="px-3.5 py-6 text-center text-sm text-text-secondary">{t("invoices.export.loading")}</div>
             ) : preview.isError ? (
               <div className="px-3.5 py-6 text-center text-sm text-destructive">
-                Failed to load invoices.
+                {t("invoices.export.loadFailed")}
               </div>
             ) : invoices.length === 0 ? (
               <div className="px-3.5 py-6 text-center text-sm text-text-secondary">
-                No invoices in this range.
+                {t("invoices.export.noneInRange")}
               </div>
             ) : (
               <ul className="divide-y divide-border max-h-60 overflow-y-auto">
@@ -328,7 +334,7 @@ export function ExportDialog({
                           onCheckedChange={() => toggleRow(inv.id)}
                         />
                         <span className="flex-1 min-w-0 truncate text-sm font-semibold text-text-primary">
-                          {inv.vendorName ?? "Unknown vendor"}
+                          {inv.vendorName ?? t("invoices.unknownVendor")}
                         </span>
                         <span className="text-sm text-text-secondary shrink-0">
                           {date ? formatDate(new Date(date), "dd MMM yyyy") : "—"}

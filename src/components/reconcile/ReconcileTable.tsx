@@ -1,4 +1,5 @@
 // Client component by import — only ever rendered from <ReconcileClient>.
+import { useT } from "@/components/i18n/LocaleProvider"
 import { EmptyState } from "@/components/reconcile/EmptyState"
 import { ReconcileRow } from "@/components/reconcile/ReconcileRow"
 import { GRID } from "@/components/reconcile/constants"
@@ -19,17 +20,26 @@ export function ReconcileTable({
   onFind: (txn: TransactionRow) => void
   onRun: (id: string, action: RunAction) => void
 }) {
+  const t = useT()
+  const headers = [
+    { key: "date", label: t("reconcile.table.date") },
+    { key: "merchant", label: t("reconcile.table.merchant") },
+    { key: "amount", label: t("reconcile.table.amount") },
+    { key: "matchedInvoice", label: t("reconcile.table.matchedInvoice") },
+    { key: "confidence", label: t("reconcile.table.confidence") },
+    { key: "actions", label: t("reconcile.table.actions") },
+  ]
   return (
     <div className="bg-card border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
       <div className="grid px-[18px] py-3 bg-raised border-b border-border" style={GRID}>
-        {["Date", "Merchant", "Amount", "Matched invoice", "Actions"].map((h, i) => (
+        {headers.map((h, i) => (
           <span
-            key={h}
+            key={h.key}
             className="text-xs font-bold text-text-secondary"
             style={i === 2 || i === 4 ? { textAlign: "right" } : undefined}
           >
-            {h}
+            {h.label}
           </span>
         ))}
       </div>
@@ -38,7 +48,7 @@ export function ReconcileTable({
 
       {transactions.length > 0 && filtered.length === 0 && (
         <div className="py-12 text-center text-sm text-dim">
-          No transactions in this view
+          {t("reconcile.table.noTransactions")}
         </div>
       )}
 

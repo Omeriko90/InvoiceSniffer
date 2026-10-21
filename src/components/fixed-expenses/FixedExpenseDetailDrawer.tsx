@@ -16,7 +16,9 @@ import {
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { CategoryBadge } from "@/components/invoices/CategoryBadge"
 import { fmtAmount } from "@/components/invoices/helpers"
-import { FREQUENCY_LABELS, type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
+import { type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
+import { useT } from "@/components/i18n/LocaleProvider"
+import type { TranslationKey, TranslateParams } from "@/lib/i18n/translate"
 import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
 import { useDeleteFixedExpense } from "@/hooks/useDeleteFixedExpense"
 import {
@@ -30,9 +32,14 @@ import { queries } from "@/queries"
 import { FixedExpenseStatusBadge } from "./FixedExpenseStatusBadge"
 import type { FixedExpenseRow, FixedExpenseTimelineEntry } from "./types"
 
-function periodLabel(startIso: string, frequency: FixedExpenseFrequency): string {
+function periodLabel(
+  startIso: string,
+  frequency: FixedExpenseFrequency,
+  t: (key: TranslationKey, params?: TranslateParams) => string,
+): string {
   const d = new Date(startIso)
-  if (frequency === "WEEKLY") return `Week of ${format(d, "MMM d, yyyy")}`
+  if (frequency === "WEEKLY")
+    return t("fixed_expenses.period.week_of", { date: format(d, "MMM d, yyyy") })
   // Bi-weekly / bi-monthly span two units, so show the range they cover.
   if (frequency === "BIWEEKLY") return `${format(d, "MMM d")} – ${format(addDays(d, 13), "MMM d, yyyy")}`
   if (frequency === "BIMONTHLY") return `${format(d, "MMM")} – ${format(addMonths(d, 1), "MMM yyyy")}`
@@ -52,6 +59,16 @@ export function FixedExpenseDetailDrawer({
   onEdit: () => void
   onDismiss: () => void
 }) {
+  const t = useT()
+  const freqLabel = (f: FixedExpenseFrequency): string =>
+    ({
+      WEEKLY: t("fixed_expenses.frequency.weekly"),
+      BIWEEKLY: t("fixed_expenses.frequency.biweekly"),
+      MONTHLY: t("fixed_expenses.frequency.monthly"),
+      BIMONTHLY: t("fixed_expenses.frequency.bimonthly"),
+      QUARTERLY: t("fixed_expenses.frequency.quarterly"),
+      YEARLY: t("fixed_expenses.frequency.yearly"),
+    })[f]
   const router = useRouter()
   const queryClient = useQueryClient()
   const update = useUpdateFixedExpense()
@@ -120,7 +137,7 @@ export function FixedExpenseDetailDrawer({
           <SheetTitle className="text-base font-bold text-heading truncate">{expense.name}</SheetTitle>
           {paused && (
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xs font-bold text-dim">Paused</span>
+              <span className="text-xs font-bold text-dim">t("fixed_expenses.paused")</span>
             </div>
           )}
         </div>
@@ -129,21 +146,21 @@ export function FixedExpenseDetailDrawer({
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-5.5">
         {/* Details */}
-        <p className={sectionLabel}>Details</p>
+        <p className={sectionLabel}>{t("fixed_expenses.detail.details")}</p>
         <div className="border border-border rounded-lg overflow-hidden mb-5.5">
           {[
-            { label: "Source", value: source },
+            { label: t("fixed_expenses.detail.source"), value: source },
             ...(senderLabel && vendorLabel
-              ? [{ label: "Sender", value: senderLabel }]
+              ? [{ label: t("fixed_expenses.detail.sender"), value: senderLabel }]
               : []),
             { label: "Category", value: <CategoryBadge category={expense.category} /> },
-            { label: "Frequency", value: FREQUENCY_LABELS[expense.frequency] },
+            { label: t("fixed_expenses.detail.frequency"), value: freqLabel(expense.frequency) },
             {
-              label: "Expected amount",
+              label: t("fixed_expenses.detail.expected_amount"),
               value: expense.expectedAmount ? fmtAmount(expense.expectedAmount, expense.currency) : "—",
             },
             ...(expense.sourceAccount
-              ? [{ label: "Mailbox", value: expense.sourceAccount.label ?? expense.sourceAccount.email }]
+              ? [{ label: t("fixed_expenses.detail.mailbox"), value: expense.sourceAccount.label ?? expense.sourceAccount.email }]
               : []),
           ].map((row, i, arr) => (
             <div
@@ -158,11 +175,11 @@ export function FixedExpenseDetailDrawer({
         </div>
 
         {/* Timeline */}
-        <p className={sectionLabel}>Invoice history</p>
+        <p className={sectionLabel}>{t("fixed_expenses.detail.invoice_history")}</p>
         {timeline.isLoading ? (
-          <p className="text-xs text-dim">Loading…</p>
+          <p className="text-xs text-dim">{t("fixed_expenses.detail.loading")}</p>
         ) : entries.length === 0 ? (
-          <p className="text-xs text-dim">No periods yet.</p>
+          <p className="text-xs text-dim">{t("fixed_expenses.detail.no_periods")}</p>
         ) : (
           <div className="flex flex-col gap-2">
             {entries.map((entry) => {
@@ -190,14 +207,14 @@ export function FixedExpenseDetailDrawer({
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary">
-                      {periodLabel(entry.periodStart, expense.frequency)}
+                      {periodLabel(entry.periodStart, expense.frequency, t)}
                     </p>
                     {hasInvoice ? (
                       <p className="text-[12px] text-text-secondary mt-0.5">
                         {fmtAmount(first.totalAmount, first.currency)} ·{" "}
                         {format(new Date(first.emailDate), "MMM d")}
                         {entry.invoices.length > 1 && (
-                          <span className="text-dim"> · +{entry.invoices.length - 1} more</span>
+                          <span className="text-dim"> · {t("fixed_expenses.detail.more_count", { count: entry.invoices.length - 1 })}</span>
                         )}
                       </p>
                     ) : entry.status === "OVERDUE" ? (
@@ -207,10 +224,10 @@ export function FixedExpenseDetailDrawer({
                         className="flex items-center gap-1.25 text-xs font-semibold text-primary hover:underline mt-0.5"
                       >
                         <Link2 size={12} strokeWidth={2} />
-                        Link an existing invoice
+                        {t("fixed_expenses.timeline.link_existing")}
                       </button>
                     ) : (
-                      <p className="text-[12px] text-dim mt-0.5">No invoice yet</p>
+                      <p className="text-[12px] text-dim mt-0.5">{t("fixed_expenses.timeline.no_invoice_yet")}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -226,7 +243,7 @@ export function FixedExpenseDetailDrawer({
                 disabled={timeline.isFetchingNextPage}
                 onClick={() => timeline.fetchNextPage()}
               >
-                {timeline.isFetchingNextPage ? "Loading…" : "Load older periods"}
+                {timeline.isFetchingNextPage ? t("fixed_expenses.detail.loading") : t("fixed_expenses.timeline.load_older")}
               </Button>
             )}
           </div>
@@ -242,7 +259,7 @@ export function FixedExpenseDetailDrawer({
             onClick={onEdit}
           >
             <Pencil size={15} strokeWidth={1.8} />
-            Edit
+            {t("fixed_expenses.detail.edit")}
           </Button>
           <Button
             variant="outline"
@@ -251,7 +268,7 @@ export function FixedExpenseDetailDrawer({
             onClick={togglePause}
           >
             {paused ? <Play size={15} strokeWidth={1.8} /> : <Pause size={15} strokeWidth={1.8} />}
-            {paused ? "Resume" : "Pause"}
+            {paused ? t("fixed_expenses.detail.resume") : t("fixed_expenses.detail.pause")}
           </Button>
         </div>
         <Button
@@ -260,7 +277,7 @@ export function FixedExpenseDetailDrawer({
           onClick={() => setConfirmDelete(true)}
         >
           <Trash2 size={14} strokeWidth={1.8} />
-          Delete fixed expense
+          {t("fixed_expenses.detail.delete")}
         </Button>
       </div>
 
@@ -269,10 +286,10 @@ export function FixedExpenseDetailDrawer({
         <ConfirmationDialog
           open={confirmDelete}
           onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}
-          title="Delete this fixed expense?"
-          description="Its arrival history is removed. The linked invoices themselves are kept — only the tracking is deleted."
-          confirmLabel="Delete"
-          pendingLabel="Deleting…"
+          title={t("fixed_expenses.delete.title")}
+          description={t("fixed_expenses.delete.description")}
+          confirmLabel={t("fixed_expenses.delete.confirm")}
+          pendingLabel={t("fixed_expenses.delete.pending")}
           destructive
           isPending={remove.isPending}
           onConfirm={handleDelete}
@@ -283,16 +300,16 @@ export function FixedExpenseDetailDrawer({
       <Dialog name="fixed_expense_link_invoice" open={linkingIndex !== null} onOpenChange={(open) => { if (!open) setLinkingIndex(null) }}>
         <DialogContent className="sm:max-w-110">
           <DialogHeader>
-            <DialogTitle>Link an existing invoice</DialogTitle>
+            <DialogTitle>{t("fixed_expenses.link_picker.title")}</DialogTitle>
             <DialogDescription>
-              Pick an invoice that belongs to this expense. It attaches to whichever period it falls in.
+              {t("fixed_expenses.link_picker.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
             {candidates.isLoading ? (
-              <p className="text-xs text-dim">Loading…</p>
+              <p className="text-xs text-dim">{t("fixed_expenses.detail.loading")}</p>
             ) : (candidates.data?.candidates.length ?? 0) === 0 ? (
-              <p className="text-xs text-dim">No unlinked invoices match this vendor or sender.</p>
+              <p className="text-xs text-dim">{t("fixed_expenses.link_picker.empty")}</p>
             ) : (
               candidates.data!.candidates.map((c) => (
                 <button
@@ -323,9 +340,11 @@ export function FixedExpenseDetailDrawer({
         {chooser && (
           <DialogContent className="sm:max-w-110">
             <DialogHeader>
-              <DialogTitle>Invoices this period</DialogTitle>
+              <DialogTitle>{t("fixed_expenses.period_chooser.title")}</DialogTitle>
               <DialogDescription>
-                {periodLabel(chooser.periodStart, expense.frequency)} has more than one invoice. Pick one to open.
+                {t("fixed_expenses.period_chooser.description", {
+                  period: periodLabel(chooser.periodStart, expense.frequency, t),
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
@@ -381,6 +400,7 @@ function InvoiceDrawerLoader({
   onDismiss: () => void
   onSaved: () => void
 }) {
+  const t = useT()
   const { data, isLoading } = useInvoice(invoiceId)
 
   if (isLoading || !data) {
@@ -390,9 +410,9 @@ function InvoiceDrawerLoader({
         forceOverlay
         className="w-110 sm:max-w-110 gap-0 bg-white border-l border-[#E8EDFA]"
       >
-        <SheetTitle className="sr-only">Invoice</SheetTitle>
+        <SheetTitle className="sr-only">{t("fixed_expenses.invoice_loader.sr_title")}</SheetTitle>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-xs text-dim">Loading invoice…</p>
+          <p className="text-xs text-dim">{t("fixed_expenses.invoice_loader.loading")}</p>
         </div>
       </SheetContent>
     )

@@ -10,6 +10,17 @@ import {
 } from "@/lib/alert-helpers"
 import { ALERT_ICON } from "@/components/alerts/constants"
 import { CardButton } from "@/components/alerts/CardButton"
+import { useT } from "@/components/i18n/LocaleProvider"
+
+// Anomaly-type labels originate in the out-of-scope lib/alert-helpers.ts
+// (ALERT_META); mapped here to translation keys keyed by the stable enum.
+const ALERT_TYPE_LABEL_KEY: Record<string, string> = {
+  AMOUNT_HIGH:       "alerts.type.amountHigh",
+  AMOUNT_LOW:        "alerts.type.amountLow",
+  SPEND_SPIKE:       "alerts.type.spendSpike",
+  MISSING_RECURRING: "alerts.type.missingRecurring",
+  NEW_VENDOR:        "alerts.type.newVendor",
+}
 
 export function AlertCard({
   alert,
@@ -22,9 +33,10 @@ export function AlertCard({
   onDismiss: () => void
   dismissing: boolean
 }) {
+  const t      = useT()
   const sev    = SEVERITY_META[alert.severity]
   const meta   = ALERT_META[alert.type] ?? { label: alert.type, color: "#64748B", bg: "#F1F3F8" }
-  const vendor = alert.invoice?.vendorName ?? alert.vendorName ?? "Unknown vendor"
+  const vendor = alert.invoice?.vendorName ?? alert.vendorName ?? t("alerts.card.unknownVendor")
   const metric = alertMetric(alert.type, alert.details)
   const Icon   = ALERT_ICON[alert.type] ?? AlertTriangle
 
@@ -44,7 +56,7 @@ export function AlertCard({
         <div className="flex items-center gap-2.5 mb-0.75 flex-wrap">
           <span className="text-base font-bold text-heading">{vendor}</span>
           <StatusPill bg={meta.bg} color={meta.color} className="text-xs px-2.25">
-            {meta.label}
+            {ALERT_TYPE_LABEL_KEY[alert.type] ? t(ALERT_TYPE_LABEL_KEY[alert.type] as never) : meta.label}
           </StatusPill>
         </div>
         <p className="text-sm text-text-secondary leading-relaxed">
@@ -62,9 +74,9 @@ export function AlertCard({
       </div>
 
       <div className="flex flex-col gap-1.5 shrink-0">
-        <CardButton onClick={onView}>View</CardButton>
+        <CardButton onClick={onView}>{t("alerts.card.view")}</CardButton>
         <CardButton onClick={onDismiss} disabled={dismissing} muted>
-          Dismiss
+          {t("alerts.card.dismiss")}
         </CardButton>
       </div>
     </div>

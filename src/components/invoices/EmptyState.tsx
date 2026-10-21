@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { EmptyState as EmptyStateShell } from "@/components/ui/empty-state"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { useSettings } from "@/hooks/useSettings"
+import { useT } from "@/components/i18n/LocaleProvider"
 
 const ctaClass = "h-auto px-[18px] py-2.5 rounded-[10px] text-sm font-bold text-white border-0 bg-gradient-sky"
 const ctaStyle = {
@@ -12,6 +13,7 @@ const ctaStyle = {
 }
 
 export function EmptyState() {
+  const t = useT()
   const sync = useGmailSync()
   const { data } = useSettings()
   const accounts = data?.gmails ?? []
@@ -20,8 +22,8 @@ export function EmptyState() {
   return (
     <EmptyStateShell
       icon={FileText}
-      title="No invoices yet"
-      description="Once your Gmail is connected, detected invoices will appear here automatically. Nothing has been scanned yet."
+      title={t("invoices.empty.title")}
+      description={t("invoices.empty.description")}
       action={
         hasAccount ? (
           <Button
@@ -30,7 +32,7 @@ export function EmptyState() {
             className={ctaClass}
             style={ctaStyle}
           >
-            {sync.isPending ? "Starting…" : "Run a Gmail sync"}
+            {sync.isPending ? t("invoices.empty.syncing") : t("invoices.empty.runSync")}
           </Button>
         ) : (
           <Button
@@ -39,7 +41,7 @@ export function EmptyState() {
             className={ctaClass}
             style={ctaStyle}
           >
-            Connect Gmail
+            {t("invoices.empty.connectGmail")}
           </Button>
         )
       }
