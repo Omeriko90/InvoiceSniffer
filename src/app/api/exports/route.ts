@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { deleteExportObjects } from "@/lib/r2"
 import { enforceRateLimit } from "@/lib/rate-limit"
 import { triggerExportBatch } from "@/lib/worker-trigger"
 import { NextRequest, NextResponse } from "next/server"
@@ -86,4 +87,60 @@ export async function GET() {
   }))
 
   return NextResponse.json({ exports })
+}
+
+// DELETE /api/exports — bulk-remove exports by id. R2 objects go in one
+// DeleteObjects call; a DB row is only removed once its object is confirmed gone
+// (or the job never had a file), so a failed R2 delete never orphans its file.
+const MAX_BULK_DELETE = 200
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { organizationId } = session.user
+
+  const body = (await req.json().catch(() => ({}))) as { ids?: unknown }
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id): id is string => typeof id === "string") : []
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "No exports selected" }, { status: 400 })
+  }
+  if (ids.length > MAX_BULK_DELETE) {
+    return NextResponse.json({ error: `Too many exports (max ${MAX_BULK_DELETE})` }, { status: 400 })
+  }
+
+  // Org scoping here is what enforces ownership — ids from another org drop out.
+  const jobs = await prisma.exportJob.findMany({
+    where: { id: { in: ids }, organizationId },
+    select: { id: true, r2Key: true },
+  })
+
+  const withKey = jobs.filter((j): j is { id: string; r2Key: string } => Boolean(j.r2Key))
+  const withoutKey = jobs.filter((j) => !j.r2Key)
+
+  // Rows with a file: only delete the DB row if R2 confirmed the object is gone.
+  // An R2 failure leaves both the object and its row so it can be retried.
+  let deletedKeys: string[] = []
+  if (withKey.length > 0) {
+    try {
+      deletedKeys = (await deleteExportObjects(withKey.map((j) => j.r2Key))).deleted
+    } catch (err) {
+      console.error("Bulk R2 delete failed:", err)
+    }
+  }
+  const deletedKeySet = new Set(deletedKeys)
+
+  const idsToDelete = [
+    ...withoutKey.map((j) => j.id),
+    ...withKey.filter((j) => deletedKeySet.has(j.r2Key)).map((j) => j.id),
+  ]
+
+  let deleted = 0
+  if (idsToDelete.length > 0) {
+    const result = await prisma.exportJob.deleteMany({
+      where: { id: { in: idsToDelete }, organizationId },
+    })
+    deleted = result.count
+  }
+
+  return NextResponse.json({ success: true, deleted })
 }
