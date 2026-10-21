@@ -112,3 +112,17 @@ export async function fetchExportsHistory(): Promise<ExportHistoryItem[]> {
 export function downloadExport(id: string): void {
   window.location.assign(`/api/exports/${id}/download`)
 }
+
+export async function deleteExport(id: string): Promise<void> {
+  const res = await fetch(`/api/exports/${id}`, { method: "DELETE" })
+  if (!res.ok) await parseError(res, "Failed to delete export")
+}
+
+export async function deleteExports(ids: string[]): Promise<void> {
+  const res = await fetch(`/api/exports`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  })
+  if (!res.ok) await parseError(res, "Failed to delete exports")
+}
