@@ -158,7 +158,7 @@ export function ExportsHistoryClient() {
       <div className="border border-border rounded-lg overflow-hidden bg-white">
         <table className="w-full text-[13px]">
           <thead>
-            <tr className="text-left text-sm font-bold tracking-tight text-text-secondary bg-background">
+            <tr className="text-left text-sm font-bold tracking-tight text-text-secondary bg-white">
               <th className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={allSelected}
@@ -249,7 +249,7 @@ function RowGroup({
 }) {
   return (
     <>
-      <tr className={cn("hover:bg-[#FAFBFF] cursor-pointer", className)} onClick={onToggle}>
+      <tr className="hover:bg-[#FAFBFF] cursor-pointer" onClick={onToggle}>
         <td className="px-4 py-3 align-middle" onClick={(event) => event.stopPropagation()}>
           <Checkbox checked={selected} onCheckedChange={onSelect} aria-label="Select export" />
         </td>
@@ -266,7 +266,10 @@ function RowGroup({
         </td>
         <td className="px-4 py-3">
           <span
-            className="inline-flex items-center px-2.25 py-0.75 rounded-full text-sm font-semibold"
+            className={cn(
+              "inline-flex items-center px-2.25 py-0.75 rounded-full text-sm font-semibold",
+              className
+            )}
           >
             {STATUS_STYLE[e.status].label}
           </span>
