@@ -158,7 +158,7 @@ export function InvoicesToolbar({
               className="h-auto py-2 rounded-[10px] border-border bg-surface text-sm font-semibold text-text-primary gap-1.5"
             >
               <SlidersHorizontal size={14} className="text-dim" />
-              Filters
+              {t("invoices.filters")}
               {activeCount > 0 && (
                 <span className="ms-0.5 inline-flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-primary text-white text-[11px] font-bold leading-none">
                   {activeCount}
@@ -170,16 +170,16 @@ export function InvoicesToolbar({
         />
         <PopoverContent align="start" className="w-64 gap-4.5">
           <FilterSelect
-            label="Category"
+            label={t("invoices.filter.category.label")}
             multiple
             options={categoryOptions}
             value={categoryFilter}
             onChange={onCategoryChange}
-            allLabel="All categories"
+            allLabel={t("invoices.filter.category.all")}
           />
 
           <FilterSelect
-            label="Type"
+            label={t("invoices.filter.documentType.label")}
             options={documentTypeOptions}
             value={documentTypeFilter}
             onChange={onDocumentTypeChange}
@@ -187,7 +187,7 @@ export function InvoicesToolbar({
 
           {showAccount && (
             <FilterSelect
-              label="Account"
+              label={t("invoices.filter.account.label")}
               options={accountOptions}
               value={accountFilter}
               onChange={onAccountChange}
@@ -198,7 +198,7 @@ export function InvoicesToolbar({
 
       {canClear && (
         <Button variant="ghost" onClick={onClearAll}>
-          Clear all
+          {t("invoices.clearAll")}
         </Button>
       )}
 
