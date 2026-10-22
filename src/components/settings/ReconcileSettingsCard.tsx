@@ -72,7 +72,7 @@ export function ReconcileSettingsCard({
           <span>{t("settings.reconcile.days")}</span>
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-4 flex justify-end">
           <Button
             onClick={save}
             disabled={!dirty || update.isPending}
