@@ -13,6 +13,7 @@ export const he = {
       title: "שפה",
       description: "בחירת שפת הממשק.",
       saved: "השפה עודכנה",
+      save: "שמירה",
     },
     gmail: {
       title: "חיבור Gmail",

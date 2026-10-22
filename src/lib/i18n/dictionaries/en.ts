@@ -14,6 +14,7 @@ export const en = {
       title: "Language",
       description: "Choose the language for the interface.",
       saved: "Language updated",
+      save: "Save",
     },
     gmail: {
       title: "Gmail connection",
