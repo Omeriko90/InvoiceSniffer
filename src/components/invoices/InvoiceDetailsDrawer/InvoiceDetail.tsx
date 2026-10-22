@@ -9,7 +9,7 @@ import type { InvoiceRow } from "../types"
 import { CategoryBadge } from "../CategoryBadge"
 import { DocumentTypeBadge } from "../DocumentTypeBadge"
 import { RemovalReason } from "@/api/invoices"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 
 interface InvoiceDetailProps {
   invoice: InvoiceRow
@@ -22,6 +22,7 @@ interface InvoiceDetailProps {
 }
 export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, onEdit, onMarkFixedExpense, isPending, onOpenConfirm }: InvoiceDetailProps) {
   const t = useT()
+  const dfl = useDateFnsLocale()
   return (
     <div className="flex flex-1 flex-col min-h-0">
       <div className="flex-1 overflow-y-auto p-5.5">
@@ -63,11 +64,11 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
               ? [{ label: t("invoices.detail.field.originalAmount"), value: fmtMoney(invoice.totalAmount, invoice.currency) }]
               : []),
             { label: t("invoices.detail.field.tax"),       value: invoice.taxAmount != null ? fmtAmount(invoice.taxAmount, invoice.currency) : "—" },
-            { label: t("invoices.detail.field.invoiceDate"), value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
+            { label: t("invoices.detail.field.invoiceDate"), value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy", { locale: dfl }) : "—" },
             // Most receipts are already paid, so a missing due date means
             // "not applicable" — hide the row rather than show a dash
             ...(invoice.dueDate
-              ? [{ label: t("invoices.detail.field.dueDate"), value: format(new Date(invoice.dueDate), "MMM d, yyyy") }]
+              ? [{ label: t("invoices.detail.field.dueDate"), value: format(new Date(invoice.dueDate), "MMM d, yyyy", { locale: dfl }) }]
               : []),
           ] as { label: string; value?: string; mono?: boolean; node?: ReactNode }[]).map((row, i, arr) => (
             <div
@@ -97,7 +98,7 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
           <p className="text-[13px] font-semibold text-text-primary leading-snug">{invoice.subject}</p>
           <p className="text-[12.5px] text-text-secondary mt-1">{invoice.senderEmail}</p>
           <p className="text-[12px] text-text-secondary mt-0.5">
-            {format(new Date(invoice.emailDate), "MMM d, yyyy")}
+            {format(new Date(invoice.emailDate), "MMM d, yyyy", { locale: dfl })}
           </p>
           <p className="text-[12px] text-text-secondary mt-1.5 pt-2 border-t border-[#F1F5F9]">
             {t("invoices.detail.receivedIn")}{" "}

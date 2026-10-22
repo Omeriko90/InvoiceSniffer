@@ -286,6 +286,15 @@ export const he = {
     dateRange: {
       custom: "מותאם אישית",
       apply: "החלה",
+      customRange: "טווח מותאם אישית",
+    },
+    pickDates: "בחרו תאריך התחלה וסיום כדי לראות את הסקירה.",
+    preset: {
+      mtd: "החודש הנוכחי",
+      qtd: "רבעון",
+      "6m": "חצי שנה",
+      year: "שנה",
+      ytd: "מתחילת השנה",
     },
     overview: {
       invoices: "חשבוניות",
@@ -748,6 +757,15 @@ export const he = {
         amountInvalid: "הזינו סכום תקין",
       },
     },
+    datePreset: {
+      all: "כל הזמן",
+      thisMonth: "החודש הנוכחי",
+      lastMonth: "החודש שעבר",
+      "3m": "3 החודשים האחרונים",
+      "6m": "6 החודשים האחרונים",
+      ytd: "מתחילת השנה",
+      year: "12 החודשים האחרונים",
+    },
     table: {
       vendor: "ספק",
       invoiceNumber: "חשבונית מס׳",
@@ -781,6 +799,7 @@ export const he = {
       status: { all: "הכול" },
       category: { all: "כל הקטגוריות" },
       account: { all: "כל החשבונות" },
+      documentType: { all: "כל הסוגים" },
     },
     dateFilter: {
       customRange: "טווח מותאם אישית…",

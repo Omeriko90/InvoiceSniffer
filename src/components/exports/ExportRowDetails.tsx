@@ -5,7 +5,7 @@ import { formatDate } from "date-fns";
 import ExportRowDetail from "./ExportRowDetail";
 import { Button } from "../ui/button";
 import { Download } from "lucide-react";
-import { useT } from "@/components/i18n/LocaleProvider";
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider";
 import {
     downloadExport,
   } from "@/api/exports"
@@ -27,6 +27,7 @@ const SKIP_REASON_KEY: Record<string, string> = {
 
 function ExportRowDetails({ item }: ExportRowDetailsProps) {
     const t = useT()
+    const dfl = useDateFnsLocale()
     const skipReasonLabel = (reason: string): string =>
       SKIP_REASON_KEY[reason] ? t(SKIP_REASON_KEY[reason] as never) : reason
     return (
@@ -37,7 +38,7 @@ function ExportRowDetails({ item }: ExportRowDetailsProps) {
           <ExportRowDetail label={t("exports.detail.file")} value={item.fileName ?? t("exports.detail.empty")} />
           <ExportRowDetail
             label={t("exports.detail.expires")}
-            value={item.expiresAt ? formatDate(new Date(item.expiresAt), "dd MMM yyyy") : t("exports.detail.empty")}
+            value={item.expiresAt ? formatDate(new Date(item.expiresAt), "dd MMM yyyy", { locale: dfl }) : t("exports.detail.empty")}
           />
         </dl>
   

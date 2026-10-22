@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { addDays, addMonths, format } from "date-fns"
+import type { Locale as DateFnsLocale } from "date-fns"
 import { Pause, Play, Pencil, Trash2, Link2, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -17,7 +18,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { CategoryBadge } from "@/components/invoices/CategoryBadge"
 import { fmtAmount } from "@/components/invoices/helpers"
 import { type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import type { TranslationKey, TranslateParams } from "@/lib/i18n/translate"
 import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
 import { useDeleteFixedExpense } from "@/hooks/useDeleteFixedExpense"
@@ -36,16 +37,17 @@ function periodLabel(
   startIso: string,
   frequency: FixedExpenseFrequency,
   t: (key: TranslationKey, params?: TranslateParams) => string,
+  locale?: DateFnsLocale,
 ): string {
   const d = new Date(startIso)
   if (frequency === "WEEKLY")
-    return t("fixed_expenses.period.week_of", { date: format(d, "MMM d, yyyy") })
+    return t("fixed_expenses.period.week_of", { date: format(d, "MMM d, yyyy", { locale }) })
   // Bi-weekly / bi-monthly span two units, so show the range they cover.
-  if (frequency === "BIWEEKLY") return `${format(d, "MMM d")} – ${format(addDays(d, 13), "MMM d, yyyy")}`
-  if (frequency === "BIMONTHLY") return `${format(d, "MMM")} – ${format(addMonths(d, 1), "MMM yyyy")}`
+  if (frequency === "BIWEEKLY") return `${format(d, "MMM d", { locale })} – ${format(addDays(d, 13), "MMM d, yyyy", { locale })}`
+  if (frequency === "BIMONTHLY") return `${format(d, "MMM", { locale })} – ${format(addMonths(d, 1), "MMM yyyy", { locale })}`
   if (frequency === "YEARLY") return format(d, "yyyy")
   if (frequency === "QUARTERLY") return `Q${Math.floor(d.getMonth() / 3) + 1} ${format(d, "yyyy")}`
-  return format(d, "MMMM yyyy")
+  return format(d, "MMMM yyyy", { locale })
 }
 
 const sectionLabel = "text-xs font-bold text-text-secondary mb-2"
@@ -60,6 +62,7 @@ export function FixedExpenseDetailDrawer({
   onDismiss: () => void
 }) {
   const t = useT()
+  const dfl = useDateFnsLocale()
   const freqLabel = (f: FixedExpenseFrequency): string =>
     ({
       WEEKLY: t("fixed_expenses.frequency.weekly"),
@@ -207,12 +210,12 @@ export function FixedExpenseDetailDrawer({
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary">
-                      {periodLabel(entry.periodStart, expense.frequency, t)}
+                      {periodLabel(entry.periodStart, expense.frequency, t, dfl)}
                     </p>
                     {hasInvoice ? (
                       <p className="text-[12px] text-text-secondary mt-0.5">
                         {fmtAmount(first.totalAmount, first.currency)} ·{" "}
-                        {format(new Date(first.emailDate), "MMM d")}
+                        {format(new Date(first.emailDate), "MMM d", { locale: dfl })}
                         {entry.invoices.length > 1 && (
                           <span className="text-dim"> · {t("fixed_expenses.detail.more_count", { count: entry.invoices.length - 1 })}</span>
                         )}
@@ -322,7 +325,7 @@ export function FixedExpenseDetailDrawer({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary truncate">{c.vendorName ?? "—"}</p>
                     <p className="text-xs text-text-secondary mt-0.5">
-                      {format(new Date(c.emailDate), "MMM d, yyyy")}
+                      {format(new Date(c.emailDate), "MMM d, yyyy", { locale: dfl })}
                     </p>
                   </div>
                   <span className="text-sm font-bold text-heading shrink-0">
@@ -343,7 +346,7 @@ export function FixedExpenseDetailDrawer({
               <DialogTitle>{t("fixed_expenses.period_chooser.title")}</DialogTitle>
               <DialogDescription>
                 {t("fixed_expenses.period_chooser.description", {
-                  period: periodLabel(chooser.periodStart, expense.frequency, t),
+                  period: periodLabel(chooser.periodStart, expense.frequency, t, dfl),
                 })}
               </DialogDescription>
             </DialogHeader>
@@ -358,7 +361,7 @@ export function FixedExpenseDetailDrawer({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary truncate">{inv.vendorName ?? "—"}</p>
                     <p className="text-[12px] text-text-secondary mt-0.5">
-                      {format(new Date(inv.emailDate), "MMM d, yyyy")}
+                      {format(new Date(inv.emailDate), "MMM d, yyyy", { locale: dfl })}
                     </p>
                   </div>
                   <span className="text-sm font-bold text-heading shrink-0">

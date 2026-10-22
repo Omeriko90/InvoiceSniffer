@@ -3,7 +3,7 @@ import { useT } from "@/components/i18n/LocaleProvider"
 import { ConfidenceBar } from "@/components/ui/confidence-bar"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { fmtMoney } from "@/lib/money"
-import { fmtDateShort } from "@/lib/date"
+import { useFmtDate } from "@/components/i18n/LocaleProvider"
 import type { CandidateResult } from "@/api-types/reconcile"
 
 export function CandidateRow({
@@ -16,6 +16,7 @@ export function CandidateRow({
   onLink: () => void
 }) {
   const t = useT()
+  const { fmtDateShort } = useFmtDate()
   const c = candidate
   return (
     <div className="flex items-center gap-3 border border-border rounded-[11px] px-[13px] py-[11px]">

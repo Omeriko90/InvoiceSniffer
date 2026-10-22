@@ -5,7 +5,7 @@ import { ActionButton } from "@/components/reconcile/ActionButton"
 import { MatchedInvoiceCell } from "@/components/reconcile/MatchedInvoiceCell"
 import { GRID } from "@/components/reconcile/constants"
 import { fmtMoney } from "@/lib/money"
-import { fmtDateShort } from "@/lib/date"
+import { useFmtDate } from "@/components/i18n/LocaleProvider"
 import type { RunAction, TransactionRow } from "@/components/reconcile/types"
 
 export function ReconcileRow({
@@ -22,6 +22,7 @@ export function ReconcileRow({
   onRun: (id: string, action: RunAction) => void
 }) {
   const t = useT()
+  const { fmtDateShort } = useFmtDate()
   return (
     <div
       role="button"

@@ -2,13 +2,14 @@
 import { ExternalLink, FileText } from "lucide-react"
 import { useT } from "@/components/i18n/LocaleProvider"
 import { fmtMoney } from "@/lib/money"
-import { fmtDate } from "@/lib/date"
+import { useFmtDate } from "@/components/i18n/LocaleProvider"
 import type { MatchInvoice } from "@/api-types/reconcile"
 
 // Invoices in the selected window that no uploaded charge matched — i.e. you may
 // be missing a bank/card charge for them, or haven't uploaded the right file.
 export function UnreconciledInvoicesPanel({ invoices }: { invoices: MatchInvoice[] }) {
   const t = useT()
+  const { fmtDate } = useFmtDate()
   if (invoices.length === 0) {
     return (
       <div className="bg-card border border-border rounded-lg flex flex-col items-center justify-center py-16 px-8">

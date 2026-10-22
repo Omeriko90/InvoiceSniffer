@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { CandidateList } from "@/components/reconcile/CandidateList"
 import { normalizeMerchant } from "@/lib/matching"
 import { fmtMoney } from "@/lib/money"
-import { fmtDate } from "@/lib/date"
+import { useFmtDate } from "@/components/i18n/LocaleProvider"
 import type { CandidateResult } from "@/api-types/reconcile"
 import type { TransactionRow } from "@/components/reconcile/types"
 
@@ -23,6 +23,7 @@ export function FindInvoiceModalBody({ transaction, range, linking, onLink }: {
   onLink: (candidate: CandidateResult) => void
 }) {
   const t = useT()
+  const { fmtDate } = useFmtDate()
   // Pre-filled with the cleaned-up merchant guess; remounted per transaction
   const [search, setSearch] = useState(() => normalizeMerchant(transaction.merchant))
 

@@ -9,7 +9,7 @@ import {
   type ExportHistoryItem,
 } from "@/api/exports"
 import { cn } from "@/lib/utils"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import ExportRowDetails from "./ExportRowDetails"
 
 interface ExportsRowProps {
@@ -34,6 +34,7 @@ function ExportsRow({
     onDelete,
   }: ExportsRowProps) {
     const t = useT()
+    const dfl = useDateFnsLocale()
     return (
       <>
         <tr className="hover:bg-[#FAFBFF] cursor-pointer" onClick={onToggle}>
@@ -47,11 +48,11 @@ function ExportsRow({
           </td>
           <td className="px-4 py-3 font-semibold text-text-primary">{item.format}</td>
           <td className="px-4 py-3 text-text-secondary">
-            {formatDate(new Date(item.dateRangeStart), "dd MMM yyyy")} –{" "}
-            {formatDate(new Date(item.dateRangeEnd), "dd MMM yyyy")}
+            {formatDate(new Date(item.dateRangeStart), "dd MMM yyyy", { locale: dfl })} –{" "}
+            {formatDate(new Date(item.dateRangeEnd), "dd MMM yyyy", { locale: dfl })}
           </td>
           <td className="px-4 py-3 text-text-secondary">
-            {formatDate(new Date(item.createdAt), "dd MMM yyyy, HH:mm")}
+            {formatDate(new Date(item.createdAt), "dd MMM yyyy, HH:mm", { locale: dfl })}
           </td>
           <td className="px-4 py-3">
             <span

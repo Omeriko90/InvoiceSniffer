@@ -287,6 +287,15 @@ export const en = {
     dateRange: {
       custom: "Custom",
       apply: "Apply",
+      customRange: "Custom range",
+    },
+    pickDates: "Pick a start and end date to see your overview.",
+    preset: {
+      mtd: "Current month",
+      qtd: "Quarter",
+      "6m": "Half year",
+      year: "Year",
+      ytd: "YTD",
     },
     overview: {
       invoices: "Invoices",
@@ -749,6 +758,15 @@ export const en = {
         amountInvalid: "Enter a valid amount",
       },
     },
+    datePreset: {
+      all: "All time",
+      thisMonth: "Current month",
+      lastMonth: "Last month",
+      "3m": "Last 3 months",
+      "6m": "Last 6 months",
+      ytd: "Year to date",
+      year: "Last 12 months",
+    },
     table: {
       vendor: "Vendor",
       invoiceNumber: "Invoice #",
@@ -782,6 +800,7 @@ export const en = {
       status: { all: "All" },
       category: { all: "All categories" },
       account: { all: "All accounts" },
+      documentType: { all: "All types" },
     },
     dateFilter: {
       customRange: "Custom range…",

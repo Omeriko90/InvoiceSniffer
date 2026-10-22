@@ -1,8 +1,11 @@
 "use client"
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import type { Locale as DateFnsLocale } from "date-fns"
 import { dictionaries } from "@/lib/i18n/dictionary"
 import { t as translate, type TranslationKey, type TranslateParams } from "@/lib/i18n/translate"
+import { fmtDate, fmtDateShort } from "@/lib/date"
+import { dateFnsLocale } from "@/lib/i18n/date-locale"
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
@@ -75,4 +78,21 @@ export function useLocale(): LocaleContextValue {
 // Convenience hook returning just the bound translate function.
 export function useT(): TranslateFn {
   return useLocale().t
+}
+
+// The date-fns locale for the active app locale — pass to date-fns `format(...)`.
+export function useDateFnsLocale(): DateFnsLocale | undefined {
+  return dateFnsLocale(useLocale().locale)
+}
+
+// Date formatters bound to the active locale, so call sites stay `fmtDate(iso)`.
+export function useFmtDate() {
+  const locale = useDateFnsLocale()
+  return useMemo(
+    () => ({
+      fmtDate: (iso: string) => fmtDate(iso, locale),
+      fmtDateShort: (iso: string) => fmtDateShort(iso, locale),
+    }),
+    [locale],
+  )
 }

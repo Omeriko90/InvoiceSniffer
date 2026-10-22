@@ -3,15 +3,16 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { format } from "date-fns"
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import type { SpendTrend } from "@/api-types/dashboard"
 
 // Spend bucketed by month across the selected range.
 export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null; rangeLabel: string }) {
   const t = useT()
+  const dfl = useDateFnsLocale()
   const data =
     trend?.points.map((p) => ({
-      label: format(new Date(p.month), "MMM"),
+      label: format(new Date(p.month), "MMM", { locale: dfl }),
       total: p.total,
       currency: trend.currency,
     })) ?? []

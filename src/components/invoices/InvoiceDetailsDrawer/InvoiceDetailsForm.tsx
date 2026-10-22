@@ -14,13 +14,11 @@ import { Button } from "@/components/ui/button"
 import { useT } from "@/components/i18n/LocaleProvider"
 import type { InvoiceRow } from "../types"
 import {
-  CATEGORY_LABELS,
   CATEGORY_SELECTABLE,
   INVOICE_CATEGORIES,
   type InvoiceCategory,
 } from "@/lib/invoice-categories"
 import {
-  DOCUMENT_TYPE_LABELS,
   DOCUMENT_TYPE_SELECTABLE,
   DOCUMENT_TYPES,
   type DocumentType,
@@ -124,7 +122,7 @@ export function InvoiceDetailsForm({
               name="documentType"
               render={({ field }) => (
                 <Select
-                  items={DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] }))}
+                  items={DOCUMENT_TYPE_SELECTABLE.map((dt) => ({ value: dt, label: t(`docTypes.${dt}`) }))}
                   value={field.value}
                   onValueChange={(v) => v && field.onChange(v as DocumentType)}
                 >
@@ -132,8 +130,8 @@ export function InvoiceDetailsForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" className="w-fit">
-                    {DOCUMENT_TYPE_SELECTABLE.map((t) => (
-                      <SelectItem key={t} value={t}>{DOCUMENT_TYPE_LABELS[t]}</SelectItem>
+                    {DOCUMENT_TYPE_SELECTABLE.map((dt) => (
+                      <SelectItem key={dt} value={dt}>{t(`docTypes.${dt}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -149,7 +147,7 @@ export function InvoiceDetailsForm({
               name="category"
               render={({ field }) => (
                 <Select
-                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: t(`categories.${c}`) }))}
                   value={field.value}
                   onValueChange={(v) => v && field.onChange(v as InvoiceCategory)}
                 >
@@ -158,7 +156,7 @@ export function InvoiceDetailsForm({
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" className="w-fit">
                     {CATEGORY_SELECTABLE.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                      <SelectItem key={c} value={c}>{t(`categories.${c}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
