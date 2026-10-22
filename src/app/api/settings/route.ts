@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { listGmailCredentialStatuses } from "@/lib/gmail"
-import { maxGmailAccounts } from "@/lib/plan-limits"
+import { maxGmailAccounts, maxWhatsAppNumbers } from "@/lib/plan-limits"
 import { MIN_SETTLEMENT_LAG_DAYS, MAX_SETTLEMENT_LAG_DAYS } from "@/lib/matching"
 import { isSupportedDisplayCurrency, SUPPORTED_DISPLAY_CURRENCIES } from "@/lib/currency"
 import { NextResponse } from "next/server"
@@ -13,7 +13,7 @@ export async function GET() {
 
   const { organizationId } = session.user
 
-  const [credentials, members, rules, org] = await Promise.all([
+  const [credentials, members, rules, org, whatsappNumbers] = await Promise.all([
     listGmailCredentialStatuses(organizationId),
     prisma.user.findMany({
       where: { organizationId },
@@ -28,6 +28,11 @@ export async function GET() {
     prisma.organization.findUnique({
       where: { id: organizationId },
       select: { settlementLagDays: true, displayCurrency: true, planTier: true },
+    }),
+    prisma.whatsAppNumber.findMany({
+      where: { organizationId },
+      select: { id: true, phoneE164: true, verified: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
     }),
   ])
 
@@ -44,6 +49,13 @@ export async function GET() {
     settlementLagDays: org?.settlementLagDays ?? 30,
     displayCurrency: org?.displayCurrency ?? "USD",
     maxGmailAccounts: org ? maxGmailAccounts(org.planTier) : 0,
+    whatsappNumbers: whatsappNumbers.map((n) => ({
+      id: n.id,
+      phoneE164: n.phoneE164,
+      verified: n.verified,
+      createdAt: n.createdAt.toISOString(),
+    })),
+    maxWhatsAppNumbers: org ? maxWhatsAppNumbers(org.planTier) : 0,
   })
 }
 

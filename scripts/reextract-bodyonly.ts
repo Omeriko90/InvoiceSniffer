@@ -23,6 +23,7 @@ async function main() {
   for (const r of rows) {
     if (!r.gmailCredentialId) continue
     if (parseLineItems(r.lineItems).length > 0) continue
+    if (!r.gmailMessageId) continue // Gmail-only re-extraction path
     const attachments = (r.attachmentMeta as AttachmentMeta[]) ?? []
     if (attachments.some(isPdfAttachment)) continue
 

@@ -2,19 +2,9 @@ import { Worker, Job } from "bullmq"
 import { prisma } from "@/lib/prisma"
 import { getGmailClient, buildGmailMessageLink } from "@/lib/gmail"
 import { redisUrl,type ExtractionJobData } from "@/lib/queues"
-import { extractInvoiceMetadata, type ExtractedInvoice } from "@/lib/invoice-detection"
-import {
-  extractorEnabled,
-  extractInvoiceFromPdf,
-  extractInvoiceFromText,
-  type LlmExtraction,
-} from "@/lib/llm-extractor"
-import { categorizerEnabled, categorizeInvoice } from "@/lib/llm-categorizer"
-import type { InvoiceCategory } from "@/lib/invoice-categories"
+import { runExtraction } from "@/lib/extract-core"
 import { linkInvoiceToMatchingFixedExpense } from "@/lib/link-fixed-expense"
-import { normalizeCurrencyCode } from "@/lib/currency"
-import { convertForDisplay } from "@/lib/fx"
-import { findReceiptUrl, fetchReceiptText, parsePdfText } from "@/lib/receipt-link"
+import { parsePdfText } from "@/lib/receipt-link"
 import { log } from "@/lib/posthog-server"
 import { convert } from "html-to-text"
 
@@ -112,129 +102,22 @@ async function extractInvoice(
   const bodyHtml = extractBodyHtml(payload)
   const attachmentMeta = extractAttachmentMeta(payload)
 
-  let extracted = extractInvoiceMetadata(senderEmail, senderName, subject, bodyText)
-
-  // Fetch the PDF bytes once, up front — reused for both text parsing (below)
-  // and the LLM vision extractor (Tier 2). Documents are parsed in memory and
-  // never stored.
+  // Fetch the PDF attachment bytes once, up front — the extraction core reuses
+  // them for both text parsing and the LLM vision pass. Parsed in memory, never
+  // stored (Gmail attachments are re-fetched on demand).
   const pdfBytes = await fetchAttachmentPdfBytes(gmail, gmailMessageId, attachmentMeta)
 
-  // When the email body didn't yield an amount, dig deeper: first the PDF
-  // attachment's text layer, then the hosted receipt link.
-  if (!extracted.totalAmount && pdfBytes) {
-    let pdfText: string | null = null
-    try {
-      pdfText = await parsePdfText(pdfBytes)
-    } catch {
-      pdfText = null
-    }
-    if (pdfText) {
-      const fromPdf = extractInvoiceMetadata(senderEmail, senderName, subject, pdfText)
-      extracted = mergeExtractions(extracted, fromPdf)
-    }
-  }
-
-  // Whether the document is Israeli decides when the richer hosted-doc/LLM
-  // extraction is worth it — heuristics never produce the Tax Authority
-  // allocation number, so a missing one is reason enough to dig deeper even when
-  // an amount was already found. Re-evaluated as `extracted` gains fields.
-  const isIsraeli = () =>
-    extracted.currency === "ILS" || /[֐-׿]/.test(`${subject}\n${bodyText}`)
-
-  // Follow the hosted receipt link when a gap remains: no amount yet, or an
-  // Israeli doc still missing its allocation number. A linked PDF is captured as
-  // bytes so it can feed the same Tier 2 LLM path an attachment does; an HTML
-  // page is parsed to text and merged.
-  const receiptUrl = bodyHtml ? findReceiptUrl(bodyHtml) : null
-  let remotePdfBytes: Buffer | null = null
-  if (receiptUrl && (!extracted.totalAmount || (isIsraeli() && !extracted.allocationNumber))) {
-    const remote = await fetchReceiptText(receiptUrl)
-    if (remote?.text) {
-      const parsed = extractInvoiceMetadata(senderEmail, senderName, subject, remote.text)
-      extracted = mergeExtractions(extracted, parsed)
-    }
-    remotePdfBytes = remote?.pdfBytes ?? null
-  }
-
-  // Tier 2: structured LLM vision extraction. Runs only when it uniquely helps
-  // and a PDF exists — from the attachment or, failing that, the linked receipt:
-  // either the cheaper signals never found an amount (the deferred mojibake/RTL
-  // fallback), or this is an Israeli document missing the Tax Authority
-  // allocation number (which the regex heuristics never extract).
-  const docBytes = pdfBytes ?? remotePdfBytes
-  let extractionMethod: "HEURISTIC" | "AI" = "HEURISTIC"
-  // Category read off the full document by the vision extractor, when it ran.
-  // Preferred over the text-only categorizer below because it sees the actual
-  // PDF (logo, layout, line items) — the richest signal available.
-  let visionCategory: InvoiceCategory | undefined
-  if (extractorEnabled() && docBytes) {
-    // Run the vision extractor when the cheap signals left a gap it can close:
-    // no amount at all, or an Israeli document still missing its Tax Authority
-    // allocation number OR its VAT (both of which the LLM reads reliably and the
-    // regex heuristics routinely miss on RTL-mangled PDFs).
-    const needsLlm =
-      !extracted.totalAmount ||
-      (isIsraeli() && (!extracted.allocationNumber || !extracted.taxAmount))
-    if (needsLlm) {
-      const source = pdfBytes ? "attachment" : "link"
-      console.log(`[invoice-extract] Tier 2 LLM on ${source} PDF for ${gmailMessageId}`)
-      const llm = await extractInvoiceFromPdf({ pdfBytes: docBytes, subject, senderEmail })
-      if (llm) {
-        extracted = applyLlmExtraction(extracted, llm)
-        extractionMethod = "AI"
-        // The vision extractor also classifies the expense off the full
-        // document; treat UNCATEGORIZED as "no opinion" so the text-only
-        // fallback below still gets a shot.
-        if (llm.category !== "UNCATEGORIZED") visionCategory = llm.category
-      }
-    }
-  }
-
-  if (extractorEnabled() && !docBytes && bodyText.trim()) {
-    const llm = await extractInvoiceFromText({ bodyText, subject, senderEmail })
-    if (llm) {
-      extracted = applyLlmExtraction(extracted, llm)
-      extractionMethod = "AI"
-      visionCategory = llm.category
-    }
-  }
-
-  // Category, best signal first: the vision extractor's read of the full
-  // document when there was a PDF (attachment or linked), else a cheap text-only
-  // LLM call (vendor + subject + line items — the only option for HTML-linked or
-  // body-only invoices with no PDF). Fail-open to the DB default. Only ever
-  // applied on create below, never on update, so it can't clobber a user's
-  // manual category (or the original auto-category) when a message re-extracts.
-  let category: InvoiceCategory | undefined = visionCategory
-  if (!category && categorizerEnabled()) {
-    category =
-      (await categorizeInvoice({
-        vendorName: extracted.vendorName,
-        subject,
-        senderEmail,
-        lineItems: extracted.lineItems,
-      })) ?? undefined
-  }
-
-  const org = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { displayCurrency: true },
-  })
-  const displayCurrency = org?.displayCurrency ?? "USD"
-  const originalCurrency = normalizeCurrencyCode(extracted.currency)
-  const conversion = await convertForDisplay(
-    extracted.totalAmount ?? 0,
-    originalCurrency,
-    displayCurrency
-  )
-  const convertedFields = conversion
-    ? {
-        displayAmount: conversion.displayAmount,
-        displayCurrency: conversion.displayCurrency,
-        fxRate: conversion.fxRate,
-        fxAsOf: conversion.fxAsOf,
-      }
-    : {}
+  const { extracted, extractionMethod, category, receiptUrl, convertedFields } =
+    await runExtraction({
+      organizationId,
+      senderEmail,
+      senderName,
+      subject,
+      bodyText,
+      bodyHtml,
+      docBytes: pdfBytes,
+      docMimeType: pdfBytes ? "application/pdf" : null,
+    })
 
   const invoice = await prisma.invoice.upsert({
     where: { organizationId_gmailMessageId: { organizationId, gmailMessageId } },
@@ -368,79 +251,6 @@ export async function fetchAttachmentPdfText(
     return parsePdfText(bytes)
   } catch {
     return null
-  }
-}
-
-// Field-wise merge: email-body values win, the fetched document fills the gaps
-function mergeExtractions(email: ExtractedInvoice, remote: ExtractedInvoice): ExtractedInvoice {
-  return {
-    vendorName: email.vendorName ?? remote.vendorName,
-    vendorNormalized: email.vendorNormalized ?? remote.vendorNormalized,
-    invoiceNumber: email.invoiceNumber ?? remote.invoiceNumber,
-    allocationNumber: email.allocationNumber ?? remote.allocationNumber,
-    vendorTaxId: email.vendorTaxId ?? remote.vendorTaxId,
-    documentType: email.documentType !== "UNKNOWN" ? email.documentType : remote.documentType,
-    invoiceDate: email.invoiceDate ?? remote.invoiceDate,
-    dueDate: email.dueDate ?? remote.dueDate,
-    totalAmount: email.totalAmount ?? remote.totalAmount,
-    currency: email.totalAmount ? email.currency : remote.currency,
-    taxAmount: email.taxAmount ?? remote.taxAmount,
-    lineItems: email.lineItems.length > 0 ? email.lineItems : remote.lineItems,
-    confidence: Math.max(email.confidence, remote.confidence),
-  }
-}
-
-// Overlay an LLM extraction onto the heuristic result. The LLM read the
-// rendered page, so it's authoritative for the Israeli fields the heuristics
-// never produce (allocation number, tax id, document type, line items) and
-// fills any gaps the heuristics left; existing heuristic values are kept where
-// present. Confidence is bumped to reflect the richer extraction.
-function applyLlmExtraction(base: ExtractedInvoice, llm: LlmExtraction): ExtractedInvoice {
-  const llmDate = (raw: string | null): Date | null => {
-    if (!raw) return null
-    const d = new Date(raw)
-    return isNaN(d.getTime()) ? null : d
-  }
-
-  // The LLM read the rendered page, so its money figures beat the regex's
-  // guesses at mojibake/RTL text — prefer them, falling back to the heuristic
-  // only when the LLM returned null.
-  const totalAmount = llm.totalAmount ?? base.totalAmount
-  let taxAmount = llm.vatAmount ?? base.taxAmount
-
-  // Reconcile subtotal + VAT = total while all three LLM numbers are still in
-  // scope (subtotalAmount is never persisted). Derive a missing VAT from the
-  // subtotal, and reject a VAT that neither matches nor can be reconciled.
-  const sub = llm.subtotalAmount
-  if (totalAmount != null) {
-    const tol = Math.max(0.02, totalAmount * 0.01)
-    if (sub != null && taxAmount != null) {
-      if (Math.abs(sub + taxAmount - totalAmount) > tol) {
-        const derived = totalAmount - sub
-        taxAmount = derived >= 0 && derived < totalAmount ? derived : null
-      }
-    } else if (sub != null && taxAmount == null) {
-      const derived = totalAmount - sub
-      if (derived >= 0) taxAmount = derived
-    }
-    // Clamp: VAT can never exceed the total.
-    if (taxAmount != null && taxAmount > totalAmount) taxAmount = null
-  }
-
-  return {
-    vendorName: base.vendorName ?? llm.vendorName,
-    vendorNormalized: base.vendorNormalized,
-    invoiceNumber: base.invoiceNumber ?? llm.invoiceNumber,
-    allocationNumber: llm.allocationNumber ?? base.allocationNumber,
-    vendorTaxId: llm.vendorTaxId ?? base.vendorTaxId,
-    documentType: llm.documentType !== "UNKNOWN" ? llm.documentType : base.documentType,
-    invoiceDate: base.invoiceDate ?? llmDate(llm.invoiceDate),
-    dueDate: base.dueDate ?? llmDate(llm.dueDate),
-    totalAmount,
-    currency: llm.totalAmount ? (llm.currency ?? base.currency) : base.currency,
-    taxAmount,
-    lineItems: llm.lineItems.length > 0 ? llm.lineItems : base.lineItems,
-    confidence: Math.max(base.confidence, 0.95),
   }
 }
 

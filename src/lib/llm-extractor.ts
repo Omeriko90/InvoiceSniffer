@@ -167,8 +167,12 @@ export async function extractInvoiceFromText(input: {
   }
 }
 
-export async function extractInvoiceFromPdf(input: {
-  pdfBytes: Buffer
+// Structured LLM extraction from a rendered document — a PDF or an image
+// (e.g. a photo of a receipt sent over WhatsApp). Gemini reads the bytes
+// directly, so the mimeType just has to be accurate.
+export async function extractInvoiceFromDocument(input: {
+  bytes: Buffer
+  mimeType: string
   subject: string
   senderEmail: string
 }): Promise<LlmExtraction | null> {
@@ -184,8 +188,8 @@ export async function extractInvoiceFromPdf(input: {
           parts: [
             {
               inlineData: {
-                mimeType: "application/pdf",
-                data: input.pdfBytes.toString("base64"),
+                mimeType: input.mimeType,
+                data: input.bytes.toString("base64"),
               },
             },
             {

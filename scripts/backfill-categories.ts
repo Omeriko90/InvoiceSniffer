@@ -56,7 +56,7 @@ async function main() {
       const category = await categorizeInvoice({
         vendorName: inv.vendorName,
         subject: inv.subject,
-        senderEmail: inv.senderEmail,
+        senderEmail: inv.senderEmail ?? "",
         lineItems: Array.isArray(inv.lineItems) ? inv.lineItems : [],
       })
       // categorizeInvoice fails open to null, and returns UNCATEGORIZED when it

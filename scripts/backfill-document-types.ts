@@ -60,7 +60,7 @@ async function main() {
       const documentType = await classifyDocumentType({
         vendorName: inv.vendorName,
         subject: inv.subject,
-        senderEmail: inv.senderEmail,
+        senderEmail: inv.senderEmail ?? "",
         lineItems: Array.isArray(inv.lineItems) ? inv.lineItems : [],
       })
       // classifyDocumentType fails open to null, and returns UNKNOWN when it

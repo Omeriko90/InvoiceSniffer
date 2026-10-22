@@ -16,7 +16,7 @@ import {
   parseFrom,
   type GmailPart,
 } from "@/workers/invoice-extract"
-import { extractorEnabled, extractInvoiceFromPdf } from "@/lib/llm-extractor"
+import { extractorEnabled, extractInvoiceFromDocument } from "@/lib/llm-extractor"
 
 function preview(text: string | null, label: string) {
   console.log(`\n── ${label} ${"─".repeat(Math.max(0, 60 - label.length))}`)
@@ -57,6 +57,7 @@ async function main() {
       return
     }
     if (!inv.gmailCredentialId) throw new Error(`Invoice ${inv.id} has no gmailCredentialId`)
+    if (!inv.gmailMessageId) throw new Error(`Invoice ${inv.id} has no gmailMessageId`)
     gmailMessageId = inv.gmailMessageId
     credentialId = inv.gmailCredentialId
     console.log(`Debugging most recent zero-amount invoice: "${inv.subject}"`)
@@ -129,7 +130,7 @@ async function main() {
       console.log("(no PDF attachment to send to the LLM)")
     } else {
       console.log(`Sending ${pdfBytes.length} bytes to ${process.env.LLM_MODEL} …`)
-      const llm = await extractInvoiceFromPdf({ pdfBytes, subject, senderEmail })
+      const llm = await extractInvoiceFromDocument({ bytes: pdfBytes, mimeType: "application/pdf", subject, senderEmail })
       console.log(llm ? JSON.stringify(llm, null, 2) : "(extractor returned null / failed — see warnings above)")
     }
   }

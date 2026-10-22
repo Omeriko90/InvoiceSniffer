@@ -12,7 +12,7 @@ export function InvoiceRow({ invoice, onSelect }: {
   invoice: InvoiceRowType
   onSelect: (invoice: InvoiceRowType) => void
 }) {
-  const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
+  const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail ?? "Unknown"
 
   return (
     <div

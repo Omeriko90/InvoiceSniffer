@@ -70,7 +70,7 @@ export function InvoiceDetailDrawer({
   }
 
   const vendor =
-    invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail;
+    invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail ?? "Unknown";
 
   function handleUnlink() {
     unlink(invoice.id);
@@ -189,7 +189,7 @@ export function InvoiceDetailDrawer({
                 name: invoice.vendorName ?? invoice.senderName ?? "",
                 category: invoice.category,
                 vendorName: invoice.vendorName ?? "",
-                senderEmail: invoice.senderEmail,
+                senderEmail: invoice.senderEmail ?? undefined,
                 expectedAmount: invoice.totalAmount,
                 currency: invoice.currency,
               }}

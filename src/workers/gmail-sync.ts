@@ -357,12 +357,14 @@ async function loadSyncContext(organizationId: string): Promise<SyncContext> {
 
   const marks = new Map<string, { ignored: number; confirmed: number }>()
   for (const row of ignoredCounts) {
+    if (!row.senderEmail) continue
     const sender = row.senderEmail.toLowerCase()
     const entry = marks.get(sender) ?? { ignored: 0, confirmed: 0 }
     entry.ignored += row._count
     marks.set(sender, entry)
   }
   for (const row of confirmedCounts) {
+    if (!row.senderEmail) continue
     const sender = row.senderEmail.toLowerCase()
     const entry = marks.get(sender) ?? { ignored: 0, confirmed: 0 }
     entry.confirmed += row._count
@@ -383,8 +385,12 @@ async function loadSyncContext(organizationId: string): Promise<SyncContext> {
   return {
     senderPenalties,
     examples: [
-      ...negatives.map((i) => ({ subject: i.subject, senderEmail: i.senderEmail, isInvoice: false })),
-      ...positives.map((i) => ({ subject: i.subject, senderEmail: i.senderEmail, isInvoice: true })),
+      ...negatives
+        .filter((i) => i.senderEmail)
+        .map((i) => ({ subject: i.subject, senderEmail: i.senderEmail!, isInvoice: false })),
+      ...positives
+        .filter((i) => i.senderEmail)
+        .map((i) => ({ subject: i.subject, senderEmail: i.senderEmail!, isInvoice: true })),
     ],
     pending: [],
   }

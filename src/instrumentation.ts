@@ -8,6 +8,9 @@ export async function register() {
 
   const { assertWorkerConfig } = await import("@/lib/worker-trigger")
   assertWorkerConfig()
+
+  const { warnWhatsAppConfig } = await import("@/lib/whatsapp")
+  warnWhatsAppConfig()
 }
 
 // Server-side errors from route handlers and server components → PostHog.

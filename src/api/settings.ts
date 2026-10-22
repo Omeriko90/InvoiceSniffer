@@ -1,4 +1,4 @@
-import { SettingsData } from "@/api-types/settings"
+import { SettingsData, WhatsAppRegistration } from "@/api-types/settings"
 
 async function fetchSettings(): Promise<SettingsData> {
   const res = await fetch("/api/settings")
@@ -44,4 +44,37 @@ async function updateDisplayCurrency(displayCurrency: string): Promise<void> {
   }
 }
 
-export { fetchSettings, deleteAlias, disconnectGmail, updateSettlementLag, updateDisplayCurrency }
+async function registerWhatsApp(phone: string): Promise<WhatsAppRegistration> {
+  const res = await fetch("/api/whatsapp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to register number")
+  }
+  return res.json()
+}
+
+async function deleteWhatsApp(id: string): Promise<void> {
+  const res = await fetch("/api/whatsapp", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.error ?? "Failed to remove number")
+  }
+}
+
+export {
+  fetchSettings,
+  deleteAlias,
+  disconnectGmail,
+  updateSettlementLag,
+  updateDisplayCurrency,
+  registerWhatsApp,
+  deleteWhatsApp,
+}
