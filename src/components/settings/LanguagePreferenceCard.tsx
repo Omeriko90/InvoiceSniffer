@@ -36,7 +36,7 @@ export function LanguagePreferenceCard() {
           }}
         >
           <SelectTrigger className="h-auto py-[7px] px-[10px] w-[160px] rounded border-border text-[13px] font-[600] text-text-primary">
-            <SelectValue />
+            <SelectValue>{LOCALE_LABELS[locale]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {LOCALES.map((l) => (

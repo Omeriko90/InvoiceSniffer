@@ -28,11 +28,11 @@ export default function SettingsPage() {
         />
         <WorkspaceMembersCard members={data.members} />
       </div>
-      <div className="grid grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 items-start">
         <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
+        <CurrencyPreferenceCard displayCurrency={data.displayCurrency} />
+        <LanguagePreferenceCard />
       </div>
-      <ReconcileSettingsCard settlementLagDays={data.settlementLagDays} />
-      <LanguagePreferenceCard />
       <LearnedRulesCard rules={data.rules} />
     </div>
   );
