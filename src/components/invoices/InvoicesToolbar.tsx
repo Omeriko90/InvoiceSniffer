@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { format as formatDate } from "date-fns";
+import type { Locale as DateFnsLocale } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { Button } from "@/components/ui/button";
@@ -22,41 +23,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CATEGORY_LABELS, INVOICE_CATEGORIES } from "@/lib/invoice-categories";
-import {
-  DOCUMENT_TYPE_LABELS,
-  DOCUMENT_TYPE_SELECTABLE,
-} from "@/lib/document-types";
-import { useT } from "@/components/i18n/LocaleProvider";
+import { INVOICE_CATEGORIES } from "@/lib/invoice-categories";
+import { DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types";
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider";
 import type { ExportFormat } from "@/api/exports";
 import {
   INVOICE_DATE_PRESETS,
-  INVOICE_DATE_PRESET_LABELS,
   isPreset,
   type InvoiceDateScope,
 } from "@/lib/invoice-date-filter";
 
-const CATEGORY_OPTIONS = INVOICE_CATEGORIES.map((c) => ({
-  value: c,
-  label: CATEGORY_LABELS[c],
-}));
-
-const DOCUMENT_TYPE_OPTIONS = [
-  { value: "all", label: "All types" },
-  ...DOCUMENT_TYPE_SELECTABLE.map((t) => ({
-    value: t,
-    label: DOCUMENT_TYPE_LABELS[t],
-  })),
-];
-
-function dateScopeLabel(scope: InvoiceDateScope): string {
-  if (isPreset(scope)) return INVOICE_DATE_PRESET_LABELS[scope.preset];
+function dateScopeLabel(
+  scope: InvoiceDateScope,
+  t: ReturnType<typeof useT>,
+  locale?: DateFnsLocale,
+): string {
+  if (isPreset(scope)) return t(`invoices.datePreset.${scope.preset}`);
   const from = new Date(scope.from);
   const to = new Date(scope.to);
   // Drop the start year only when both ends share it; show it when they differ.
   const fromFmt =
     from.getFullYear() === to.getFullYear() ? "d MMM" : "d MMM yyyy";
-  return `${formatDate(from, fromFmt)} – ${formatDate(to, "d MMM yyyy")}`;
+  return `${formatDate(from, fromFmt, { locale })} – ${formatDate(to, "d MMM yyyy", { locale })}`;
 }
 
 interface InvoicesToolbarProps {
@@ -95,10 +83,19 @@ export function InvoicesToolbar({
   onExport,
 }: InvoicesToolbarProps) {
   const t = useT();
+  const dfl = useDateFnsLocale();
   const showAccount = accounts.length > 1;
   const accountOptions = [
     { value: "all", label: t("invoices.filter.account.all") },
     ...accounts.map((a) => ({ value: a.email, label: a.label })),
+  ];
+  const categoryOptions = INVOICE_CATEGORIES.map((c) => ({
+    value: c,
+    label: t(`categories.${c}`),
+  }));
+  const documentTypeOptions = [
+    { value: "all", label: t("invoices.filter.documentType.all") },
+    ...DOCUMENT_TYPE_SELECTABLE.map((dt) => ({ value: dt, label: t(`docTypes.${dt}`) })),
   ];
 
   const activeCount =
@@ -120,7 +117,7 @@ export function InvoicesToolbar({
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search vendor, amount, invoice #…"
+          placeholder={t("invoices.searchPlaceholder")}
           className="h-auto ps-8.5 pe-3 py-2 text-sm text-text-primary border-border rounded-[10px] bg-surface"
         />
       </div>
@@ -131,7 +128,7 @@ export function InvoicesToolbar({
           render={
             <Button variant="outline">
               <CalendarDays size={14} className="text-dim" />
-              {dateScopeLabel(dateScope)}
+              {dateScopeLabel(dateScope, t, dfl)}
               <ChevronDown size={14} className="text-dim" />
             </Button>
           }
@@ -142,7 +139,7 @@ export function InvoicesToolbar({
               key={p}
               onClick={() => onDateScopeChange({ preset: p })}
             >
-              {INVOICE_DATE_PRESET_LABELS[p]}
+              {t(`invoices.datePreset.${p}`)}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
@@ -175,7 +172,7 @@ export function InvoicesToolbar({
           <FilterSelect
             label="Category"
             multiple
-            options={CATEGORY_OPTIONS}
+            options={categoryOptions}
             value={categoryFilter}
             onChange={onCategoryChange}
             allLabel="All categories"
@@ -183,7 +180,7 @@ export function InvoicesToolbar({
 
           <FilterSelect
             label="Type"
-            options={DOCUMENT_TYPE_OPTIONS}
+            options={documentTypeOptions}
             value={documentTypeFilter}
             onChange={onDocumentTypeChange}
           />

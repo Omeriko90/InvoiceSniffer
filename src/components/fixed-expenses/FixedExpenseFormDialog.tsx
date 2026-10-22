@@ -30,7 +30,6 @@ import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
 import { useFixedExpensesList } from "@/hooks/useFixedExpensesList"
 import { useAbsorbInvoice } from "@/hooks/useAbsorbInvoice"
 import {
-  CATEGORY_LABELS,
   CATEGORY_SELECTABLE,
   INVOICE_CATEGORIES,
   type InvoiceCategory,
@@ -317,14 +316,14 @@ export function FixedExpenseFormDialog({
               name="category"
               render={({ field }) => (
                 <Select
-                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: t(`categories.${c}`) }))}
                   value={field.value}
                   onValueChange={(v) => field.onChange(v as InvoiceCategory)}
                 >
                   <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CATEGORY_SELECTABLE.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                      <SelectItem key={c} value={c}>{t(`categories.${c}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

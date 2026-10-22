@@ -1,13 +1,12 @@
 // Client component by import — only ever rendered from <MatchDrawer>.
 import { ArrowDown, CreditCard, ExternalLink, FileText, TriangleAlert } from "lucide-react"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useFmtDate } from "@/components/i18n/LocaleProvider"
 import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { InfoBox } from "@/components/ui/info-box"
 import { ActionButton } from "@/components/reconcile/ActionButton"
 import { Field } from "@/components/reconcile/Field"
 import { Panel } from "@/components/reconcile/Panel"
 import { CheckChip } from "@/components/reconcile/CheckChip"
-import { fmtDate } from "@/components/reconcile/helpers"
 import { fmtMoney } from "@/lib/money"
 import type { RunAction, TransactionRow } from "@/components/reconcile/types"
 
@@ -30,6 +29,7 @@ function Header({ transaction }: { transaction: TransactionRow }) {
 
 function Content({ transaction }: { transaction: TransactionRow }) {
   const t = useT()
+  const { fmtDate } = useFmtDate()
   const { invoice } = transaction
 
   // Match signal — do the two sides agree on amount / date?

@@ -7,7 +7,7 @@ import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import { useExports } from "@/components/exports/ExportsProvider"
 import {
   deleteExport,
@@ -29,6 +29,7 @@ const STATUS_CLASS: Record<ExportHistoryItem["status"], string> = {
 
 export function ExportsHistory() {
   const t = useT()
+  const dfl = useDateFnsLocale()
   const { markReadyViewed } = useExports()
   const queryClient = useQueryClient()
   const [openIds, setOpenIds] = useState<Set<string>>(new Set())
@@ -198,8 +199,8 @@ export function ExportsHistory() {
           title={t("exports.deleteDialog.singleTitle")}
           description={t("exports.deleteDialog.singleDescription", {
             format: pendingDelete.format,
-            start: formatDate(new Date(pendingDelete.dateRangeStart), "dd MMM yyyy"),
-            end: formatDate(new Date(pendingDelete.dateRangeEnd), "dd MMM yyyy"),
+            start: formatDate(new Date(pendingDelete.dateRangeStart), "dd MMM yyyy", { locale: dfl }),
+            end: formatDate(new Date(pendingDelete.dateRangeEnd), "dd MMM yyyy", { locale: dfl }),
           })}
           confirmLabel={t("exports.delete")}
           pendingLabel={t("exports.deleting")}

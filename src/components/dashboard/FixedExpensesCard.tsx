@@ -15,7 +15,7 @@ import { fmtAmount } from "@/components/invoices/helpers"
 import { FixedExpenseStatusBadge } from "@/components/fixed-expenses/FixedExpenseStatusBadge"
 import { FixedExpenseDetailDrawer } from "@/components/fixed-expenses/FixedExpenseDetailDrawer"
 import { useDashboardFixedExpenses } from "@/hooks/useDashboardFixedExpenses"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import type { TranslationKey } from "@/lib/i18n/translate"
 import type { FixedExpensePeriodStatus } from "@/lib/fixed-expenses"
 import type { DashboardFixedExpense } from "@/api-types/dashboard"
@@ -49,6 +49,7 @@ export function FixedExpensesCard({
 }) {
   const router = useRouter()
   const t = useT()
+  const dfl = useDateFnsLocale()
   const { data, isPending } = useDashboardFixedExpenses(range)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -166,7 +167,7 @@ export function FixedExpensesCard({
                     {e.rangeStats.partial && e.rangeStats.coverageStart && (
                       <span className="text-[11px] text-dim">
                         {t("dashboard.fixedExpenses.since", {
-                          month: format(new Date(e.rangeStats.coverageStart), "MMM yyyy"),
+                          month: format(new Date(e.rangeStats.coverageStart), "MMM yyyy", { locale: dfl }),
                         })}
                       </span>
                     )}

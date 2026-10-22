@@ -14,10 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
+import { DOCUMENT_TYPE_SELECTABLE } from "@/lib/document-types"
 import {
   INVOICE_DATE_PRESETS,
-  INVOICE_DATE_PRESET_LABELS,
   resolveInvoiceDateRange,
   type InvoiceDatePreset,
 } from "@/lib/invoice-date-filter"
@@ -31,7 +30,7 @@ import {
 import { useExports } from "@/components/exports/ExportsProvider"
 import { track } from "@/lib/analytics"
 import { cn } from "@/lib/utils"
-import { useT } from "@/components/i18n/LocaleProvider"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 
 type Scope = { preset: InvoiceDatePreset } | { from: string; to: string }
 
@@ -44,11 +43,6 @@ function isPreset(s: Scope): s is { preset: InvoiceDatePreset } {
 const EXPORT_PRESETS = INVOICE_DATE_PRESETS.filter((p) => p !== "all")
 
 const FORMAT_LABELS: Record<ExportFormat, string> = { csv: "CSV", xlsx: "Excel", pdf: "PDF" }
-
-const DOCUMENT_TYPE_OPTIONS = [
-  { value: "all", label: "All types" },
-  ...DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] })),
-]
 
 function triggerBrowserDownload(url: string) {
   const a = document.createElement("a")
@@ -67,6 +61,11 @@ export function ExportDialog({
   onClose: () => void
 }) {
   const t = useT()
+  const dfl = useDateFnsLocale()
+  const documentTypeOptions = [
+    { value: "all", label: t("invoices.filter.documentType.all") },
+    ...DOCUMENT_TYPE_SELECTABLE.map((dt) => ({ value: dt, label: t(`docTypes.${dt}`) })),
+  ]
   const { trackExport } = useExports()
   const isSpreadsheet = format === "csv" || format === "xlsx"
 
@@ -221,7 +220,7 @@ export function ExportDialog({
                     on ? "bg-primary-soft text-primary-strong" : "bg-hover text-text-secondary",
                   )}
                 >
-                  {INVOICE_DATE_PRESET_LABELS[p]}
+                  {t(`invoices.datePreset.${p}`)}
                 </Button>
               )
             })}
@@ -266,7 +265,7 @@ export function ExportDialog({
             Document type
           </p>
           <Select
-            items={DOCUMENT_TYPE_OPTIONS}
+            items={documentTypeOptions}
             value={documentTypeFilter}
             onValueChange={(v) => setDocumentTypeFilter(v as string)}
           >
@@ -274,7 +273,7 @@ export function ExportDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="w-fit min-w-(--anchor-width)">
-              {DOCUMENT_TYPE_OPTIONS.map((o) => (
+              {documentTypeOptions.map((o) => (
                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
             </SelectContent>
@@ -337,7 +336,7 @@ export function ExportDialog({
                           {inv.vendorName ?? t("invoices.unknownVendor")}
                         </span>
                         <span className="text-sm text-text-secondary shrink-0">
-                          {date ? formatDate(new Date(date), "dd MMM yyyy") : "—"}
+                          {date ? formatDate(new Date(date), "dd MMM yyyy", { locale: dfl }) : "—"}
                         </span>
                         <span className="text-sm font-semibold text-text-primary shrink-0 w-23 text-end">
                           {inv.currency} {inv.totalAmount.toFixed(2)}

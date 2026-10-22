@@ -9,7 +9,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ToggleChip } from "@/components/ui/toggle-chip"
 import {
   DASHBOARD_PRESETS,
-  DASHBOARD_PRESET_LABELS,
   isDashboardPreset,
   type DashboardScope,
 } from "@/lib/dashboard-range"
@@ -33,7 +32,7 @@ export function DashboardDateRange({
     <div className="flex flex-wrap items-center gap-1.5">
       {DASHBOARD_PRESETS.map((p) => (
         <ToggleChip key={p} active={activePreset === p} onClick={() => onChange({ preset: p })}>
-          {DASHBOARD_PRESET_LABELS[p]}
+          {t(`dashboard.preset.${p}`)}
         </ToggleChip>
       ))}
 

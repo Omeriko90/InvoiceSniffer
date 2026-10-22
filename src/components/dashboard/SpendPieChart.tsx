@@ -2,7 +2,7 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
-import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/invoice-categories"
+import { CATEGORY_COLORS } from "@/lib/invoice-categories"
 import { useT } from "@/components/i18n/LocaleProvider"
 import type { CategorySpend } from "@/api-types/dashboard"
 
@@ -21,7 +21,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
     .filter((r) => r.currency === primary && r.total > 0)
     .map((r) => ({
       key: r.category,
-      name: CATEGORY_LABELS[r.category] ?? r.category,
+      name: t(`categories.${r.category}`),
       value: r.total,
       color: (CATEGORY_COLORS[r.category] ?? CATEGORY_COLORS.UNCATEGORIZED).color,
       currency: r.currency,
