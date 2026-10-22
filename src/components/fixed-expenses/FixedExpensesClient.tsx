@@ -141,7 +141,7 @@ export function FixedExpensesClient({
               type="button"
               variant="ghost"
               onClick={() => setSelected(expense)}
-              className="grid w-full h-auto justify-normal rounded-none items-center px-4.5 py-3 border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
+              className="grid w-full h-auto justify-normal rounded-none items-center px-4.5 py-3 border-b border-hover last:border-b-0 text-start hover:bg-hover transition-colors"
               style={{ gridTemplateColumns: GRID, gap: "12px" }}
             >
               <span className="min-w-0">

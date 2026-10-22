@@ -128,12 +128,12 @@ export function FixedExpenseDetailDrawer({
   return (
     <SheetContent
       side="right"
-      className="w-110 sm:max-w-110 gap-0 bg-surface border-l border-border"
+      className="w-110 sm:max-w-110 gap-0 bg-surface border-s border-border"
       style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5.5 py-4.5 border-b border-hover shrink-0">
-        <div className="min-w-0 pr-8">
+        <div className="min-w-0 pe-8">
           <SheetTitle className="text-base font-bold text-heading truncate">{expense.name}</SheetTitle>
           {paused && (
             <div className="flex items-center gap-2 mt-1.5">
@@ -317,7 +317,7 @@ export function FixedExpenseDetailDrawer({
                   type="button"
                   disabled={link.isPending}
                   onClick={() => linkInvoice(c.id)}
-                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-left hover:bg-hover disabled:opacity-50"
+                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-start hover:bg-hover disabled:opacity-50"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary truncate">{c.vendorName ?? "—"}</p>
@@ -353,7 +353,7 @@ export function FixedExpenseDetailDrawer({
                   key={inv.id}
                   type="button"
                   onClick={() => { setOpenInvoiceId(inv.id); setChooser(null) }}
-                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-left hover:bg-hover"
+                  className="flex items-center justify-between gap-3 border border-border rounded-lg px-3.5 py-2.5 text-start hover:bg-hover"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text-primary truncate">{inv.vendorName ?? "—"}</p>
@@ -408,7 +408,7 @@ function InvoiceDrawerLoader({
       <SheetContent
         side="right"
         forceOverlay
-        className="w-110 sm:max-w-110 gap-0 bg-white border-l border-[#E8EDFA]"
+        className="w-110 sm:max-w-110 gap-0 bg-white border-s border-[#E8EDFA]"
       >
         <SheetTitle className="sr-only">{t("fixed_expenses.invoice_loader.sr_title")}</SheetTitle>
         <div className="flex-1 flex items-center justify-center">
