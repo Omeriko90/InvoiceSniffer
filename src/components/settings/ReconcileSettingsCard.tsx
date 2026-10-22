@@ -39,8 +39,8 @@ export function ReconcileSettingsCard({
   }
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
-      <CardContent className="p-5">
+    <Card className="h-full ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
+      <CardContent className="p-5 flex flex-col h-full">
         <h2 className="text-base font-bold text-heading leading-none mb-1.5">
           {t("settings.reconcile.title")}
         </h2>
@@ -72,7 +72,7 @@ export function ReconcileSettingsCard({
           <span>{t("settings.reconcile.days")}</span>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-auto pt-4">
           <Button
             onClick={save}
             disabled={!dirty || update.isPending}
