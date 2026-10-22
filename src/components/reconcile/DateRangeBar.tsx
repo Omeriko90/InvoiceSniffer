@@ -1,8 +1,21 @@
 // Client component by import — only ever rendered from <ReconcileSession>.
+import { useT } from "@/components/i18n/LocaleProvider"
 import { Input } from "@/components/ui/input"
 import { ToggleChip } from "@/components/ui/toggle-chip"
-import { DATE_RANGE_PRESETS, PRESET_LABELS, type DateRangePreset } from "@/lib/date-range"
+import { DATE_RANGE_PRESETS, type DateRangePreset } from "@/lib/date-range"
 import type { DateRangeScope } from "@/api-types/reconcile"
+
+
+const PRESET_LABEL_KEYS: Record<DateRangePreset, string> = {
+  week: "reconcile.preset.week",
+  month: "reconcile.preset.month",
+  "3m": "reconcile.preset.3m",
+  "6m": "reconcile.preset.6m",
+  year: "reconcile.preset.year",
+  ytd: "reconcile.preset.ytd",
+  mtd: "reconcile.preset.mtd",
+  qtd: "reconcile.preset.qtd",
+}
 
 function isPreset(scope: DateRangeScope): scope is { preset: DateRangePreset } {
   return "preset" in scope
@@ -17,29 +30,30 @@ export function DateRangeBar({
   scope: DateRangeScope
   onChange: (scope: DateRangeScope) => void
 }) {
+  const t = useT()
   const custom = !isPreset(scope)
   const activePreset = isPreset(scope) ? scope.preset : null
 
   return (
     <div className="bg-card border border-border rounded-lg p-3.5 flex flex-col gap-3">
       <p className="text-xs font-bold text-text-secondary">
-        Match against invoices from
+        {t("reconcile.dateRange.matchAgainst")}
       </p>
       <div className="flex flex-wrap items-center gap-1.5">
         {DATE_RANGE_PRESETS.map((p: DateRangePreset) => (
           <ToggleChip key={p} active={activePreset === p} onClick={() => onChange({ preset: p })}>
-            {PRESET_LABELS[p]}
+            {t(PRESET_LABEL_KEYS[p] as never)}
           </ToggleChip>
         ))}
         <ToggleChip active={custom} onClick={() => onChange(custom ? scope : { from: "", to: "" })}>
-          Custom
+          {t("reconcile.dateRange.custom")}
         </ToggleChip>
       </div>
 
       {custom && (
         <div className="flex flex-wrap items-center gap-2.5">
           <label className="flex items-center gap-2 text-sm text-text-secondary">
-            From
+            {t("reconcile.dateRange.from")}
             <Input
               type="date"
               value={(scope as { from: string }).from}
@@ -48,7 +62,7 @@ export function DateRangeBar({
             />
           </label>
           <label className="flex items-center gap-2 text-sm text-text-secondary">
-            To
+            {t("reconcile.dateRange.to")}
             <Input
               type="date"
               value={(scope as { to: string }).to}

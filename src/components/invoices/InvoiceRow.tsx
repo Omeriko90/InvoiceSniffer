@@ -1,5 +1,5 @@
 // Client component by import — only ever rendered from <InvoicesClient>.
-import { fmtDateShort } from "@/lib/date"
+import { useFmtDate } from "@/components/i18n/LocaleProvider"
 import { fmtDisplayMoney } from "@/lib/money"
 import { TABLE_GRID_COLUMNS } from "./constants"
 import type { InvoiceRow as InvoiceRowType } from "./types"
@@ -12,6 +12,7 @@ export function InvoiceRow({ invoice, onSelect }: {
   invoice: InvoiceRowType
   onSelect: (invoice: InvoiceRowType) => void
 }) {
+  const { fmtDateShort } = useFmtDate()
   const vendor = invoice.vendorName ?? invoice.senderName ?? invoice.senderEmail
 
   return (
@@ -50,7 +51,7 @@ export function InvoiceRow({ invoice, onSelect }: {
       </div>
 
       {/* Amount */}
-      <span className="text-sm font-bold text-heading text-right">
+      <span className="text-sm font-bold text-heading text-end">
         {fmtDisplayMoney(invoice)}
       </span>
 

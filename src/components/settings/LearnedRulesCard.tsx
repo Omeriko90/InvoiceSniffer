@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { useDeleteAlias } from "@/hooks/useDeleteAlias"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { LearnedRule } from "@/api-types/settings"
 import { RuleChip } from "./RuleChip"
 
@@ -10,6 +11,7 @@ interface LearnedRulesCardProps {
 }
 
 export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
+  const t = useT()
   const deleteAlias = useDeleteAlias()
 
   return (
@@ -17,19 +19,19 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-base font-bold text-heading leading-none">Learned rules &amp; aliases</h2>
+            <h2 className="text-base font-bold text-heading leading-none">{t("settings.rules.title")}</h2>
             <p className="text-sm text-text-secondary mt-[7px]">
-              These power smarter matching over time. Remove any that look wrong.
+              {t("settings.rules.description")}
             </p>
           </div>
           <p className="text-sm text-dim shrink-0">
-            Built from your corrections · {rules.length} {rules.length === 1 ? "rule" : "rules"}
+            {t("settings.rules.count", { count: rules.length })}
           </p>
         </div>
 
         {rules.length === 0 ? (
           <div className="flex items-center justify-center py-8 text-sm text-text-secondary">
-            No rules yet — they appear as you confirm and correct matches.
+            {t("settings.rules.empty")}
           </div>
         ) : (
           <div className="flex flex-wrap gap-2.5">

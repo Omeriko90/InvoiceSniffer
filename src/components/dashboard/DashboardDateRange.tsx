@@ -2,13 +2,13 @@
 import { useState } from "react"
 import { format as formatDate } from "date-fns"
 import type { DateRange } from "react-day-picker"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ToggleChip } from "@/components/ui/toggle-chip"
 import {
   DASHBOARD_PRESETS,
-  DASHBOARD_PRESET_LABELS,
   isDashboardPreset,
   type DashboardScope,
 } from "@/lib/dashboard-range"
@@ -23,6 +23,7 @@ export function DashboardDateRange({
   scope: DashboardScope
   onChange: (scope: DashboardScope) => void
 }) {
+  const t = useT()
   const custom = !isDashboardPreset(scope)
   const activePreset = isDashboardPreset(scope) ? scope.preset : null
   const [open, setOpen] = useState(false)
@@ -31,12 +32,12 @@ export function DashboardDateRange({
     <div className="flex flex-wrap items-center gap-1.5">
       {DASHBOARD_PRESETS.map((p) => (
         <ToggleChip key={p} active={activePreset === p} onClick={() => onChange({ preset: p })}>
-          {DASHBOARD_PRESET_LABELS[p]}
+          {t(`dashboard.preset.${p}`)}
         </ToggleChip>
       ))}
 
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger render={<ToggleChip active={custom}>Custom</ToggleChip>} />
+        <PopoverTrigger render={<ToggleChip active={custom}>{t("dashboard.dateRange.custom")}</ToggleChip>} />
         <PopoverContent align="start" className="w-auto">
           {/* Remounts on each open (Popup unmounts when closed), so the draft is
               always reseeded from the current scope. */}
@@ -63,6 +64,7 @@ function CustomRangeCalendar({
   scope: DashboardScope
   onApply: (range: { from: string; to: string }) => void
 }) {
+  const t = useT()
   const [draft, setDraft] = useState<DateRange | undefined>(() =>
     isDashboardPreset(scope) ? undefined : { from: new Date(scope.from), to: new Date(scope.to) }
   )
@@ -87,7 +89,7 @@ function CustomRangeCalendar({
       />
       <div className="flex justify-end px-1 pb-1">
         <Button size="sm" disabled={!canApply} onClick={apply}>
-          Apply
+          {t("dashboard.dateRange.apply")}
         </Button>
       </div>
     </div>

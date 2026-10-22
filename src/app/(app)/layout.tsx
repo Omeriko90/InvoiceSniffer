@@ -5,10 +5,13 @@ import { Topbar } from "@/components/shell/Topbar"
 import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
 import { PageViewTracker } from "@/components/shared/PageViewTracker"
 import { ExportsProvider } from "@/components/exports/ExportsProvider"
+import { getT } from "@/lib/i18n/getLocale.server"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session) redirect("/auth/signin")
+
+  const t = await getT()
 
   const initials = session.user.name
     ? session.user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -25,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
       <PageViewTracker />
       <Sidebar
-        orgName="My Workspace"
+        orgName={t("shell.sidebar.default_org_name")}
         userName={session.user.name ?? undefined}
         userEmail={session.user.email ?? undefined}
         userInitials={initials}

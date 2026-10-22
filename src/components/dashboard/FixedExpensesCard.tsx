@@ -15,6 +15,8 @@ import { fmtAmount } from "@/components/invoices/helpers"
 import { FixedExpenseStatusBadge } from "@/components/fixed-expenses/FixedExpenseStatusBadge"
 import { FixedExpenseDetailDrawer } from "@/components/fixed-expenses/FixedExpenseDetailDrawer"
 import { useDashboardFixedExpenses } from "@/hooks/useDashboardFixedExpenses"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
+import type { TranslationKey } from "@/lib/i18n/translate"
 import type { FixedExpensePeriodStatus } from "@/lib/fixed-expenses"
 import type { DashboardFixedExpense } from "@/api-types/dashboard"
 
@@ -22,11 +24,11 @@ const GRID = "1.7fr 1.3fr 0.9fr auto"
 
 type StatusFilter = "all" | FixedExpensePeriodStatus
 
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "ARRIVED", label: "Arrived" },
-  { value: "PENDING", label: "Pending" },
-  { value: "OVERDUE", label: "Overdue" },
+const STATUS_FILTERS: { value: StatusFilter; labelKey: TranslationKey }[] = [
+  { value: "all", labelKey: "dashboard.fixedExpenses.filter.all" },
+  { value: "ARRIVED", labelKey: "dashboard.fixedExpenses.filter.arrived" },
+  { value: "PENDING", labelKey: "dashboard.fixedExpenses.filter.pending" },
+  { value: "OVERDUE", labelKey: "dashboard.fixedExpenses.filter.overdue" },
 ]
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -46,6 +48,8 @@ export function FixedExpensesCard({
   rangeLabel: string
 }) {
   const router = useRouter()
+  const t = useT()
+  const dfl = useDateFnsLocale()
   const { data, isPending } = useDashboardFixedExpenses(range)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -74,7 +78,7 @@ export function FixedExpensesCard({
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-heading leading-none">Fixed expenses</h2>
+          <h2 className="text-base font-bold text-heading leading-none">{t("dashboard.fixedExpenses.title")}</h2>
           <span className="text-xs text-text-secondary shrink-0">{rangeLabel}</span>
         </div>
 
@@ -88,7 +92,7 @@ export function FixedExpensesCard({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name or email…"
+              placeholder={t("dashboard.fixedExpenses.searchPlaceholder")}
               className="h-auto ps-8.5 pe-2.75 py-2 text-sm border-border rounded-lg bg-surface"
             />
           </div>
@@ -99,7 +103,7 @@ export function FixedExpensesCard({
                 active={statusFilter === f.value}
                 onClick={() => setStatusFilter(f.value)}
               >
-                {f.label}
+                {t(f.labelKey)}
               </ToggleChip>
             ))}
           </div>
@@ -112,10 +116,10 @@ export function FixedExpensesCard({
             ))}
           </div>
         ) : expenses.length === 0 ? (
-          <EmptyNone onManage={() => router.push("/fixed-expenses")} />
+          <EmptyNone t={t} onManage={() => router.push("/fixed-expenses")} />
         ) : filtered.length === 0 ? (
           <p className="py-8 text-center text-sm text-text-secondary">
-            No fixed expenses match your search or filter.
+            {t("dashboard.fixedExpenses.noMatch")}
           </p>
         ) : (
           <div className="border border-border rounded-lg overflow-hidden">
@@ -123,9 +127,14 @@ export function FixedExpensesCard({
               className="grid px-4 py-2.5 bg-background border-b border-border"
               style={{ gridTemplateColumns: GRID, gap: "12px" }}
             >
-              {["Name", "Source", "Arrived", "Latest period"].map((h) => (
+              {([
+                "dashboard.fixedExpenses.column.name",
+                "dashboard.fixedExpenses.column.source",
+                "dashboard.fixedExpenses.column.arrived",
+                "dashboard.fixedExpenses.column.latestPeriod",
+              ] as const).map((h) => (
                 <span key={h} className="text-xs font-bold text-text-secondary">
-                  {h}
+                  {t(h)}
                 </span>
               ))}
             </div>
@@ -136,7 +145,7 @@ export function FixedExpensesCard({
                   type="button"
                   variant="ghost"
                   onClick={() => setSelected(e)}
-                  className="grid w-full h-auto justify-normal rounded-none items-center px-4 py-3 border-b border-hover last:border-b-0 text-left hover:bg-hover transition-colors"
+                  className="grid w-full h-auto justify-normal rounded-none items-center px-4 py-3 border-b border-hover last:border-b-0 text-start hover:bg-hover transition-colors"
                   style={{ gridTemplateColumns: GRID, gap: "12px" }}
                 >
                   <span className="min-w-0">
@@ -157,7 +166,9 @@ export function FixedExpensesCard({
                     </span>
                     {e.rangeStats.partial && e.rangeStats.coverageStart && (
                       <span className="text-[11px] text-dim">
-                        since {format(new Date(e.rangeStats.coverageStart), "MMM yyyy")}
+                        {t("dashboard.fixedExpenses.since", {
+                          month: format(new Date(e.rangeStats.coverageStart), "MMM yyyy", { locale: dfl }),
+                        })}
                       </span>
                     )}
                   </span>
@@ -165,7 +176,7 @@ export function FixedExpensesCard({
                     {e.rangeStats.overdueCount > 0 && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg text-danger-fg text-[11px] font-bold px-2 py-0.5">
                         <AlertTriangle size={12} strokeWidth={2.2} />
-                        {e.rangeStats.overdueCount} overdue
+                        {t("dashboard.fixedExpenses.overdueCount", { count: e.rangeStats.overdueCount })}
                       </span>
                     )}
                     <FixedExpenseStatusBadge status={e.rangeStats.latestStatus} />
@@ -191,17 +202,17 @@ export function FixedExpensesCard({
   )
 }
 
-function EmptyNone({ onManage }: { onManage: () => void }) {
+function EmptyNone({ t, onManage }: { t: ReturnType<typeof useT>; onManage: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-10 px-6">
       <div className="w-11 h-11 rounded-lg bg-info-bg flex items-center justify-center mb-3">
         <Repeat size={19} strokeWidth={1.8} className="text-primary" />
       </div>
-      <p className="text-sm font-bold text-heading mb-1">No fixed expenses in this range</p>
+      <p className="text-sm font-bold text-heading mb-1">{t("dashboard.fixedExpenses.empty.title")}</p>
       <p className="text-sm text-text-secondary max-w-80 mb-4">
-        Track recurring bills and we&apos;ll tell you each period whether their invoice has arrived.
+        {t("dashboard.fixedExpenses.empty.description")}
       </p>
-      <Button onClick={onManage}>Manage fixed expenses</Button>
+      <Button onClick={onManage}>{t("dashboard.fixedExpenses.empty.manage")}</Button>
     </div>
   )
 }

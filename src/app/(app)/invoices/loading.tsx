@@ -1,9 +1,18 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { TABLE_GRID_COLUMNS } from "@/components/invoices/constants"
+import { getT } from "@/lib/i18n/getLocale.server"
 
-const HEADERS = ["Vendor", "Invoice #", "Issue date", "Received", "Category", "Amount", ""]
-
-export default function Loading() {
+export default async function Loading() {
+  const t = await getT()
+  const headers = [
+    t("invoices.table.vendor"),
+    t("invoices.table.invoiceNumber"),
+    t("invoices.table.issueDate"),
+    t("invoices.table.received"),
+    t("invoices.table.category"),
+    t("invoices.table.amount"),
+    "",
+  ]
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
@@ -21,7 +30,7 @@ export default function Loading() {
           className="grid px-4.5 py-3 bg-background border-b border-border"
           style={{ gridTemplateColumns: TABLE_GRID_COLUMNS, gap: "12px" }}
         >
-          {HEADERS.map((h, i) => (
+          {headers.map((h, i) => (
             <span
               key={i}
               className="text-sm font-bold tracking-tight text-text-secondary"

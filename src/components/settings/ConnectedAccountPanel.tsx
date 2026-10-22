@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { DangerButton } from "@/components/ui/danger-button"
 import type { GmailConnection } from "@/api-types/settings"
 import { useGmailSync } from "@/hooks/useGmailSync"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { GoogleGlyph } from "./GoogleGlyph"
-import { syncedLabel } from "./helpers"
+import { syncedDistance } from "./helpers"
 
 interface ConnectedAccountPanelProps {
   gmail: GmailConnection
@@ -14,6 +15,7 @@ interface ConnectedAccountPanelProps {
 }
 
 export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: ConnectedAccountPanelProps) {
+  const t = useT()
   const sync = useGmailSync()
   const syncing = sync.isPending && sync.variables === gmail.id
 
@@ -27,21 +29,21 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         <div className="min-w-0 flex-1">
           <p className="text-[14.5px] font-bold text-heading truncate">{gmail.label ?? gmail.email}</p>
           <p className="text-[12.5px] text-warning mt-1">
-            Out of sync — Gmail access expired. Reconnect to resume detecting invoices.
+            {t("settings.gmail.outOfSync")}
           </p>
         </div>
         <Button
           onClick={() => { window.location.href = "/api/gmail/connect" }}
           className="shrink-0"
         >
-          Reconnect
+          {t("settings.gmail.reconnect")}
         </Button>
         <DangerButton
           onClick={onDisconnect}
           disabled={disconnecting}
           className="shrink-0"
         >
-          {disconnecting ? "Removing…" : "Remove"}
+          {disconnecting ? t("settings.gmail.removing") : t("settings.gmail.remove")}
         </DangerButton>
       </div>
     )
@@ -53,7 +55,14 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
       <div className="min-w-0 flex-1">
         <p className="text-[14.5px] font-bold text-heading truncate">{gmail.label ?? gmail.email}</p>
         <p className="text-[12.5px] text-success mt-1">
-          Connected · read-only · {syncedLabel(gmail.lastSyncedAt)}
+          {t("settings.gmail.connectedStatus", {
+            sync: (() => {
+              const distance = syncedDistance(gmail.lastSyncedAt)
+              return distance
+                ? t("settings.gmail.syncedAgo", { distance })
+                : t("settings.gmail.notSyncedYet")
+            })(),
+          })}
         </p>
       </div>
       <Button
@@ -62,14 +71,14 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
         disabled={syncing}
         className="shrink-0"
       >
-        {syncing ? "Syncing…" : "Sync now"}
+        {syncing ? t("settings.gmail.syncing") : t("settings.gmail.syncNow")}
       </Button>
       <DangerButton
         onClick={onDisconnect}
         disabled={disconnecting}
         className="shrink-0"
       >
-        {disconnecting ? "Disconnecting…" : "Disconnect"}
+        {disconnecting ? t("settings.gmail.disconnecting") : t("settings.gmail.disconnect")}
       </DangerButton>
     </div>
   )

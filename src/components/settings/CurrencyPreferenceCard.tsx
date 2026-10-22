@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/select";
 import { SUPPORTED_DISPLAY_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/currency";
 import { useUpdateDisplayCurrency } from "@/hooks/useUpdateDisplayCurrency";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 export function CurrencyPreferenceCard({
   displayCurrency,
 }: {
   displayCurrency: string;
 }) {
+  const t = useT();
   const [value, setValue] = useState(displayCurrency);
   const update = useUpdateDisplayCurrency();
 
@@ -25,27 +27,25 @@ export function CurrencyPreferenceCard({
 
   function save() {
     update.mutate(value, {
-      onSuccess: () => toast.success("Display currency saved"),
+      onSuccess: () => toast.success(t("settings.currency.saved")),
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to save"),
+        toast.error(e instanceof Error ? e.message : t("settings.currency.saveFailed")),
     });
   }
 
   return (
-    <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
-      <CardContent className="p-5">
+    <Card className="h-full ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
+      <CardContent className="p-5 flex flex-col h-full">
         <h2 className="text-base font-bold text-heading leading-none mb-1.5">
-          Display currency
+          {t("settings.currency.title")}
         </h2>
         <p className="text-xs text-text-secondary mb-[18px] leading-[1.55]">
-          The currency all amounts are shown in. Invoices billed in another
-          currency are converted at the exchange rate on the day they arrive.
-          Changing this applies to invoices received from now on.
+          {t("settings.currency.description")}
         </p>
 
         <div className="flex items-center gap-2.5">
           <label className="flex items-center gap-2.5 text-sm font-semibold text-text-primary">
-            Currency:
+            {t("settings.currency.label")}
           </label>
           <Select
             value={value}
@@ -66,12 +66,12 @@ export function CurrencyPreferenceCard({
           </Select>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-auto pt-4 flex justify-end">
           <Button
             onClick={save}
             disabled={!dirty || update.isPending}
           >
-            {update.isPending ? "Saving…" : "Save"}
+            {update.isPending ? t("settings.currency.saving") : t("settings.currency.save")}
           </Button>
         </div>
       </CardContent>

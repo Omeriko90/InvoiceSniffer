@@ -4,16 +4,20 @@ import { FileText, Receipt, Wallet, Percent } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { CurrencyTotal, TaxByCurrency } from "@/api-types/dashboard"
 
 // Render a per-currency total as a headline figure + a note when more than one
 // currency is present (we never sum across currencies).
-function money(rows: (CurrencyTotal | TaxByCurrency)[]): { value: string; note: string } {
-  if (rows.length === 0) return { value: "—", note: "nothing yet" }
+function money(
+  rows: (CurrencyTotal | TaxByCurrency)[],
+  t: ReturnType<typeof useT>
+): { value: string; note: string } {
+  if (rows.length === 0) return { value: "—", note: t("dashboard.overview.nothingYet") }
   const [main, ...rest] = rows
   return {
     value: fmtMoney(main.total, main.currency),
-    note: rest.length > 0 ? `+ ${rest.length} more ${rest.length === 1 ? "currency" : "currencies"}` : main.currency,
+    note: rest.length > 0 ? t("dashboard.overview.moreCurrencies", { count: rest.length }) : main.currency,
   }
 }
 
@@ -30,13 +34,14 @@ export function OverviewStatRow({
   reclaimableVat: TaxByCurrency[]
   rangeLabel: string
 }) {
-  const spend = money(totalSpend)
-  const tax = money(reclaimableVat)
+  const t = useT()
+  const spend = money(totalSpend, t)
+  const tax = money(reclaimableVat, t)
 
   return (
     <div className="grid grid-cols-4 gap-3.5">
       <OverviewCard
-        label="Invoices"
+        label={t("dashboard.overview.invoices")}
         value={String(invoiceCount)}
         note={rangeLabel}
         noteClass="text-text-secondary"
@@ -44,7 +49,7 @@ export function OverviewStatRow({
         icon={<FileText size={15} strokeWidth={2} />}
       />
       <OverviewCard
-        label="Receipts"
+        label={t("dashboard.overview.receipts")}
         value={String(receiptCount)}
         note={rangeLabel}
         noteClass="text-text-secondary"
@@ -52,7 +57,7 @@ export function OverviewStatRow({
         icon={<Receipt size={15} strokeWidth={2} />}
       />
       <OverviewCard
-        label="Total spend"
+        label={t("dashboard.overview.totalSpend")}
         value={spend.value}
         note={spend.note}
         noteClass="text-text-secondary"
@@ -60,7 +65,7 @@ export function OverviewStatRow({
         icon={<Wallet size={15} strokeWidth={2} />}
       />
       <OverviewCard
-        label="Reclaimable VAT"
+        label={t("dashboard.overview.reclaimableVat")}
         value={tax.value}
         note={rangeLabel}
         noteClass="text-text-secondary"

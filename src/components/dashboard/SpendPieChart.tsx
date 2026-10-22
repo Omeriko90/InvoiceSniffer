@@ -2,13 +2,15 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
-import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/invoice-categories"
+import { CATEGORY_COLORS } from "@/lib/invoice-categories"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { CategorySpend } from "@/api-types/dashboard"
 
 // Spend-by-category donut. Rows arrive per (category, currency); we never sum
 // across currencies, so the chart renders the currency with the most spend and
 // notes when others exist.
 export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; rangeLabel: string }) {
+  const t = useT()
   // Pick the dominant currency by total spend.
   const byCurrency = new Map<string, number>()
   for (const r of rows) byCurrency.set(r.currency, (byCurrency.get(r.currency) ?? 0) + r.total)
@@ -19,7 +21,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
     .filter((r) => r.currency === primary && r.total > 0)
     .map((r) => ({
       key: r.category,
-      name: CATEGORY_LABELS[r.category] ?? r.category,
+      name: t(`categories.${r.category}`),
       value: r.total,
       color: (CATEGORY_COLORS[r.category] ?? CATEGORY_COLORS.UNCATEGORIZED).color,
       currency: r.currency,
@@ -32,13 +34,13 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-heading leading-none">Spend by category</h2>
+          <h2 className="text-base font-bold text-heading leading-none">{t("dashboard.spendPie.title")}</h2>
           <span className="text-xs text-text-secondary shrink-0">{rangeLabel}</span>
         </div>
 
         {slices.length === 0 ? (
           <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
-            No categorized spend in this range.
+            {t("dashboard.spendPie.empty")}
           </p>
         ) : (
           <div className="flex-1 flex items-center gap-5">
@@ -71,7 +73,7 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
               </ResponsiveContainer>
               {/* Center total */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[11px] font-semibold text-text-secondary leading-none">Total</span>
+                <span className="text-[11px] font-semibold text-text-secondary leading-none">{t("dashboard.legend.total")}</span>
                 <span className="text-sm font-extrabold text-heading leading-tight mt-1 tabular-nums">
                   {fmtMoney(total, primary)}
                 </span>
@@ -93,8 +95,10 @@ export function SpendPieChart({ rows, rangeLabel }: { rows: CategorySpend[]; ran
               ))}
               {currencies.length > 1 && (
                 <p className="text-xs text-dim pt-1">
-                  Showing {primary}. {currencies.length - 1} other{" "}
-                  {currencies.length - 1 === 1 ? "currency" : "currencies"} not shown.
+                  {t("dashboard.spendPie.otherCurrencies", {
+                    primary: primary ?? "",
+                    count: currencies.length - 1,
+                  })}
                 </p>
               )}
             </div>

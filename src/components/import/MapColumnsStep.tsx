@@ -6,11 +6,13 @@ import { FIELDS } from "./constants"
 import { FileSummary } from "./FileSummary"
 import { MappingRow } from "./MappingRow"
 import { PreviewTable } from "./PreviewTable"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { MapColumnsStepProps } from "./types"
 
 export function MapColumnsStep({
   parsed, mapping, onMappingChange, savedMappingLabel, onBack, onImport, importing, importError, submitLabel,
 }: MapColumnsStepProps) {
+  const t = useT()
   const complete = Boolean(mapping.date && mapping.merchant && mapping.amount)
   const previewRows = parsed.records.slice(0, 3)
 
@@ -23,9 +25,9 @@ export function MapColumnsStep({
       {/* Mapping */}
       <div className="bg-surface border border-border rounded-[14px] p-6 flex flex-col gap-5">
         <div>
-          <h2 className="text-base font-bold text-heading">Map your columns</h2>
+          <h2 className="text-base font-bold text-heading">{t("import_csv.map_columns.title")}</h2>
           <p className="text-sm text-text-secondary mt-1">
-            Tell us which CSV columns hold the date, merchant, and amount.
+            {t("import_csv.map_columns.description")}
           </p>
         </div>
 
@@ -55,7 +57,7 @@ export function MapColumnsStep({
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onBack}>
-            Back
+          {t("import_csv.map_columns.back")}
           </Button>
           <Button
             variant="gradientSky"
@@ -64,8 +66,8 @@ export function MapColumnsStep({
             onClick={onImport}
           >
             {importing
-              ? "Adding…"
-              : submitLabel ?? `Import ${parsed.records.length} transactions`}
+              ? t("import_csv.map_columns.adding")
+              : submitLabel ?? t("import_csv.map_columns.import_cta", { count: parsed.records.length })}
           </Button>
         </div>
       </div>

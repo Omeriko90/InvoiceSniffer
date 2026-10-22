@@ -13,7 +13,7 @@ interface InvoiceDetailDrawerHeaderProps {
 export function InvoiceDetailDrawerHeader({ vendor, invoice }: InvoiceDetailDrawerHeaderProps) {
   return (
       <div className="flex items-center justify-between px-5.5 py-4 border-b border-border shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0 pr-8">
+        <div className="flex items-center gap-2.5 min-w-0 pe-8">
           <VendorCell vendor={vendor} />
           <div className="min-w-0">
             <SheetTitle className="text-lg font-bold text-heading truncate">{vendor}</SheetTitle>

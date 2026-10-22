@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react"
 import { format } from "date-fns"
+import type { Locale as DateFnsLocale } from "date-fns"
+import { useT, useDateFnsLocale } from "@/components/i18n/LocaleProvider"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/useDashboard"
 import { OverviewStatRow } from "@/components/dashboard/OverviewStatRow"
@@ -15,6 +17,8 @@ import { resolveDateRange } from "@/lib/date-range"
 import { isDashboardPreset, type DashboardScope } from "@/lib/dashboard-range"
 
 export default function DashboardPage() {
+  const t = useT()
+  const dfl = useDateFnsLocale()
   const [scope, setScope] = useState<DashboardScope>({ preset: "mtd" })
 
   // Resolve the scope to a concrete ISO window. Null while a custom range is
@@ -31,7 +35,7 @@ export default function DashboardPage() {
 
   // Summary boxes always show the concrete window as month names; the preset
   // *name* lives only on the chips (see DashboardDateRange).
-  const rangeLabel = range ? monthRangeLabel(range.from, range.to) : "Custom range"
+  const rangeLabel = range ? monthRangeLabel(range.from, range.to, dfl) : t("dashboard.dateRange.customRange")
 
   const { data, isPending } = useDashboard(range)
 
@@ -41,7 +45,7 @@ export default function DashboardPage() {
 
       {range === null ? (
         <p className="text-sm text-text-secondary py-10 text-center">
-          Pick a start and end date to see your overview.
+          {t("dashboard.pickDates")}
         </p>
       ) : isPending || !data ? (
         <DashboardSkeleton />
@@ -71,14 +75,14 @@ export default function DashboardPage() {
 
 // Compact month-granularity window label: "August", "June – August" within a
 // year, or "Dec 2025 – Feb 2026" across years.
-function monthRangeLabel(fromISO: string, toISO: string): string {
+function monthRangeLabel(fromISO: string, toISO: string, locale?: DateFnsLocale): string {
   const from = new Date(fromISO)
   const to = new Date(toISO)
   const sameYear = from.getFullYear() === to.getFullYear()
   const sameMonth = sameYear && from.getMonth() === to.getMonth()
-  if (sameMonth) return format(from, "MMMM yyyy")
-  if (sameYear) return `${format(from, "MMMM")} – ${format(to, "MMMM yyyy")}`
-  return `${format(from, "MMM yyyy")} – ${format(to, "MMM yyyy")}`
+  if (sameMonth) return format(from, "MMMM yyyy", { locale })
+  if (sameYear) return `${format(from, "MMMM", { locale })} – ${format(to, "MMMM yyyy", { locale })}`
+  return `${format(from, "MMM yyyy", { locale })} – ${format(to, "MMM yyyy", { locale })}`
 }
 
 function DashboardSkeleton() {

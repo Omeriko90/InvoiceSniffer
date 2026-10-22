@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { FileSpreadsheet, X } from "lucide-react"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { Button } from "@/components/ui/button"
 import { useCsvMappings, useSaveMapping } from "@/hooks/useImport"
 import { UploadStep } from "@/components/import/UploadStep"
@@ -31,6 +32,7 @@ export function AddFilesPanel({
   onReconcile: () => void
   reconciling: boolean
 }) {
+  const t = useT()
   const [parsed, setParsed] = useState<ParsedCsv | null>(null)
   const [mapping, setMapping] = useState<DraftMapping>(EMPTY_MAPPING)
   const [savedMappingLabel, setSavedMappingLabel] = useState<string | null>(null)
@@ -45,17 +47,17 @@ export function AddFilesPanel({
     try {
       csv = parseCsvText(file.name, await file.text())
     } catch {
-      setParseError("Couldn't parse that file — make sure it's a valid CSV.")
+      setParseError(t("reconcile.addFiles.parseError"))
       return
     }
     if (csv.headers.length === 0 || csv.records.length === 0) {
-      setParseError("That file looks empty — no data rows found.")
+      setParseError(t("reconcile.addFiles.emptyError"))
       return
     }
     if (csv.duplicateHeaders.length > 0) {
       const names = csv.duplicateHeaders.map((h) => `"${h}"`).join(", ")
-      toast.warning("Duplicate columns in this file", {
-        description: `${names} appears more than once — repeats were renamed so you can pick the right column.`,
+      toast.warning(t("reconcile.addFiles.duplicateColumnsTitle"), {
+        description: t("reconcile.addFiles.duplicateColumnsDescription", { names }),
       })
     }
 
@@ -85,12 +87,11 @@ export function AddFilesPanel({
     }
     const { rows } = buildImportRows(parsed.records, fullMapping)
     if (rows.length === 0) {
-      setParseError("No usable rows — check that the date and amount columns are mapped correctly.")
+      setParseError(t("reconcile.addFiles.noUsableRows"))
       return
     }
 
     onAddFile({ fileName: parsed.fileName, rows })
-    // Remember the mapping for next time (best-effort).
     saveMapping.mutate({
       mappingLabel: savedMappingLabel ?? labelFromFileName(parsed.fileName),
       headersKey: headersKeyOf(parsed.headers),
@@ -117,7 +118,7 @@ export function AddFilesPanel({
         onImport={handleAdd}
         importing={false}
         importError={parseError}
-        submitLabel={`Add ${parsed.records.length} charges`}
+        submitLabel={t("reconcile.addFiles.addCharges", { count: parsed.records.length })}
       />
     )
   }
@@ -138,13 +139,13 @@ export function AddFilesPanel({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{f.fileName}</p>
-                <p className="text-xs text-text-secondary">{f.rows.length} charges</p>
+                <p className="text-xs text-text-secondary">{t("reconcile.addFiles.chargesCount", { count: f.rows.length })}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => onRemoveFile(i)}
-                aria-label={`Remove ${f.fileName}`}
+                aria-label={t("reconcile.addFiles.removeFile", { fileName: f.fileName })}
                 className="w-7 h-7 rounded flex items-center justify-center text-dim hover:bg-hover hover:text-dim transition-colors cursor-pointer [&_svg:not([class*='size-'])]:size-auto"
               >
                 <X size={15} />
@@ -159,8 +160,8 @@ export function AddFilesPanel({
       <div className="flex items-center justify-between">
         <p className="text-sm text-text-secondary">
           {files.length === 0
-            ? "Add one or more CSVs — from several cards if you like."
-            : `${files.length} file${files.length === 1 ? "" : "s"} · ${totalCharges} charges ready`}
+            ? t("reconcile.addFiles.addPrompt")
+            : `${t("reconcile.addFiles.filesSummary", { count: files.length })} · ${t("reconcile.addFiles.chargesReady", { count: totalCharges })}`}
         </p>
         <Button
           variant="gradientSky"
@@ -168,7 +169,7 @@ export function AddFilesPanel({
           disabled={files.length === 0 || reconciling}
           onClick={onReconcile}
         >
-          {reconciling ? "Reconciling…" : `Reconcile ${totalCharges} charges →`}
+          {reconciling ? t("reconcile.addFiles.reconciling") : t("reconcile.addFiles.reconcileCharges", { count: totalCharges })}
         </Button>
       </div>
     </div>

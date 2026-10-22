@@ -11,35 +11,35 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { InvoiceRow } from "../types"
 import {
-  CATEGORY_LABELS,
   CATEGORY_SELECTABLE,
   INVOICE_CATEGORIES,
   type InvoiceCategory,
 } from "@/lib/invoice-categories"
 import {
-  DOCUMENT_TYPE_LABELS,
   DOCUMENT_TYPE_SELECTABLE,
   DOCUMENT_TYPES,
   type DocumentType,
 } from "@/lib/document-types"
 
-const schema = z.object({
-  vendorName: z.string().trim().max(200),
-  invoiceNumber: z.string().trim().max(200),
-  totalAmount: z
-    .string()
-    .trim()
-    .min(1, "Amount is required")
-    .refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, "Enter a valid amount"),
-  invoiceDate: z.string(),
-  dueDate: z.string(),
-  documentType: z.enum(DOCUMENT_TYPES),
-  category: z.enum(INVOICE_CATEGORIES),
-})
+const makeSchema = (t: ReturnType<typeof useT>) =>
+  z.object({
+    vendorName: z.string().trim().max(200),
+    invoiceNumber: z.string().trim().max(200),
+    totalAmount: z
+      .string()
+      .trim()
+      .min(1, t("invoices.form.error.amountRequired"))
+      .refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, t("invoices.form.error.amountInvalid")),
+    invoiceDate: z.string(),
+    dueDate: z.string(),
+    documentType: z.enum(DOCUMENT_TYPES),
+    category: z.enum(INVOICE_CATEGORIES),
+  })
 
-export type InvoiceEditFormValues = z.infer<typeof schema>
+export type InvoiceEditFormValues = z.infer<ReturnType<typeof makeSchema>>
 
 const fieldLabel = "text-[12px] font-semibold text-text-secondary"
 const fieldInput =
@@ -49,11 +49,11 @@ const fieldTrigger = `${fieldInput} w-full`
 // Text/number/date inputs, registered directly. `as const` narrows each
 // `field` to a real key of the form values so register() type-checks.
 const TEXT_FIELDS = [
-  { field: "vendorName", label: "Vendor", type: "text" },
-  { field: "invoiceNumber", label: "Invoice #", type: "text" },
-  { field: "totalAmount", label: "Amount", type: "number" },
-  { field: "invoiceDate", label: "Invoice date", type: "date" },
-  { field: "dueDate", label: "Due date", type: "date" },
+  { field: "vendorName", labelKey: "invoices.detail.field.vendor", type: "text" },
+  { field: "invoiceNumber", labelKey: "invoices.detail.field.invoiceNumber", type: "text" },
+  { field: "totalAmount", labelKey: "invoices.detail.field.amount", type: "number" },
+  { field: "invoiceDate", labelKey: "invoices.detail.field.invoiceDate", type: "date" },
+  { field: "dueDate", labelKey: "invoices.detail.field.dueDate", type: "date" },
 ] as const
 
 interface InvoiceDetailsFormProps {
@@ -69,6 +69,8 @@ export function InvoiceDetailsForm({
   onCancel,
   onSubmit,
 }: InvoiceDetailsFormProps) {
+  const t = useT()
+  const schema = makeSchema(t)
   const {
     register,
     handleSubmit,
@@ -94,7 +96,9 @@ export function InvoiceDetailsForm({
           {TEXT_FIELDS.map((f) => (
             <div key={f.field} className="flex flex-col gap-1.25">
               <Label htmlFor={`edit-${f.field}`} className={fieldLabel}>
-                {f.field === "totalAmount" ? `Amount (${invoice.currency})` : f.label}
+                {f.field === "totalAmount"
+                  ? t("invoices.detail.field.amountWithCurrency", { currency: invoice.currency })
+                  : t(f.labelKey)}
               </Label>
               <Input
                 id={`edit-${f.field}`}
@@ -112,13 +116,13 @@ export function InvoiceDetailsForm({
 
           {/* Document type */}
           <div className="flex flex-col gap-1.25">
-            <Label className={fieldLabel}>Type</Label>
+            <Label className={fieldLabel}>{t("invoices.detail.field.type")}</Label>
             <Controller
               control={control}
               name="documentType"
               render={({ field }) => (
                 <Select
-                  items={DOCUMENT_TYPE_SELECTABLE.map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] }))}
+                  items={DOCUMENT_TYPE_SELECTABLE.map((dt) => ({ value: dt, label: t(`docTypes.${dt}`) }))}
                   value={field.value}
                   onValueChange={(v) => v && field.onChange(v as DocumentType)}
                 >
@@ -126,8 +130,8 @@ export function InvoiceDetailsForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" className="w-fit">
-                    {DOCUMENT_TYPE_SELECTABLE.map((t) => (
-                      <SelectItem key={t} value={t}>{DOCUMENT_TYPE_LABELS[t]}</SelectItem>
+                    {DOCUMENT_TYPE_SELECTABLE.map((dt) => (
+                      <SelectItem key={dt} value={dt}>{t(`docTypes.${dt}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -137,13 +141,13 @@ export function InvoiceDetailsForm({
 
           {/* Category */}
           <div className="flex flex-col gap-1.25">
-            <Label className={fieldLabel}>Category</Label>
+            <Label className={fieldLabel}>{t("invoices.detail.field.category")}</Label>
             <Controller
               control={control}
               name="category"
               render={({ field }) => (
                 <Select
-                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: t(`categories.${c}`) }))}
                   value={field.value}
                   onValueChange={(v) => v && field.onChange(v as InvoiceCategory)}
                 >
@@ -152,7 +156,7 @@ export function InvoiceDetailsForm({
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" className="w-fit">
                     {CATEGORY_SELECTABLE.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                      <SelectItem key={c} value={c}>{t(`categories.${c}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -172,10 +176,10 @@ export function InvoiceDetailsForm({
             disabled={isPending}
             onClick={onCancel}
           >
-            Cancel
+            {t("invoices.actions.cancel")}
           </Button>
           <Button type="submit" className="flex-1" size="xl" disabled={isPending}>
-            {isPending ? "Saving…" : "Save changes"}
+            {isPending ? t("invoices.detail.saving") : t("invoices.detail.saveChanges")}
           </Button>
         </div>
       </div>

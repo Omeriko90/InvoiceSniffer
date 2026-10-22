@@ -30,14 +30,17 @@ import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
 import { useFixedExpensesList } from "@/hooks/useFixedExpensesList"
 import { useAbsorbInvoice } from "@/hooks/useAbsorbInvoice"
 import {
-  CATEGORY_LABELS,
   CATEGORY_SELECTABLE,
   INVOICE_CATEGORIES,
   type InvoiceCategory,
 } from "@/lib/invoice-categories"
-import { FIXED_EXPENSE_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/fixed-expense-meta"
+import { FIXED_EXPENSE_FREQUENCIES, type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
 import { track } from "@/lib/analytics"
+import { useT } from "@/components/i18n/LocaleProvider"
+import type { TranslationKey } from "@/lib/i18n/translate"
 import type { FixedExpenseRow } from "./types"
+
+type TFn = (key: TranslationKey) => string
 
 // Vendor titles / sender emails are entered comma-separated (the columns are
 // arrays). Split, trim, drop blanks, and dedup case-insensitively (keeping the
@@ -55,35 +58,37 @@ function parseList(raw: string): string[] {
   return out
 }
 
-const schema = z
-  .object({
-    name: z.string().trim().min(1, "Name is required").max(200),
-    category: z.enum(INVOICE_CATEGORIES),
-    vendorName: z.string().trim().max(200),
-    senderEmail: z.string().trim().max(200),
-    gmailCredentialId: z.string(),
-    expectedAmount: z.string().trim(),
-    currency: z.string().trim().min(1).max(8),
-    frequency: z.enum(FIXED_EXPENSE_FREQUENCIES),
-    anchorDate: z.string().min(1, "Pick a start date"),
-    gracePeriodDays: z.string(),
-  })
-  .refine((v) => v.vendorName.trim() !== "" || v.senderEmail.trim() !== "", {
-    message: "Add a vendor name or a sender email so we can match invoices",
-    path: ["vendorName"],
-  })
-  .refine(
-    (v) =>
-      v.senderEmail.trim() === "" ||
-      parseList(v.senderEmail).every((e) => z.string().email().safeParse(e).success),
-    { message: "Enter valid email(s), comma-separated", path: ["senderEmail"] },
-  )
-  .refine((v) => v.expectedAmount.trim() === "" || /^\d+(\.\d{1,4})?$/.test(v.expectedAmount.trim()), {
-    message: "Enter a valid amount",
-    path: ["expectedAmount"],
-  })
+function makeSchema(t: TFn) {
+  return z
+    .object({
+      name: z.string().trim().min(1, t("fixed_expenses.form.error.name_required")).max(200),
+      category: z.enum(INVOICE_CATEGORIES),
+      vendorName: z.string().trim().max(200),
+      senderEmail: z.string().trim().max(200),
+      gmailCredentialId: z.string(),
+      expectedAmount: z.string().trim(),
+      currency: z.string().trim().min(1).max(8),
+      frequency: z.enum(FIXED_EXPENSE_FREQUENCIES),
+      anchorDate: z.string().min(1, t("fixed_expenses.form.error.anchor_required")),
+      gracePeriodDays: z.string(),
+    })
+    .refine((v) => v.vendorName.trim() !== "" || v.senderEmail.trim() !== "", {
+      message: t("fixed_expenses.form.error.source_required"),
+      path: ["vendorName"],
+    })
+    .refine(
+      (v) =>
+        v.senderEmail.trim() === "" ||
+        parseList(v.senderEmail).every((e) => z.string().email().safeParse(e).success),
+      { message: t("fixed_expenses.form.error.invalid_emails"), path: ["senderEmail"] },
+    )
+    .refine((v) => v.expectedAmount.trim() === "" || /^\d+(\.\d{1,4})?$/.test(v.expectedAmount.trim()), {
+      message: t("fixed_expenses.form.error.invalid_amount"),
+      path: ["expectedAmount"],
+    })
+}
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.infer<ReturnType<typeof makeSchema>>
 
 const fieldLabel = "text-xs font-semibold text-text-secondary"
 const fieldInput =
@@ -107,6 +112,17 @@ export function FixedExpenseFormDialog({
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useT()
+  const schema = makeSchema(t)
+  const freqLabel = (f: FixedExpenseFrequency): string =>
+    ({
+      WEEKLY: t("fixed_expenses.frequency.weekly"),
+      BIWEEKLY: t("fixed_expenses.frequency.biweekly"),
+      MONTHLY: t("fixed_expenses.frequency.monthly"),
+      BIMONTHLY: t("fixed_expenses.frequency.bimonthly"),
+      QUARTERLY: t("fixed_expenses.frequency.quarterly"),
+      YEARLY: t("fixed_expenses.frequency.yearly"),
+    })[f]
   const create = useCreateFixedExpense()
   const update = useUpdateFixedExpense()
   const absorb = useAbsorbInvoice()
@@ -225,8 +241,8 @@ export function FixedExpenseFormDialog({
     <FormDialog
       className="sm:max-w-115"
       footerClassName="gap-[8px]"
-      title={isEdit ? "Edit fixed expense" : "New fixed expense"}
-      description="Track whether the expected invoice arrives each period."
+      title={isEdit ? t("fixed_expenses.form.title_edit") : t("fixed_expenses.form.title_new")}
+      description={t("fixed_expenses.form.description")}
       onSubmit={handleSubmit(onSubmit)}
       footer={
         <>
@@ -236,7 +252,7 @@ export function FixedExpenseFormDialog({
             onClick={onClose}
             disabled={pending || absorb.isPending}
           >
-            Cancel
+            {t("fixed_expenses.form.cancel")}
           </Button>
           {locked ? (
             <Button
@@ -244,11 +260,11 @@ export function FixedExpenseFormDialog({
               onClick={() => setConfirmOpen(true)}
               disabled={absorb.isPending}
             >
-              Link
+              {t("fixed_expenses.form.link")}
             </Button>
           ) : (
             <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+              {pending ? t("fixed_expenses.form.saving") : isEdit ? t("fixed_expenses.form.save_changes") : t("fixed_expenses.form.create")}
             </Button>
           )}
         </>
@@ -258,27 +274,27 @@ export function FixedExpenseFormDialog({
           {/* Link to an existing expense (drawer flow, only when some exist) */}
           {canLinkExisting && existing.length > 0 && (
             <div className="flex flex-col gap-1.25">
-              <Label className={fieldLabel}>Link to an existing fixed expense</Label>
+              <Label className={fieldLabel}>{t("fixed_expenses.form.link_existing_label")}</Label>
               <Select
                 items={[
-                  { value: "", label: "— Create a new one —" },
+                  { value: "", label: t("fixed_expenses.form.create_new_option") },
                   ...existing.map((e) => ({ value: e.id, label: e.name })),
                 ]}
                 value={selectedId}
                 onValueChange={onSelectExisting}
               >
                 <SelectTrigger className={fieldTrigger}>
-                  <SelectValue placeholder="Create a new one" />
+                  <SelectValue placeholder={t("fixed_expenses.form.create_new_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">— Create a new one —</SelectItem>
+                  <SelectItem value="">{t("fixed_expenses.form.create_new_option")}</SelectItem>
                   {existing.map((e) => (
                     <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-dim">
-                Pick one to attach this invoice to it instead of creating a new expense.
+                {t("fixed_expenses.form.link_existing_help")}
               </p>
             </div>
           )}
@@ -287,27 +303,27 @@ export function FixedExpenseFormDialog({
           <fieldset disabled={locked} className="contents">
           {/* Name */}
           <div className="flex flex-col gap-1.25">
-            <Label htmlFor="fx-name" className={fieldLabel}>Name</Label>
-            <Input id="fx-name" placeholder="e.g. AWS, Office rent" className={fieldInput} {...register("name")} />
+            <Label htmlFor="fx-name" className={fieldLabel}>{t("fixed_expenses.form.name_label")}</Label>
+            <Input id="fx-name" placeholder={t("fixed_expenses.form.name_placeholder")} className={fieldInput} {...register("name")} />
             {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
           </div>
 
           {/* Category */}
           <div className="flex flex-col gap-1.25">
-            <Label className={fieldLabel}>Category</Label>
+            <Label className={fieldLabel}>{t("fixed_expenses.form.category_label")}</Label>
             <Controller
               control={control}
               name="category"
               render={({ field }) => (
                 <Select
-                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+                  items={CATEGORY_SELECTABLE.map((c) => ({ value: c, label: t(`categories.${c}`) }))}
                   value={field.value}
                   onValueChange={(v) => field.onChange(v as InvoiceCategory)}
                 >
                   <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CATEGORY_SELECTABLE.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                      <SelectItem key={c} value={c}>{t(`categories.${c}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -317,32 +333,32 @@ export function FixedExpenseFormDialog({
 
           {/* Source: vendor + sender */}
           <div className="flex flex-col gap-1.25">
-            <Label htmlFor="fx-vendor" className={fieldLabel}>Vendor name</Label>
-            <Input id="fx-vendor" placeholder="Who bills you (comma-separate several)" className={fieldInput} {...register("vendorName")} />
+            <Label htmlFor="fx-vendor" className={fieldLabel}>{t("fixed_expenses.form.vendor_label")}</Label>
+            <Input id="fx-vendor" placeholder={t("fixed_expenses.form.vendor_placeholder")} className={fieldInput} {...register("vendorName")} />
             {errors.vendorName && <p className="text-xs text-danger">{errors.vendorName.message}</p>}
           </div>
           <div className="flex flex-col gap-1.25">
-            <Label htmlFor="fx-sender" className={fieldLabel}>Sender email</Label>
-            <Input id="fx-sender" placeholder="billing@vendor.com (comma-separate several)" className={fieldInput} {...register("senderEmail")} />
+            <Label htmlFor="fx-sender" className={fieldLabel}>{t("fixed_expenses.form.sender_label")}</Label>
+            <Input id="fx-sender" placeholder={t("fixed_expenses.form.sender_placeholder")} className={fieldInput} {...register("senderEmail")} />
             {errors.senderEmail && <p className="text-xs text-danger">{errors.senderEmail.message}</p>}
           </div>
 
           {/* Mailbox pin (optional) */}
           {mailboxes.length > 0 && (
             <div className="flex flex-col gap-1.25">
-              <Label className={fieldLabel}>Mailbox (optional)</Label>
+              <Label className={fieldLabel}>{t("fixed_expenses.form.mailbox_label")}</Label>
               <Controller
                 control={control}
                 name="gmailCredentialId"
                 render={({ field }) => (
                   <Select
-                    items={[{ value: "", label: "Any mailbox" }, ...mailboxes.map((m) => ({ value: m.id, label: m.label }))]}
+                    items={[{ value: "", label: t("fixed_expenses.form.any_mailbox") }, ...mailboxes.map((m) => ({ value: m.id, label: m.label }))]}
                     value={field.value}
                     onValueChange={(v) => field.onChange(v ?? "")}
                   >
                     <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any mailbox</SelectItem>
+                      <SelectItem value="">{t("fixed_expenses.form.any_mailbox")}</SelectItem>
                       {mailboxes.map((m) => (
                         <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                       ))}
@@ -356,12 +372,12 @@ export function FixedExpenseFormDialog({
           {/* Expected amount + currency */}
           <div className="flex gap-2.5">
             <div className="flex flex-col gap-1.25 flex-1">
-              <Label htmlFor="fx-amount" className={fieldLabel}>Expected amount</Label>
+              <Label htmlFor="fx-amount" className={fieldLabel}>{t("fixed_expenses.form.amount_label")}</Label>
               <Input id="fx-amount" inputMode="decimal" placeholder="0.00" className={fieldInput} {...register("expectedAmount")} />
               {errors.expectedAmount && <p className="text-xs text-danger">{errors.expectedAmount.message}</p>}
             </div>
             <div className="flex flex-col gap-1.25 w-22.5">
-              <Label htmlFor="fx-currency" className={fieldLabel}>Currency</Label>
+              <Label htmlFor="fx-currency" className={fieldLabel}>{t("fixed_expenses.form.currency_label")}</Label>
               <Input id="fx-currency" className={fieldInput} {...register("currency")} />
             </div>
           </div>
@@ -369,20 +385,20 @@ export function FixedExpenseFormDialog({
           {/* Frequency + anchor date */}
           <div className="flex gap-2.5">
             <div className="flex flex-col gap-1.25 flex-1">
-              <Label className={fieldLabel}>Frequency</Label>
+              <Label className={fieldLabel}>{t("fixed_expenses.form.frequency_label")}</Label>
               <Controller
                 control={control}
                 name="frequency"
                 render={({ field }) => (
                   <Select
-                    items={FIXED_EXPENSE_FREQUENCIES.map((f) => ({ value: f, label: FREQUENCY_LABELS[f] }))}
+                    items={FIXED_EXPENSE_FREQUENCIES.map((f) => ({ value: f, label: freqLabel(f) }))}
                     value={field.value}
                     onValueChange={(v) => v && field.onChange(v)}
                   >
                     <SelectTrigger className={fieldTrigger}><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {FIXED_EXPENSE_FREQUENCIES.map((f) => (
-                        <SelectItem key={f} value={f}>{FREQUENCY_LABELS[f]}</SelectItem>
+                        <SelectItem key={f} value={f}>{freqLabel(f)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -390,7 +406,7 @@ export function FixedExpenseFormDialog({
               />
             </div>
             <div className="flex flex-col gap-1.25 flex-1">
-              <Label htmlFor="fx-anchor" className={fieldLabel}>First expected on</Label>
+              <Label htmlFor="fx-anchor" className={fieldLabel}>{t("fixed_expenses.form.anchor_label")}</Label>
               <Input id="fx-anchor" type="date" className={fieldInput} {...register("anchorDate")} />
               {errors.anchorDate && <p className="text-xs text-danger">{errors.anchorDate.message}</p>}
             </div>
@@ -398,9 +414,9 @@ export function FixedExpenseFormDialog({
 
           {/* Grace period */}
           <div className="flex flex-col gap-1.25">
-            <Label htmlFor="fx-grace" className={fieldLabel}>Grace period (days)</Label>
+            <Label htmlFor="fx-grace" className={fieldLabel}>{t("fixed_expenses.form.grace_label")}</Label>
             <Input id="fx-grace" type="number" min="0" max="60" className={`${fieldInput} w-27.5`} {...register("gracePeriodDays")} />
-            <p className="text-xs text-dim">Days after the period ends before it counts as overdue.</p>
+            <p className="text-xs text-dim">{t("fixed_expenses.form.grace_help")}</p>
           </div>
           </fieldset>
         </div>
@@ -410,12 +426,20 @@ export function FixedExpenseFormDialog({
       <Dialog name="fixed_expense_link_existing_confirm" open={confirmOpen} onOpenChange={(open) => { if (!open) setConfirmOpen(false) }}>
         <DialogContent className="sm:max-w-110">
           <DialogHeader>
-            <DialogTitle>Link to “{selected?.name}”?</DialogTitle>
+            <DialogTitle>{t("fixed_expenses.link_confirm.title", { name: selected?.name ?? "" })}</DialogTitle>
             <DialogDescription>
-              This adds the sender{prefill?.senderEmail ? ` ${prefill.senderEmail}` : ""}
-              {(prefill?.vendorName || prefill?.name) ? ` and title “${prefill?.vendorName || prefill?.name}”` : ""}{" "}
-              to “{selected?.name}”, and marks past and future invoices from that sender as this
-              fixed expense.
+              {t("fixed_expenses.link_confirm.body", {
+                name: selected?.name ?? "",
+                sender: prefill?.senderEmail
+                  ? t("fixed_expenses.link_confirm.sender_fragment", { sender: prefill.senderEmail })
+                  : "",
+                title:
+                  prefill?.vendorName || prefill?.name
+                    ? t("fixed_expenses.link_confirm.title_fragment", {
+                        title: prefill?.vendorName || prefill?.name || "",
+                      })
+                    : "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -425,14 +449,14 @@ export function FixedExpenseFormDialog({
               onClick={() => setConfirmOpen(false)}
               disabled={absorb.isPending}
             >
-              Cancel
+              {t("fixed_expenses.form.cancel")}
             </Button>
             <Button
               type="button"
               onClick={confirmLink}
               disabled={absorb.isPending}
             >
-              {absorb.isPending ? "Linking…" : "Link invoice"}
+              {absorb.isPending ? t("fixed_expenses.link_confirm.linking") : t("fixed_expenses.link_confirm.link_invoice")}
             </Button>
           </DialogFooter>
         </DialogContent>
