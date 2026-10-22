@@ -1,9 +1,18 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import { getT } from "@/lib/i18n/getLocale.server"
 
 const GRID = "1.4fr 1.2fr 1fr 0.9fr 0.9fr 0.9fr"
-const HEADERS = ["Name", "Source", "Category", "Frequency", "Expected", "This period"]
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getT()
+  const headers = [
+    t("fixed_expenses.column.name"),
+    t("fixed_expenses.column.source"),
+    t("fixed_expenses.column.category"),
+    t("fixed_expenses.column.frequency"),
+    t("fixed_expenses.column.expected"),
+    t("fixed_expenses.column.this_period"),
+  ]
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
@@ -20,7 +29,7 @@ export default function Loading() {
           className="grid px-4.5 py-3 bg-background border-b border-border"
           style={{ gridTemplateColumns: GRID, gap: "12px" }}
         >
-          {HEADERS.map((h) => (
+          {headers.map((h) => (
             <span key={h} className="text-xs font-bold text-text-secondary">
               {h}
             </span>

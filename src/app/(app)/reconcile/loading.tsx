@@ -1,14 +1,24 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import { getT } from "@/lib/i18n/getLocale.server"
 
 const GRID = { gridTemplateColumns: ".7fr 1.5fr .8fr 1.7fr 1fr 1.6fr", gap: "14px" }
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getT()
+  const headers = [
+    t("reconcile.table.date"),
+    t("reconcile.table.merchant"),
+    t("reconcile.table.amount"),
+    t("reconcile.table.matchedInvoice"),
+    t("reconcile.table.confidence"),
+    t("reconcile.table.actions"),
+  ]
   return (
     <div className="flex flex-col">
       <Skeleton className="h-[46px] w-[420px] rounded-[12px] bg-muted-strong mb-4" />
       <div className="bg-white border border-border rounded-[14px] overflow-hidden">
         <div className="grid px-[18px] py-3 bg-raised border-b border-border" style={GRID}>
-          {["Date", "Merchant", "Amount", "Matched invoice", "Confidence", "Actions"].map((h, i) => (
+          {headers.map((h, i) => (
             <span
               key={h}
               className="text-xs font-bold text-text-secondary"

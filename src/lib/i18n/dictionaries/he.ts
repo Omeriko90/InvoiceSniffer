@@ -680,6 +680,8 @@ export const he = {
     preset: {
       week: "7 הימים האחרונים",
       month: "החודש האחרון",
+      mtd: "החודש הנוכחי",
+      qtd: "הרבעון הנוכחי",
       "3m": "3 החודשים האחרונים",
       "6m": "6 החודשים האחרונים",
       year: "12 החודשים האחרונים",
@@ -793,13 +795,14 @@ export const he = {
       cancel: "ביטול",
     },
     searchPlaceholder: "חיפוש ספק, סכום, מספר חשבונית…",
+    filters: "מסננים",
     filter: {
       statusLabel: "סטטוס:",
       categoryLabel: "קטגוריה:",
       status: { all: "הכול" },
-      category: { all: "כל הקטגוריות" },
-      account: { all: "כל החשבונות" },
-      documentType: { all: "כל הסוגים" },
+      category: { all: "כל הקטגוריות", label: "קטגוריה" },
+      account: { all: "כל החשבונות", label: "חשבון" },
+      documentType: { all: "כל הסוגים", label: "סוג" },
     },
     dateFilter: {
       customRange: "טווח מותאם אישית…",

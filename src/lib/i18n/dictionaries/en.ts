@@ -681,6 +681,8 @@ export const en = {
     preset: {
       week: "Last 7 days",
       month: "Last month",
+      mtd: "Current month",
+      qtd: "Current quarter",
       "3m": "Last 3 months",
       "6m": "Last 6 months",
       year: "Last 12 months",
@@ -794,13 +796,14 @@ export const en = {
       cancel: "Cancel",
     },
     searchPlaceholder: "Search vendor, amount, invoice #…",
+    filters: "Filters",
     filter: {
       statusLabel: "Status:",
       categoryLabel: "Category:",
       status: { all: "All" },
-      category: { all: "All categories" },
-      account: { all: "All accounts" },
-      documentType: { all: "All types" },
+      category: { all: "All categories", label: "Category" },
+      account: { all: "All accounts", label: "Account" },
+      documentType: { all: "All types", label: "Type" },
     },
     dateFilter: {
       customRange: "Custom range…",

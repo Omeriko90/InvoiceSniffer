@@ -20,7 +20,6 @@ export function InvoicesTable({
     t("invoices.table.invoiceNumber"),
     t("invoices.table.issueDate"),
     t("invoices.table.received"),
-    t("invoices.table.status"),
     t("invoices.table.category"),
     t("invoices.table.amount"),
     "",
