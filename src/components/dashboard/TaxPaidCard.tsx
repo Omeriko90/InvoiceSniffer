@@ -14,7 +14,7 @@ export function TaxPaidCard({ rows, rangeLabel }: { rows: TaxByCurrency[]; range
             {t("dashboard.taxPaid.title", { rangeLabel })}
           </h2>
           <p className="text-xs font-semibold text-text-secondary leading-none">
-            Breakdown by currency
+            {t("dashboard.taxPaid.breakdown")}
           </p>
         </div>
 

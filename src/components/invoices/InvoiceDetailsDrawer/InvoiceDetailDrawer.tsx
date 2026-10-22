@@ -13,6 +13,7 @@ import type { RemovalReason } from "@/api/invoices";
 import type { InvoiceRow } from "../types";
 import { FixedExpenseFormDialog } from "@/components/fixed-expenses/FixedExpenseFormDialog";
 import { track } from "@/lib/analytics";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { InvoiceDetailDrawerHeader } from "./InvoiceDetailDrawerHeader";
 import { InvoiceDetail } from "./InvoiceDetail";
 import { InvoiceDetailsForm, type InvoiceEditFormValues } from "./InvoiceDetailsForm";
@@ -26,6 +27,7 @@ export function InvoiceDetailDrawer({
   onSaved: (updated: InvoiceRow) => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const router = useRouter();
   const [unlinkOpen, setUnlinkOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -113,7 +115,7 @@ export function InvoiceDetailDrawer({
     <SheetContent
       side="right"
       forceOverlay
-      className="w-125 sm:max-w-125 gap-0 bg-white border-l border-border"
+      className="w-125 sm:max-w-125 gap-0 bg-white border-s border-border"
       style={{ boxShadow: "-12px 0 40px rgba(80,110,180,.12)" }}
     >
       <InvoiceDetailDrawerHeader vendor={vendor} invoice={invoice} />
@@ -144,16 +146,16 @@ export function InvoiceDetailDrawer({
           onOpenChange={() => setConfirmReason(null)}
           title={
             confirmReason === "NOT_AN_INVOICE"
-              ? "Mark as not an invoice?"
-              : "Remove this invoice?"
+              ? t("invoices.confirm.notInvoice.title")
+              : t("invoices.confirm.remove.title")
           }
           description={
             confirmReason === "NOT_AN_INVOICE"
-              ? "It's removed from your list and similar emails from this sender are detected less often. You can undo this."
-              : "It genuinely is an invoice but won't appear in your list. You can undo this."
+              ? t("invoices.confirm.notInvoice.description")
+              : t("invoices.confirm.remove.description")
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
+          confirmLabel={t("invoices.confirm.removeLabel")}
+          pendingLabel={t("invoices.confirm.removingLabel")}
           destructive
           isPending={remove.isPending}
           onConfirm={handleRemove}
@@ -168,7 +170,7 @@ export function InvoiceDetailDrawer({
                 checked={muteSender}
                 onCheckedChange={(checked) => setMuteSender(checked === true)}
               />
-              Also stop showing invoices from this sender
+              {t("invoices.confirm.muteSender")}
             </Label>
           )}
         </ConfirmationDialog>
@@ -212,19 +214,14 @@ export function InvoiceDetailDrawer({
           onOpenChange={(open) => {
             if (!open) setUnlinkOpen(false);
           }}
-          title="Remove from fixed expense?"
+          title={t("invoices.confirm.unlink.title")}
           description={
-            <>
-              This invoice will no longer count toward
-              {invoice.fixedExpense
-                ? ` “${invoice.fixedExpense.name}”`
-                : " this fixed expense"}
-              . The fixed expense keeps its match rules, so a matching invoice
-              can re-link later.
-            </>
+            invoice.fixedExpense
+              ? t("invoices.confirm.unlink.descriptionNamed", { name: invoice.fixedExpense.name })
+              : t("invoices.confirm.unlink.description")
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
+          confirmLabel={t("invoices.confirm.removeLabel")}
+          pendingLabel={t("invoices.confirm.removingLabel")}
           destructive
           isPending={unlinkPending}
           onConfirm={handleUnlink}
@@ -239,7 +236,7 @@ export function InvoiceDetailDrawer({
                 checked={muteSender}
                 onCheckedChange={(checked) => setMuteSender(checked === true)}
               />
-              Also stop showing invoices from this sender
+              {t("invoices.confirm.muteSender")}
             </Label>
           )}
         </ConfirmationDialog>

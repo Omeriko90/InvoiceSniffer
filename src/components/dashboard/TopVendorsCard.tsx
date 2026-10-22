@@ -1,22 +1,24 @@
 // Client component by import — only ever rendered from <DashboardPage>.
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { TopVendor } from "@/api-types/dashboard"
 
 export function TopVendorsCard({ rows, rangeLabel }: { rows: TopVendor[]; rangeLabel: string }) {
+  const t = useT()
   const max = rows.reduce((m, r) => Math.max(m, r.total), 0) || 1
 
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-heading leading-none">Top vendors</h2>
+          <h2 className="text-base font-bold text-heading leading-none">{t("dashboard.topVendors.title")}</h2>
           <span className="text-xs text-text-secondary shrink-0">{rangeLabel}</span>
         </div>
 
         {rows.length === 0 ? (
           <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
-            No spend in this range.
+            {t("dashboard.topVendors.empty")}
           </p>
         ) : (
           <div className="flex-1 flex flex-col justify-center gap-3.5">

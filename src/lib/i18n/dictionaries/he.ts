@@ -92,6 +92,15 @@ export const he = {
       saved: "הגדרות ההתאמה נשמרו",
       saveFailed: "השמירה נכשלה",
     },
+    currency: {
+      title: "מטבע תצוגה",
+      description: "המטבע שבו מוצגים כל הסכומים. חשבוניות שחויבו במטבע אחר מומרות לפי שער החליפין ביום שבו הגיעו. השינוי חל על חשבוניות שיתקבלו מעתה והלאה.",
+      label: "מטבע:",
+      save: "שמירה",
+      saving: "בשמירה…",
+      saved: "מטבע התצוגה נשמר",
+      saveFailed: "השמירה נכשלה",
+    },
   },
   shell: {
     sidebar: {
@@ -259,17 +268,84 @@ export const he = {
         generic: "לא הצלחנו לבנות את הייצוא הזה. נסו שוב.",
       },
     },
+    selectAll: "בחירת כל הייצואים",
+    selectRow: "בחירת ייצוא",
+    deleteRow: "מחיקת ייצוא",
+    selectedCount: { _one: "{count} נבחר", _other: "{count} נבחרו" },
+    clear: "ניקוי",
+    delete: "מחיקה",
+    deleting: "במחיקה…",
+    deleteDialog: {
+      bulkTitle: { _one: "למחוק {count} ייצוא?", _other: "למחוק {count} ייצואים?" },
+      bulkDescription: "פעולה זו מוחקת לצמיתות את הייצואים שנבחרו ואת הקבצים שלהם.",
+      singleTitle: "למחוק את הייצוא?",
+      singleDescription: "פעולה זו מוחקת לצמיתות את ייצוא {format} מהתאריכים {start} – {end} ואת הקובץ שלו.",
+    },
   },
   dashboard: {
+    dateRange: {
+      custom: "מותאם אישית",
+      apply: "החלה",
+    },
+    overview: {
+      invoices: "חשבוניות",
+      receipts: "קבלות",
+      totalSpend: "הוצאה כוללת",
+      reclaimableVat: "מע\"מ להחזר",
+      nothingYet: "עדיין כלום",
+      moreCurrencies: { _one: "+ {count} מטבע נוסף", _other: "+ {count} מטבעות נוספים" },
+    },
+    spendTrend: {
+      title: "הוצאה לפי חודש",
+      empty: "אין הוצאה בטווח זה.",
+      tooltip: "הוצאה",
+    },
+    topVendors: {
+      title: "ספקים מובילים",
+      empty: "אין הוצאה בטווח זה.",
+    },
+    spendPie: {
+      title: "הוצאה לפי קטגוריה",
+      empty: "אין הוצאה מסווגת בטווח זה.",
+      otherCurrencies: {
+        _one: "מוצג {primary}. {count} מטבע נוסף אינו מוצג.",
+        _other: "מוצג {primary}. {count} מטבעות נוספים אינם מוצגים.",
+      },
+    },
+    fixedExpenses: {
+      title: "הוצאות קבועות",
+      searchPlaceholder: "חיפוש שם או אימייל…",
+      filter: {
+        all: "הכול",
+        arrived: "הגיעה",
+        pending: "ממתין",
+        overdue: "באיחור",
+      },
+      noMatch: "אין הוצאות קבועות התואמות לחיפוש או למסנן.",
+      column: {
+        name: "שם",
+        source: "מקור",
+        arrived: "הגיעה",
+        latestPeriod: "התקופה האחרונה",
+      },
+      since: "מאז {month}",
+      overdueCount: { _one: "{count} באיחור", _other: "{count} באיחור" },
+      empty: {
+        title: "אין הוצאות קבועות בטווח זה",
+        description: "עקבו אחר חיובים חוזרים ונעדכן אתכם בכל תקופה אם החשבונית שלהם הגיעה.",
+        manage: "ניהול הוצאות קבועות",
+      },
+    },
     categorySpend: {
       title: "הוצאה לפי קטגוריה — {monthLabel}",
       empty: "אין עדיין הוצאה מסווגת החודש.",
     },
     taxPaid: {
-      title: "מס ששולם — {monthLabel}",
+      title: "מס ששולם — {rangeLabel}",
       empty: "לא נרשם מס בחשבוניות החודש.",
       invoiceCount: { _one: "{count} חשבונית", _other: "{count} חשבוניות" },
       note: "מע\"מ להחזר מחשבוניות מס החודש. אינו סכום מובטח ומלא.",
+      breakdown: "פילוח לפי מטבע",
     },
     recentAlerts: {
       title: "התראות אחרונות",
@@ -666,6 +742,12 @@ export const he = {
       reviewed: "נבדק",
       ignored: "בהתעלמות",
     },
+    form: {
+      error: {
+        amountRequired: "יש להזין סכום",
+        amountInvalid: "הזינו סכום תקין",
+      },
+    },
     table: {
       vendor: "ספק",
       invoiceNumber: "חשבונית מס׳",
@@ -743,12 +825,15 @@ export const he = {
       fixedExpense: "הוצאה קבועה · {name}",
       removeFromFixedExpense: "הסרה מהוצאה קבועה",
       extractedFields: "שדות שחולצו",
+      detailsHeading: "פרטים",
       field: {
         vendor: "ספק",
         invoiceNumber: "חשבונית מס׳",
         amountWithCurrency: "סכום ({currency})",
         amount: "סכום",
+        originalAmount: "סכום מקורי",
         tax: "מס",
+        type: "סוג",
         invoiceDate: "תאריך החשבונית",
         dueDate: "תאריך יעד",
         category: "קטגוריה",
@@ -797,5 +882,22 @@ export const he = {
         description: "חשבונית זו לא תיחשב עוד להוצאה קבועה זו. ההוצאה הקבועה שומרת על כללי ההתאמה שלה, כך שחשבונית תואמת תוכל להתקשר שוב בהמשך.",
       },
     },
+  },
+  categories: {
+    MARKETING: "שיווק",
+    EQUIPMENT: "ציוד",
+    SOFTWARE: "תוכנה",
+    TRAVEL: "נסיעות",
+    OFFICE_SUPPLIES: "ציוד משרדי",
+    PROFESSIONAL_SERVICES: "שירותים מקצועיים",
+    UTILITIES: "תשתיות",
+    OTHER: "אחר",
+    UNCATEGORIZED: "לא מסווג",
+  },
+  docTypes: {
+    TAX_INVOICE: "חשבונית",
+    RECEIPT: "קבלה",
+    CREDIT_INVOICE: "חשבונית זיכוי",
+    UNKNOWN: "לא ידוע",
   },
 } satisfies Dictionary

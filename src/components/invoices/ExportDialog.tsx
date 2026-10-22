@@ -339,7 +339,7 @@ export function ExportDialog({
                         <span className="text-sm text-text-secondary shrink-0">
                           {date ? formatDate(new Date(date), "dd MMM yyyy") : "—"}
                         </span>
-                        <span className="text-sm font-semibold text-text-primary shrink-0 w-23 text-right">
+                        <span className="text-sm font-semibold text-text-primary shrink-0 w-23 text-end">
                           {inv.currency} {inv.totalAmount.toFixed(2)}
                         </span>
                       </label>

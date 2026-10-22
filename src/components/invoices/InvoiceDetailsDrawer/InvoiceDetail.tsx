@@ -9,6 +9,7 @@ import type { InvoiceRow } from "../types"
 import { CategoryBadge } from "../CategoryBadge"
 import { DocumentTypeBadge } from "../DocumentTypeBadge"
 import { RemovalReason } from "@/api/invoices"
+import { useT } from "@/components/i18n/LocaleProvider"
 
 interface InvoiceDetailProps {
   invoice: InvoiceRow
@@ -20,6 +21,7 @@ interface InvoiceDetailProps {
   onOpenConfirm: (reason: RemovalReason) => void
 }
 export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, onEdit, onMarkFixedExpense, isPending, onOpenConfirm }: InvoiceDetailProps) {
+  const t = useT()
   return (
     <div className="flex flex-1 flex-col min-h-0">
       <div className="flex-1 overflow-y-auto p-5.5">
@@ -33,14 +35,14 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
           <div className="flex items-center gap-1.75 -mt-2 mb-6 px-2.75 py-2 rounded-lg bg-info-bg">
             <Repeat size={14} strokeWidth={1.8} className="text-primary shrink-0" />
             <span className="text-sm font-semibold text-text-primary truncate">
-              Fixed expense · {invoice.fixedExpense.name}
+              {t("invoices.detail.fixedExpense", { name: invoice.fixedExpense.name })}
             </span>
             <button
               type="button"
               onClick={onUnlinkFixedExpense}
               disabled={unlinkPending}
-              className="ml-auto shrink-0 text-[#94A3B8] hover:text-[#DC2626] disabled:opacity-50"
-              aria-label="Remove from fixed expense"
+              className="ms-auto shrink-0 text-[#94A3B8] hover:text-[#DC2626] disabled:opacity-50"
+              aria-label={t("invoices.detail.removeFromFixedExpense")}
             >
               <X size={14} strokeWidth={2} />
             </button>
@@ -48,24 +50,24 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
         )}
 
         <p className="text-base font-bold text-text-secondary mb-2">
-          Details
+          {t("invoices.detail.detailsHeading")}
         </p>
-        
+
         <div className="border border-[#E8EDFA] rounded-[11px] overflow-hidden mb-5.5">
           {([
-            { label: "Type",     node: <DocumentTypeBadge documentType={invoice.documentType} /> },
-            { label: "Category",  node: <CategoryBadge category={invoice.category} /> },
-            { label: "Invoice #", value: invoice.invoiceNumber ?? "—", mono: true },
-            { label: "Amount",    value: fmtDisplayMoney(invoice) },
+            { label: t("invoices.detail.field.type"),     node: <DocumentTypeBadge documentType={invoice.documentType} /> },
+            { label: t("invoices.detail.field.category"),  node: <CategoryBadge category={invoice.category} /> },
+            { label: t("invoices.detail.field.invoiceNumber"), value: invoice.invoiceNumber ?? "—", mono: true },
+            { label: t("invoices.detail.field.amount"),    value: fmtDisplayMoney(invoice) },
             ...(hasDistinctOriginal(invoice)
-              ? [{ label: "Original amount", value: fmtMoney(invoice.totalAmount, invoice.currency) }]
+              ? [{ label: t("invoices.detail.field.originalAmount"), value: fmtMoney(invoice.totalAmount, invoice.currency) }]
               : []),
-            { label: "Tax",       value: invoice.taxAmount != null ? fmtAmount(invoice.taxAmount, invoice.currency) : "—" },
-            { label: "Invoice date", value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
+            { label: t("invoices.detail.field.tax"),       value: invoice.taxAmount != null ? fmtAmount(invoice.taxAmount, invoice.currency) : "—" },
+            { label: t("invoices.detail.field.invoiceDate"), value: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), "MMM d, yyyy") : "—" },
             // Most receipts are already paid, so a missing due date means
             // "not applicable" — hide the row rather than show a dash
             ...(invoice.dueDate
-              ? [{ label: "Due date", value: format(new Date(invoice.dueDate), "MMM d, yyyy") }]
+              ? [{ label: t("invoices.detail.field.dueDate"), value: format(new Date(invoice.dueDate), "MMM d, yyyy") }]
               : []),
           ] as { label: string; value?: string; mono?: boolean; node?: ReactNode }[]).map((row, i, arr) => (
             <div
@@ -89,7 +91,7 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
         </div>
 
         <p className="text-base font-bold text-text-secondary mb-2">
-          Source email
+          {t("invoices.detail.sourceEmail")}
         </p>
         <div className="border border-[#E8EDFA] rounded-[11px] p-3.25 mb-5.5">
           <p className="text-[13px] font-semibold text-text-primary leading-snug">{invoice.subject}</p>
@@ -98,9 +100,9 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
             {format(new Date(invoice.emailDate), "MMM d, yyyy")}
           </p>
           <p className="text-[12px] text-text-secondary mt-1.5 pt-2 border-t border-[#F1F5F9]">
-            Received in{" "}
+            {t("invoices.detail.receivedIn")}{" "}
             <span className="font-semibold text-primary">
-              {invoice.sourceAccount?.label ?? invoice.sourceAccount?.email ?? "Unknown mailbox"}
+              {invoice.sourceAccount?.label ?? invoice.sourceAccount?.email ?? t("invoices.detail.unknownMailbox")}
             </span>
           </p>
         </div>
@@ -108,7 +110,7 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
         {/* Attachments — served on demand from Gmail, never stored */}
         {invoice.attachmentMeta.length > 0 && (
           <p className="text-base font-bold text-text-secondary mb-2">
-            Attached documents
+            {t("invoices.detail.attachedDocuments")}
           </p>
         )}
         {invoice.attachmentMeta.length > 0 && invoice.attachmentMeta.map((att, i) => (
@@ -133,7 +135,7 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
         {/* Hosted receipt link */}
         {invoice.receiptUrl && (
           <p className="text-[11px] font-bold text-[#64748B] mb-2">
-            Receipt link
+            {t("invoices.detail.receiptLink")}
           </p>
         )}
         {invoice.receiptUrl && (
@@ -147,7 +149,7 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
               <ExternalLink size={16} strokeWidth={1.5} className="text-[#3B6FE0]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-[#334155]">View hosted receipt</p>
+              <p className="text-[13px] font-semibold text-[#334155]">{t("invoices.detail.viewHostedReceipt")}</p>
               <p className="text-[11.5px] text-[#94A3B8] truncate">{new URL(invoice.receiptUrl).hostname}</p>
             </div>
           </a>
@@ -156,14 +158,14 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
         {/* Privacy note */}
         <div className="flex items-center gap-1.75 text-[11.5px] text-[#94A3B8]">
           <Lock size={13} strokeWidth={1.5} className="shrink-0" />
-          <span>The file itself is never stored — it&apos;s fetched from Gmail only during an export.</span>
+          <span>{t("invoices.detail.privacyNote")}</span>
         </div>
 
         {/* Actions */}
         
           <div className="mt-5.5">
             <p className="text-base font-bold text-text-secondary mb-2">
-              Actions
+              {t("invoices.detail.actions")}
             </p>
 
             {!invoice.fixedExpense && (
@@ -175,9 +177,9 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
                 <div className="w-8.5 h-8.5 rounded-lg bg-white/70 flex items-center justify-center shrink-0">
                   <Clock size={16} strokeWidth={1.8} className="text-primary" />
                 </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-semibold text-heading">Mark as fixed expense</p>
-                  <p className="text-[11.5px] text-[#94A3B8]">Track this vendor on a recurring schedule</p>
+                <div className="flex-1 min-w-0 text-start">
+                  <p className="text-[13px] font-semibold text-heading">{t("invoices.detail.markFixed.title")}</p>
+                  <p className="text-[11.5px] text-[#94A3B8]">{t("invoices.detail.markFixed.subtitle")}</p>
                 </div>
                 <ChevronRight size={16} strokeWidth={1.8} className="text-[#94A3B8] shrink-0" />
               </button>
@@ -192,9 +194,9 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
               <div className="w-8.5 h-8.5 rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
                 <EyeOff size={16} strokeWidth={1.8} className="text-[#DC2626]" />
               </div>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-[13px] font-semibold text-[#DC2626]">Mark as not relevant</p>
-                <p className="text-[11.5px] text-[#D08A8A]">Hide from reconciliation and exports</p>
+              <div className="flex-1 min-w-0 text-start">
+                <p className="text-[13px] font-semibold text-[#DC2626]">{t("invoices.detail.notRelevant.title")}</p>
+                <p className="text-[11.5px] text-[#D08A8A]">{t("invoices.detail.notRelevant.subtitle")}</p>
               </div>
             </button>
             <button
@@ -206,9 +208,9 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
               <div className="w-8.5 h-8.5 rounded-lg bg-[#FDE4E4] flex items-center justify-center shrink-0">
                 <FileX size={13} strokeWidth={1.8} className="text-[#DC2626]" />
               </div>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-[13px] font-semibold text-[#DC2626]">Mark as not an invoice</p>
-                <p className="text-[11.5px] text-[#D08A8A]">Reclassify this email as something else</p>
+              <div className="flex-1 min-w-0 text-start">
+                <p className="text-[13px] font-semibold text-[#DC2626]">{t("invoices.detail.notInvoice.title")}</p>
+                <p className="text-[11.5px] text-[#D08A8A]">{t("invoices.detail.notInvoice.subtitle")}</p>
               </div>
             </button>
           </div>
@@ -225,14 +227,14 @@ export function InvoiceDetail({ invoice, onUnlinkFixedExpense, unlinkPending, on
               render={<a href={invoice.gmailLink} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLink size={15} strokeWidth={1.5} />
-              Open in Gmail
+              {t("invoices.openInGmail")}
             </Button>
             <Button
               className="flex-1"
               size="xl"
               onClick={onEdit}
             >
-              Edit fields
+              {t("invoices.detail.editFields")}
             </Button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
   type ExportHistoryItem,
 } from "@/api/exports"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/LocaleProvider"
 import ExportRowDetails from "./ExportRowDetails"
 
 interface ExportsRowProps {
@@ -32,13 +33,14 @@ function ExportsRow({
     onSelect,
     onDelete,
   }: ExportsRowProps) {
+    const t = useT()
     return (
       <>
         <tr className="hover:bg-[#FAFBFF] cursor-pointer" onClick={onToggle}>
         <td className="px-4 py-3" >
           <div className="flex items-center gap-2">
             <div className="flex h-full" onClick={(event) => event.stopPropagation()}>
-            <Checkbox checked={selected} onCheckedChange={onSelect} aria-label="Select export" />
+            <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={t("exports.selectRow")} />
           </div>
             {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
             </div>
@@ -61,10 +63,10 @@ function ExportsRow({
               {statusLabel}
             </span>
             {item.skippedCount > 0 && (
-              <span className="ml-2 text-sm text-text-secondary">{item.skippedCount} skipped</span>
+              <span className="ms-2 text-sm text-text-secondary">{t("exports.skippedCount", { count: item.skippedCount })}</span>
             )}
           </td>
-          <td className="px-4 py-3 text-right">
+          <td className="px-4 py-3 text-end">
             <div className="flex items-center justify-end gap-1.5">
               <Button
                 variant="outline"
@@ -77,12 +79,12 @@ function ExportsRow({
                 className="gap-1.5"
               >
                 <Download size={14} />
-                Download
+                {t("exports.download")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                aria-label="Delete export"
+                aria-label={t("exports.deleteRow")}
                 onClick={(event) => {
                   event.stopPropagation()
                   onDelete()

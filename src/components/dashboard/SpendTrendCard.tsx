@@ -3,10 +3,12 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { format } from "date-fns"
 import { Card, CardContent } from "@/components/ui/card"
 import { fmtMoneyWhole as fmtMoney } from "@/lib/money"
+import { useT } from "@/components/i18n/LocaleProvider"
 import type { SpendTrend } from "@/api-types/dashboard"
 
 // Spend bucketed by month across the selected range.
 export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null; rangeLabel: string }) {
+  const t = useT()
   const data =
     trend?.points.map((p) => ({
       label: format(new Date(p.month), "MMM"),
@@ -19,13 +21,13 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
       <CardContent className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-heading leading-none">Spend by month</h2>
+          <h2 className="text-base font-bold text-heading leading-none">{t("dashboard.spendTrend.title")}</h2>
           <span className="text-xs text-text-secondary shrink-0">{rangeLabel}</span>
         </div>
 
         {!hasSpend ? (
           <p className="flex-1 flex items-center justify-center text-center text-sm text-text-secondary">
-            No spend in this range.
+            {t("dashboard.spendTrend.empty")}
           </p>
         ) : (
           <div className="flex-1 min-h-[148px] -mx-1">
@@ -40,7 +42,7 @@ export function SpendTrendCard({ trend, rangeLabel }: { trend: SpendTrend | null
                 />
                 <Tooltip
                   cursor={false}
-                  formatter={(value) => [fmtMoney(Number(value ?? 0), trend!.currency), "Spend"]}
+                  formatter={(value) => [fmtMoney(Number(value ?? 0), trend!.currency), t("dashboard.spendTrend.tooltip")]}
                   contentStyle={{
                     borderRadius: 10,
                     border: "1px solid #E8EDFA",

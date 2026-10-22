@@ -93,6 +93,15 @@ export const en = {
       saved: "Reconcile settings saved",
       saveFailed: "Failed to save",
     },
+    currency: {
+      title: "Display currency",
+      description: "The currency all amounts are shown in. Invoices billed in another currency are converted at the exchange rate on the day they arrive. Changing this applies to invoices received from now on.",
+      label: "Currency:",
+      save: "Save",
+      saving: "Saving…",
+      saved: "Display currency saved",
+      saveFailed: "Failed to save",
+    },
   },
   shell: {
     sidebar: {
@@ -260,17 +269,84 @@ export const en = {
         generic: "We couldn't build this export. Please try again.",
       },
     },
+    selectAll: "Select all exports",
+    selectRow: "Select export",
+    deleteRow: "Delete export",
+    selectedCount: { _one: "{count} selected", _other: "{count} selected" },
+    clear: "Clear",
+    delete: "Delete",
+    deleting: "Deleting…",
+    deleteDialog: {
+      bulkTitle: { _one: "Delete {count} export?", _other: "Delete {count} exports?" },
+      bulkDescription: "This permanently removes the selected exports and their files.",
+      singleTitle: "Delete export?",
+      singleDescription: "This permanently removes the {format} export from {start} – {end} and its file.",
+    },
   },
   dashboard: {
+    dateRange: {
+      custom: "Custom",
+      apply: "Apply",
+    },
+    overview: {
+      invoices: "Invoices",
+      receipts: "Receipts",
+      totalSpend: "Total spend",
+      reclaimableVat: "Reclaimable VAT",
+      nothingYet: "nothing yet",
+      moreCurrencies: { _one: "+ {count} more currency", _other: "+ {count} more currencies" },
+    },
+    spendTrend: {
+      title: "Spend by month",
+      empty: "No spend in this range.",
+      tooltip: "Spend",
+    },
+    topVendors: {
+      title: "Top vendors",
+      empty: "No spend in this range.",
+    },
+    spendPie: {
+      title: "Spend by category",
+      empty: "No categorized spend in this range.",
+      otherCurrencies: {
+        _one: "Showing {primary}. {count} other currency not shown.",
+        _other: "Showing {primary}. {count} other currencies not shown.",
+      },
+    },
+    fixedExpenses: {
+      title: "Fixed expenses",
+      searchPlaceholder: "Search name or email…",
+      filter: {
+        all: "All",
+        arrived: "Arrived",
+        pending: "Pending",
+        overdue: "Overdue",
+      },
+      noMatch: "No fixed expenses match your search or filter.",
+      column: {
+        name: "Name",
+        source: "Source",
+        arrived: "Arrived",
+        latestPeriod: "Latest period",
+      },
+      since: "since {month}",
+      overdueCount: { _one: "{count} overdue", _other: "{count} overdue" },
+      empty: {
+        title: "No fixed expenses in this range",
+        description: "Track recurring bills and we'll tell you each period whether their invoice has arrived.",
+        manage: "Manage fixed expenses",
+      },
+    },
     categorySpend: {
       title: "Spend by category — {monthLabel}",
       empty: "No categorized spend yet this month.",
     },
     taxPaid: {
-      title: "Tax paid — {monthLabel}",
+      title: "Tax paid — {rangeLabel}",
       empty: "No tax recorded on this month's invoices.",
       invoiceCount: { _one: "{count} invoice", _other: "{count} invoices" },
       note: "Reclaimable VAT from tax invoices this month. Not a guaranteed-complete total.",
+      breakdown: "Breakdown by currency",
     },
     recentAlerts: {
       title: "Recent alerts",
@@ -667,6 +743,12 @@ export const en = {
       reviewed: "Reviewed",
       ignored: "Ignored",
     },
+    form: {
+      error: {
+        amountRequired: "Amount is required",
+        amountInvalid: "Enter a valid amount",
+      },
+    },
     table: {
       vendor: "Vendor",
       invoiceNumber: "Invoice #",
@@ -744,12 +826,15 @@ export const en = {
       fixedExpense: "Fixed expense · {name}",
       removeFromFixedExpense: "Remove from fixed expense",
       extractedFields: "Extracted fields",
+      detailsHeading: "Details",
       field: {
         vendor: "Vendor",
         invoiceNumber: "Invoice #",
         amountWithCurrency: "Amount ({currency})",
         amount: "Amount",
+        originalAmount: "Original amount",
         tax: "Tax",
+        type: "Type",
         invoiceDate: "Invoice date",
         dueDate: "Due date",
         category: "Category",
@@ -798,6 +883,23 @@ export const en = {
         description: "This invoice will no longer count toward this fixed expense. The fixed expense keeps its match rules, so a matching invoice can re-link later.",
       },
     },
+  },
+  categories: {
+    MARKETING: "Marketing",
+    EQUIPMENT: "Equipment",
+    SOFTWARE: "Software",
+    TRAVEL: "Travel",
+    OFFICE_SUPPLIES: "Office Supplies",
+    PROFESSIONAL_SERVICES: "Professional Services",
+    UTILITIES: "Utilities",
+    OTHER: "Other",
+    UNCATEGORIZED: "Uncategorized",
+  },
+  docTypes: {
+    TAX_INVOICE: "Invoice",
+    RECEIPT: "Receipt",
+    CREDIT_INVOICE: "Credit Note",
+    UNKNOWN: "Unknown",
   },
 }
 

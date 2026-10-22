@@ -7,6 +7,7 @@ import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { useT } from "@/components/i18n/LocaleProvider"
 import { useExports } from "@/components/exports/ExportsProvider"
 import {
   deleteExport,
@@ -16,17 +17,18 @@ import {
 import ExportsRow from "./ExportsRow"
 import useGetExportHistory from "@/hooks/exports/useGetExportHistory"
 
-const STATUS_STYLE: Record<ExportHistoryItem["status"], { label: string; className: string }> = {
-  QUEUED: { label: "Queued", className: "bg-hover text-text-secondary" },
-  BUILDING: { label: "Building…", className: "bg-warning-bg text-warning-fg" },
-  READY: { label: "Ready", className: "bg-success-bg text-success-fg" },
-  EXPIRED: { label: "Expired", className: "bg-hover text-dim" },
-  FAILED: { label: "Failed", className: "bg-danger-bg text-danger-fg" },
+const STATUS_CLASS: Record<ExportHistoryItem["status"], string> = {
+  QUEUED: "bg-hover text-text-secondary",
+  BUILDING: "bg-warning-bg text-warning-fg",
+  READY: "bg-success-bg text-success-fg",
+  EXPIRED: "bg-hover text-dim",
+  FAILED: "bg-danger-bg text-danger-fg",
 }
 
 
 
 export function ExportsHistory() {
+  const t = useT()
   const { markReadyViewed } = useExports()
   const queryClient = useQueryClient()
   const [openIds, setOpenIds] = useState<Set<string>>(new Set())
@@ -86,15 +88,15 @@ export function ExportsHistory() {
   }
 
   if (isLoading) {
-    return <div className="text-text-secondary text-small">Loading exports…</div>
+    return <div className="text-text-secondary text-small">{t("exports.loading")}</div>
   }
   if (isError) {
-    return <div className="text-destructive text-small">Failed to load exports.</div>
+    return <div className="text-destructive text-small">{t("exports.loadError")}</div>
   }
   if (exports.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-text-secondary text-small">
-        No exports yet. Create one from the Invoices page.
+        {t("exports.empty")}
       </div>
     )
   }
@@ -108,7 +110,7 @@ export function ExportsHistory() {
       {selected.size > 0 && (
         <div className="flex items-center absolute bottom-4 left-1/2 justify-between z-50 shadow-lg gap-8 rounded-lg border border-border bg-white px-3.5 py-2">
           <span className="text-sm font-semibold text-text-secondary">
-            {selected.size} selected
+            {t("exports.selectedCount", { count: selected.size })}
           </span>
           <div className="flex items-center gap-2">
             <Button
@@ -117,7 +119,7 @@ export function ExportsHistory() {
               disabled={isPending}
               onClick={() => setSelected(new Set())}
             >
-              Clear
+              {t("exports.clear")}
             </Button>
             <Button
               variant="destructive"
@@ -127,7 +129,7 @@ export function ExportsHistory() {
               className="gap-1.5"
             >
               <Trash2 size={14} />
-              Delete
+              {t("exports.delete")}
             </Button>
           </div>
         </div>
@@ -136,32 +138,32 @@ export function ExportsHistory() {
       <div className="flex-1 min-h-0 overflow-auto border border-border rounded-lg bg-white">
         <table className="w-full text-[13px]">
           <thead className="sticky top-0 z-10 [&_th]:shadow-[inset_0_-1px_0_0_var(--border)]">
-            <tr className="text-left text-sm font-bold tracking-tight text-text-secondary bg-white">
+            <tr className="text-start text-sm font-bold tracking-tight text-text-secondary bg-white">
               <th className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={allSelected}
                   indeterminate={someSelected}
                   onCheckedChange={toggleSelectAll}
-                  aria-label="Select all exports"
+                  aria-label={t("exports.selectAll")}
                 />
               </th>
-              <th className="px-4 py-3">Format</th>
-              <th className="px-4 py-3">Date range</th>
-              <th className="px-4 py-3">Created</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">{t("exports.column.format")}</th>
+              <th className="px-4 py-3">{t("exports.column.dateRange")}</th>
+              <th className="px-4 py-3">{t("exports.column.created")}</th>
+              <th className="px-4 py-3">{t("exports.column.status")}</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-hover">
             {exports.map((e) => {
-              const className = STATUS_STYLE[e.status].className
+              const className = STATUS_CLASS[e.status]
               const open = openIds.has(e.id)
               return (
                 <ExportsRow
                   key={e.id}
                   item={e}
                   onDelete={() => setPendingDelete(e)}
-                  statusLabel={STATUS_STYLE[e.status].label}
+                  statusLabel={t(`exports.status.${e.status}`)}
                   open={open}
                   onToggle={() => toggle(e.id)}
                   className={className}
@@ -179,10 +181,10 @@ export function ExportsHistory() {
           open
           onOpenChange={(open) => !open && setPendingDelete(null)}
           destructive
-          title={`Delete ${selected.size} ${selected.size === 1 ? "export" : "exports"}?`}
-          description="This permanently removes the selected exports and their files."
-          confirmLabel="Delete"
-          pendingLabel="Deleting…"
+          title={t("exports.deleteDialog.bulkTitle", { count: selected.size })}
+          description={t("exports.deleteDialog.bulkDescription")}
+          confirmLabel={t("exports.delete")}
+          pendingLabel={t("exports.deleting")}
           isPending={bulkMutation.isPending}
           onConfirm={() => bulkMutation.mutate(Array.from(selected))}
         />
@@ -193,13 +195,14 @@ export function ExportsHistory() {
           open
           onOpenChange={(open) => !open && setPendingDelete(null)}
           destructive
-          title="Delete export?"
-          description={`This permanently removes the ${pendingDelete.format} export from ${formatDate(
-            new Date(pendingDelete.dateRangeStart),
-            "dd MMM yyyy"
-          )} – ${formatDate(new Date(pendingDelete.dateRangeEnd), "dd MMM yyyy")} and its file.`}
-          confirmLabel="Delete"
-          pendingLabel="Deleting…"
+          title={t("exports.deleteDialog.singleTitle")}
+          description={t("exports.deleteDialog.singleDescription", {
+            format: pendingDelete.format,
+            start: formatDate(new Date(pendingDelete.dateRangeStart), "dd MMM yyyy"),
+            end: formatDate(new Date(pendingDelete.dateRangeEnd), "dd MMM yyyy"),
+          })}
+          confirmLabel={t("exports.delete")}
+          pendingLabel={t("exports.deleting")}
           isPending={singleMutation.isPending}
           onConfirm={() => singleMutation.mutate(pendingDelete.id)}
         />
