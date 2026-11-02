@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { z } from "zod"
@@ -75,8 +76,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, response } = await requirePrivileged()
+  if (response) return response
   const { organizationId } = session.user
 
   const parsed = createSchema.safeParse(await request.json().catch(() => null))

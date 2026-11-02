@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
@@ -35,8 +35,8 @@ const patchSchema = z
   .strict()
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, response } = await requirePrivileged()
+  if (response) return response
   const { organizationId } = session.user
   const { id } = await params
 
@@ -89,8 +89,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, response } = await requirePrivileged()
+  if (response) return response
   const { organizationId } = session.user
   const { id } = await params
 
