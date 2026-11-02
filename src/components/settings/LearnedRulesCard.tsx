@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { useDeleteAlias } from "@/hooks/useDeleteAlias"
 import { useT } from "@/components/i18n/LocaleProvider"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import type { LearnedRule } from "@/api-types/settings"
 import { RuleChip } from "./RuleChip"
 
@@ -13,6 +14,7 @@ interface LearnedRulesCardProps {
 export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
   const t = useT()
   const deleteAlias = useDeleteAlias()
+  const privileged = useIsPrivileged()
 
   return (
     <Card className="ring-0 border border-border bg-surface shadow-none rounded-[14px] [--card-spacing:0]">
@@ -39,6 +41,7 @@ export function LearnedRulesCard({ rules }: LearnedRulesCardProps) {
               <RuleChip
                 key={rule.id}
                 rule={rule}
+                canDelete={privileged}
                 onRemove={() => deleteAlias.mutate(rule.id)}
                 removing={deleteAlias.isPending}
               />

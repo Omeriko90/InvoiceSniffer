@@ -13,6 +13,7 @@ import {
 import { SUPPORTED_DISPLAY_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/currency";
 import { useUpdateDisplayCurrency } from "@/hooks/useUpdateDisplayCurrency";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { useIsPrivileged } from "@/components/shared/RoleProvider";
 
 export function CurrencyPreferenceCard({
   displayCurrency,
@@ -22,6 +23,7 @@ export function CurrencyPreferenceCard({
   const t = useT();
   const [value, setValue] = useState(displayCurrency);
   const update = useUpdateDisplayCurrency();
+  const privileged = useIsPrivileged();
 
   const dirty = value !== displayCurrency;
 
@@ -49,6 +51,7 @@ export function CurrencyPreferenceCard({
           </label>
           <Select
             value={value}
+            disabled={!privileged}
             onValueChange={(v) => {
               if (v) setValue(v);
             }}
@@ -66,14 +69,18 @@ export function CurrencyPreferenceCard({
           </Select>
         </div>
 
-        <div className="mt-auto pt-4 flex justify-end">
-          <Button
-            onClick={save}
-            disabled={!dirty || update.isPending}
-          >
-            {update.isPending ? t("settings.currency.saving") : t("settings.currency.save")}
-          </Button>
-        </div>
+        {privileged ? (
+          <div className="mt-4">
+            <Button
+              onClick={save}
+              disabled={!dirty || update.isPending}
+            >
+              {update.isPending ? t("settings.currency.saving") : t("settings.currency.save")}
+            </Button>
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-text-secondary">Only admins can change this.</p>
+        )}
       </CardContent>
     </Card>
   );

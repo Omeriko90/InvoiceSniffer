@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useDisconnectGmail } from "@/hooks/useDisconnectGmail"
 import { useT } from "@/components/i18n/LocaleProvider"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import type { GmailConnection } from "@/api-types/settings"
 import { GoogleGlyph } from "./GoogleGlyph"
 import { ConnectedAccountPanel } from "./ConnectedAccountPanel"
@@ -16,6 +17,7 @@ interface GmailConnectionCardProps {
 export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectionCardProps) {
   const t = useT()
   const disconnect = useDisconnectGmail()
+  const privileged = useIsPrivileged()
 
   // Only *connected* mailboxes count against the plan cap — mirrors the
   // enforcement in the OAuth callback. A soft-disconnected account is free to
@@ -42,7 +44,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               <p className="self-start text-xs text-text-secondary mt-0.5">
                 {t("settings.gmail.limitReached", { count: maxGmailAccounts })}
               </p>
-            ) : (
+            ) : privileged ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -51,7 +53,7 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
               >
                 {t("settings.gmail.addAccount")}
               </Button>
-            )}
+            ) : null}
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-[12px] border border-border bg-hover px-4 py-3.5">
@@ -62,17 +64,21 @@ export function GmailConnectionCard({ gmails, maxGmailAccounts }: GmailConnectio
                 {t("settings.gmail.notConnectedHint")}
               </p>
             </div>
-            <Button
-              size="sm"
-              className="shrink-0"
-              onClick={() => { window.location.href = "/api/gmail/connect" }}
-            >
-              {t("settings.gmail.connect")}
-            </Button>
+            {privileged ? (
+              <Button
+                size="sm"
+                className="shrink-0"
+                onClick={() => { window.location.href = "/api/gmail/connect" }}
+              >
+                {t("settings.gmail.connect")}
+              </Button>
+            ) : (
+              <span className="shrink-0 text-xs text-text-secondary">Ask an admin to connect</span>
+            )}
           </div>
         )}
 
-        <div className="mt-3.5 rounded-[12px] border border-border bg-background px-4 py-3.5">
+        <div className="mt-3.5 rounded-xl border border-border bg-background px-4 py-3.5">
           <p className="text-sm text-text-secondary leading-[1.55]">
             {t("settings.gmail.privacyNote")}
           </p>

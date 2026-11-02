@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useUpdateSettlementLag } from "@/hooks/useUpdateSettlementLag";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { useIsPrivileged } from "@/components/shared/RoleProvider";
 
 const OPTIONS = [30, 45, 60, 90, 180];
 
@@ -26,6 +27,7 @@ export function ReconcileSettingsCard({
   const t = useT();
   const [value, setValue] = useState(String(settlementLagDays));
   const update = useUpdateSettlementLag();
+  const privileged = useIsPrivileged();
 
   const parsed = Number(value);
   const dirty = parsed !== settlementLagDays;
@@ -54,6 +56,7 @@ export function ReconcileSettingsCard({
           </label>
           <Select
             value={value}
+            disabled={!privileged}
             onValueChange={(v) => {
               if (v) setValue(v);
             }}
@@ -72,14 +75,18 @@ export function ReconcileSettingsCard({
           <span>{t("settings.reconcile.days")}</span>
         </div>
 
-        <div className="mt-auto pt-4 flex justify-end">
-          <Button
-            onClick={save}
-            disabled={!dirty || update.isPending}
-          >
-            {update.isPending ? t("settings.reconcile.saving") : t("settings.reconcile.save")}
-          </Button>
-        </div>
+        {privileged ? (
+          <div className="mt-4">
+            <Button
+              onClick={save}
+              disabled={!dirty || update.isPending}
+            >
+              {update.isPending ? t("settings.reconcile.saving") : t("settings.reconcile.save")}
+            </Button>
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-text-secondary">Only admins can change this.</p>
+        )}
       </CardContent>
     </Card>
   );
