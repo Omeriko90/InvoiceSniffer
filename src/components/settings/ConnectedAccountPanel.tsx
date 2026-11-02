@@ -5,6 +5,7 @@ import { DangerButton } from "@/components/ui/danger-button"
 import type { GmailConnection } from "@/api-types/settings"
 import { useGmailSync } from "@/hooks/useGmailSync"
 import { useT } from "@/components/i18n/LocaleProvider"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import { GoogleGlyph } from "./GoogleGlyph"
 import { syncedDistance } from "./helpers"
 
@@ -18,6 +19,7 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
   const t = useT()
   const sync = useGmailSync()
   const syncing = sync.isPending && sync.variables === gmail.id
+  const privileged = useIsPrivileged()
 
   // Soft-disconnected (e.g. refresh token expired/revoked): the account can't
   // sync until the user re-authorizes, so we surface an out-of-sync state with a
@@ -32,19 +34,23 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
             {t("settings.gmail.outOfSync")}
           </p>
         </div>
-        <Button
-          onClick={() => { window.location.href = "/api/gmail/connect" }}
-          className="shrink-0"
-        >
-          {t("settings.gmail.reconnect")}
-        </Button>
-        <DangerButton
-          onClick={onDisconnect}
-          disabled={disconnecting}
-          className="shrink-0"
-        >
-          {disconnecting ? t("settings.gmail.removing") : t("settings.gmail.remove")}
-        </DangerButton>
+        {privileged && (
+          <>
+            <Button
+              onClick={() => { window.location.href = "/api/gmail/connect" }}
+              className="shrink-0"
+            >
+              {t("settings.gmail.reconnect")}
+            </Button>
+            <DangerButton
+              onClick={onDisconnect}
+              disabled={disconnecting}
+              className="shrink-0"
+            >
+              {disconnecting ? t("settings.gmail.removing") : t("settings.gmail.remove")}
+            </DangerButton>
+          </>
+        )}
       </div>
     )
   }
@@ -65,21 +71,25 @@ export function ConnectedAccountPanel({ gmail, onDisconnect, disconnecting }: Co
           })}
         </p>
       </div>
-      <Button
-        variant="successOutline"
-        onClick={() => sync.mutate(gmail.id)}
-        disabled={syncing}
-        className="shrink-0"
-      >
-        {syncing ? t("settings.gmail.syncing") : t("settings.gmail.syncNow")}
-      </Button>
-      <DangerButton
-        onClick={onDisconnect}
-        disabled={disconnecting}
-        className="shrink-0"
-      >
-        {disconnecting ? t("settings.gmail.disconnecting") : t("settings.gmail.disconnect")}
-      </DangerButton>
+      {privileged && (
+        <>
+          <Button
+            variant="successOutline"
+            onClick={() => sync.mutate(gmail.id)}
+            disabled={syncing}
+            className="shrink-0"
+          >
+            {syncing ? t("settings.gmail.syncing") : t("settings.gmail.syncNow")}
+          </Button>
+          <DangerButton
+            onClick={onDisconnect}
+            disabled={disconnecting}
+            className="shrink-0"
+          >
+            {disconnecting ? t("settings.gmail.disconnecting") : t("settings.gmail.disconnect")}
+          </DangerButton>
+        </>
+      )}
     </div>
   )
 }

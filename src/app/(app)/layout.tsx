@@ -6,6 +6,7 @@ import { PostHogIdentify } from "@/components/shared/PostHogIdentify"
 import { PageViewTracker } from "@/components/shared/PageViewTracker"
 import { ExportsProvider } from "@/components/exports/ExportsProvider"
 import { getT } from "@/lib/i18n/getLocale.server"
+import { RoleProvider } from "@/components/shared/RoleProvider"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -18,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     : session.user.email?.[0]?.toUpperCase() ?? "?"
 
   return (
+    <RoleProvider role={session.user.role}>
     <ExportsProvider>
     <div className="h-screen flex overflow-hidden">
       <PostHogIdentify
@@ -41,5 +43,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
     </div>
     </ExportsProvider>
+    </RoleProvider>
   )
 }

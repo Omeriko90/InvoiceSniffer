@@ -28,6 +28,7 @@ import {
   useLinkInvoiceToFixedExpense,
 } from "@/hooks/useFixedExpenseTimeline"
 import { InvoiceDetailDrawer } from "@/components/invoices/InvoiceDetailsDrawer/InvoiceDetailDrawer"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import { useInvoice } from "@/hooks/useInvoice"
 import { queries } from "@/queries"
 import { FixedExpenseStatusBadge } from "./FixedExpenseStatusBadge"
@@ -76,6 +77,7 @@ export function FixedExpenseDetailDrawer({
   const queryClient = useQueryClient()
   const update = useUpdateFixedExpense()
   const remove = useDeleteFixedExpense()
+  const privileged = useIsPrivileged()
   const timeline = useFixedExpenseTimeline(expense.id)
   const link = useLinkInvoiceToFixedExpense(expense.id)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -140,7 +142,7 @@ export function FixedExpenseDetailDrawer({
           <SheetTitle className="text-base font-bold text-heading truncate">{expense.name}</SheetTitle>
           {paused && (
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xs font-bold text-dim">t("fixed_expenses.paused")</span>
+              <span className="text-xs font-bold text-dim">{t("fixed_expenses.paused")}</span>
             </div>
           )}
         </div>
@@ -253,36 +255,38 @@ export function FixedExpenseDetailDrawer({
         )}
       </div>
 
-      {/* Footer actions */}
-      <div className="flex flex-col gap-2.5 px-5.5 py-4 border-t border-hover shrink-0">
-        <div className="flex gap-2.5">
+      {/* Footer actions — admin only; members get a read-only drawer. */}
+      {privileged && (
+        <div className="flex flex-col gap-2.5 px-5.5 py-4 border-t border-hover shrink-0">
+          <div className="flex gap-2.5">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={onEdit}
+            >
+              <Pencil size={15} strokeWidth={1.8} />
+              {t("fixed_expenses.detail.edit")}
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={update.isPending}
+              onClick={togglePause}
+            >
+              {paused ? <Play size={15} strokeWidth={1.8} /> : <Pause size={15} strokeWidth={1.8} />}
+              {paused ? t("fixed_expenses.detail.resume") : t("fixed_expenses.detail.pause")}
+            </Button>
+          </div>
           <Button
-            variant="outline"
-            className="flex-1"
-            onClick={onEdit}
+            variant="ghostDanger"
+            disabled={remove.isPending}
+            onClick={() => setConfirmDelete(true)}
           >
-            <Pencil size={15} strokeWidth={1.8} />
-            {t("fixed_expenses.detail.edit")}
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            disabled={update.isPending}
-            onClick={togglePause}
-          >
-            {paused ? <Play size={15} strokeWidth={1.8} /> : <Pause size={15} strokeWidth={1.8} />}
-            {paused ? t("fixed_expenses.detail.resume") : t("fixed_expenses.detail.pause")}
+            <Trash2 size={14} strokeWidth={1.8} />
+            {t("fixed_expenses.detail.delete")}
           </Button>
         </div>
-        <Button
-          variant="ghostDanger"
-          disabled={remove.isPending}
-          onClick={() => setConfirmDelete(true)}
-        >
-          <Trash2 size={14} strokeWidth={1.8} />
-          {t("fixed_expenses.detail.delete")}
-        </Button>
-      </div>
+      )}
 
       {/* Delete confirmation */}
       {confirmDelete && (

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { requirePrivileged } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { listGmailCredentials } from "@/lib/gmail"
 import { gmailSyncQueue, type GmailSyncJobData } from "@/lib/queues"
@@ -8,8 +9,8 @@ import { NextRequest, NextResponse } from "next/server"
 
 // POST /api/gmail/sync — trigger a manual sync for one connected mailbox
 export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, response } = await requirePrivileged()
+  if (response) return response
 
   const { organizationId } = session.user
 

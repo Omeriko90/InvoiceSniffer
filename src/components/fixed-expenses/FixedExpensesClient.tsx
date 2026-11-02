@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { CategoryBadge } from "@/components/invoices/CategoryBadge"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import { fmtAmount } from "@/components/invoices/helpers"
 import { type FixedExpenseFrequency } from "@/lib/fixed-expense-meta"
 import { useT } from "@/components/i18n/LocaleProvider"
@@ -48,6 +49,7 @@ export function FixedExpensesClient({
     { value: "PAUSED", label: t("fixed_expenses.filter.paused") },
   ]
   const router = useRouter()
+  const privileged = useIsPrivileged()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selected, setSelected] = useState<FixedExpenseRow | null>(null)
@@ -106,10 +108,12 @@ export function FixedExpensesClient({
           </SelectContent>
         </Select>
         <div className="flex-1" />
-        <Button onClick={openCreate}>
-          <Plus size={15} strokeWidth={2} />
-          {t("fixed_expenses.toolbar.new")}
-        </Button>
+        {privileged && (
+          <Button onClick={openCreate}>
+            <Plus size={15} strokeWidth={2} />
+            {t("fixed_expenses.toolbar.new")}
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -133,7 +137,7 @@ export function FixedExpensesClient({
         </div>
 
         {filtered.length === 0 ? (
-          <EmptyState onCreate={openCreate} hasAny={expenses.length > 0} />
+          <EmptyState onCreate={openCreate} hasAny={expenses.length > 0} canCreate={privileged} />
         ) : (
           filtered.map((expense) => (
             <Button
@@ -192,7 +196,7 @@ export function FixedExpensesClient({
 }
 
 // Client component by import — only ever rendered from <FixedExpensesClient>.
-function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolean }) {
+function EmptyState({ onCreate, hasAny, canCreate }: { onCreate: () => void; hasAny: boolean; canCreate: boolean }) {
   const t = useT()
   return (
     <div className="flex flex-col items-center justify-center text-center py-14 px-6">
@@ -207,7 +211,7 @@ function EmptyState({ onCreate, hasAny }: { onCreate: () => void; hasAny: boolea
           ? t("fixed_expenses.empty.no_matches_body")
           : t("fixed_expenses.empty.body")}
       </p>
-      {!hasAny && (
+      {!hasAny && canCreate && (
         <Button onClick={onCreate}>
           <Plus size={15} strokeWidth={2} />
           {t("fixed_expenses.toolbar.new")}

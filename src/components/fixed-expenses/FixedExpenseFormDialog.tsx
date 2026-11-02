@@ -29,6 +29,7 @@ import { useCreateFixedExpense } from "@/hooks/useCreateFixedExpense"
 import { useUpdateFixedExpense } from "@/hooks/useUpdateFixedExpense"
 import { useFixedExpensesList } from "@/hooks/useFixedExpensesList"
 import { useAbsorbInvoice } from "@/hooks/useAbsorbInvoice"
+import { useIsPrivileged } from "@/components/shared/RoleProvider"
 import {
   CATEGORY_SELECTABLE,
   INVOICE_CATEGORIES,
@@ -131,6 +132,9 @@ export function FixedExpenseFormDialog({
 
   // Drawer flow only: offer linking this invoice to an existing expense.
   const canLinkExisting = Boolean(linkInvoiceId) && !isEdit
+  // Members may only link to an existing fixed expense, never create one.
+  const privileged = useIsPrivileged()
+  const memberLinkOnly = canLinkExisting && !privileged
   const existingList = useFixedExpensesList(canLinkExisting)
   const existing = existingList.data?.expenses ?? []
   // Which existing expense is selected ("" = none, i.e. create a new one).
@@ -254,7 +258,15 @@ export function FixedExpenseFormDialog({
           >
             {t("fixed_expenses.form.cancel")}
           </Button>
-          {locked ? (
+          {memberLinkOnly ? (
+            <Button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={!selected || absorb.isPending}
+            >
+              Link
+            </Button>
+          ) : locked ? (
             <Button
               type="button"
               onClick={() => setConfirmOpen(true)}
@@ -271,6 +283,37 @@ export function FixedExpenseFormDialog({
       }
     >
         <div className="px-5.5 py-4.5 flex flex-col gap-3.25 max-h-[62vh] overflow-y-auto">
+          {memberLinkOnly ? (
+            existingList.isLoading ? (
+              <p className="text-sm text-text-secondary">Loading…</p>
+            ) : existing.length === 0 ? (
+              <p className="text-sm text-text-secondary">
+                Ask an admin to create a fixed expense first, then you can link this invoice to it.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-1.25">
+                <Label className={fieldLabel}>Link to an existing fixed expense</Label>
+                <Select
+                  items={existing.map((e) => ({ value: e.id, label: e.name }))}
+                  value={selectedId}
+                  onValueChange={onSelectExisting}
+                >
+                  <SelectTrigger className={fieldTrigger}>
+                    <SelectValue placeholder="Choose a fixed expense" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {existing.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-dim">
+                  This invoice will be attached to the fixed expense you choose.
+                </p>
+              </div>
+            )
+          ) : (
+          <>
           {/* Link to an existing expense (drawer flow, only when some exist) */}
           {canLinkExisting && existing.length > 0 && (
             <div className="flex flex-col gap-1.25">
@@ -419,6 +462,8 @@ export function FixedExpenseFormDialog({
             <p className="text-xs text-dim">{t("fixed_expenses.form.grace_help")}</p>
           </div>
           </fieldset>
+          </>
+          )}
         </div>
     </FormDialog>
 
