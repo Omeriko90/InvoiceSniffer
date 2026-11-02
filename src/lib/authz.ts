@@ -1,12 +1,7 @@
 import type { Session } from "next-auth"
-import type { UserRole } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-
-// Roles allowed to perform privileged/administrative actions — the Gmail
-// connection lifecycle, member management, and destructive settings changes.
-// Regular MEMBERs can read and work with data but not reconfigure the org.
-const PRIVILEGED_ROLES: readonly UserRole[] = ["OWNER", "ADMIN"]
+import { isPrivilegedRole } from "@/lib/roles"
 
 type AuthzResult =
   | { session: Session; response?: undefined }
@@ -29,7 +24,7 @@ export async function requireSession(): Promise<AuthzResult> {
 export async function requirePrivileged(): Promise<AuthzResult> {
   const result = await requireSession()
   if (result.response) return result
-  if (!PRIVILEGED_ROLES.includes(result.session.user.role)) {
+  if (!isPrivilegedRole(result.session.user.role)) {
     return { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
   return { session: result.session }
